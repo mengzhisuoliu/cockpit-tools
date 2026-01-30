@@ -628,16 +628,24 @@ function updateFile(fileName) {
     const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
     let modified = false;
 
-    // Helper to safely set nested keys
+    // Helper to safely set nested keys (guard prototype pollution)
+    const BLOCKED_KEYS = new Set(['__proto__', 'prototype', 'constructor']);
+    const isSafeKey = (key) => !BLOCKED_KEYS.has(key);
     const setKey = (obj, path, value) => {
       const keys = path.split('.');
       let current = obj;
       for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) current[keys[i]] = {};
-        current = current[keys[i]];
+        const key = keys[i];
+        if (!isSafeKey(key)) return false;
+        if (!Object.prototype.hasOwnProperty.call(current, key) || !current[key]) {
+          current[key] = Object.create(null);
+        }
+        current = current[key];
       }
-      if (!current[keys[keys.length - 1]]) {
-        current[keys[keys.length - 1]] = value;
+      const lastKey = keys[keys.length - 1];
+      if (!isSafeKey(lastKey)) return false;
+      if (!Object.prototype.hasOwnProperty.call(current, lastKey)) {
+        current[lastKey] = value;
         return true;
       }
       return false;
@@ -646,12 +654,17 @@ function updateFile(fileName) {
       const keys = path.split('.');
       let current = obj;
       for (let i = 0; i < keys.length - 1; i++) {
-        if (!current[keys[i]]) current[keys[i]] = {};
-        current = current[keys[i]];
+        const key = keys[i];
+        if (!isSafeKey(key)) return false;
+        if (!Object.prototype.hasOwnProperty.call(current, key) || !current[key]) {
+          current[key] = Object.create(null);
+        }
+        current = current[key];
       }
       const lastKey = keys[keys.length - 1];
+      if (!isSafeKey(lastKey)) return false;
       const existing = current[lastKey];
-      if (!existing || existing === englishValue) {
+      if (!Object.prototype.hasOwnProperty.call(current, lastKey) || existing === englishValue) {
         current[lastKey] = value;
         return true;
       }
