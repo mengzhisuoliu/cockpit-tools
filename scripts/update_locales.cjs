@@ -21,6 +21,7 @@ const translations = {
     settings_general_closeBehavior: "سلوك الإغلاق",
     settings_general_closeBehaviorDesc: "اختر الإجراء عند إغلاق النافذة",
     settings_general_closeBehaviorAsk: "اسأل في كل مرة",
+    
     settings_general_closeBehaviorMinimize: "تصغير إلى الدرج",
     settings_general_closeBehaviorQuit: "إنهاء التطبيق",
     settings_general_opencodeAppPathDesc: "اتركه فارغًا لاستخدام المسار الافتراضي",
