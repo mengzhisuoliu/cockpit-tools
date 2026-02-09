@@ -164,20 +164,9 @@ fn launch_vscode_default() -> Result<(), String> {
     use std::process::Command;
     use std::os::windows::process::CommandExt;
 
-    // Try "code" from PATH first, then detect installed path
-    let launch_path = if let Ok(output) = Command::new("where").arg("code").output() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let first_line = stdout.lines().next().unwrap_or("").trim();
-        if !first_line.is_empty() && std::path::Path::new(first_line).exists() {
-            first_line.to_string()
-        } else {
-            "code".to_string()
-        }
-    } else {
-        "code".to_string()
-    };
-
-    Command::new(&launch_path)
+    // "code" on Windows is a .cmd script, must run via cmd.exe
+    Command::new("cmd")
+        .args(["/C", "code"])
         .creation_flags(0x08000000) // CREATE_NO_WINDOW
         .spawn()
         .map_err(|e| format!("Failed to launch VS Code: {}", e))?;
