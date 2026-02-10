@@ -1239,7 +1239,7 @@ fn pick_preferred_pid(mut pids: Vec<u32>) -> Option<u32> {
     pids.first().copied()
 }
 
-pub fn resolve_antigravity_pid_from_entries(
+fn resolve_pid_from_entries_by_user_data_dir(
     last_pid: Option<u32>,
     user_data_dir: Option<&str>,
     entries: &[(u32, Option<String>)],
@@ -1279,14 +1279,17 @@ pub fn resolve_antigravity_pid_from_entries(
     pick_preferred_pid(matches)
 }
 
+pub fn resolve_antigravity_pid_from_entries(
+    last_pid: Option<u32>,
+    user_data_dir: Option<&str>,
+    entries: &[(u32, Option<String>)],
+) -> Option<u32> {
+    resolve_pid_from_entries_by_user_data_dir(last_pid, user_data_dir, entries)
+}
+
 pub fn resolve_antigravity_pid(last_pid: Option<u32>, user_data_dir: Option<&str>) -> Option<u32> {
-    if let Some(pid) = last_pid {
-        if is_pid_running(pid) {
-            return Some(pid);
-        }
-    }
     let entries = collect_antigravity_process_entries();
-    resolve_antigravity_pid_from_entries(None, user_data_dir, &entries)
+    resolve_antigravity_pid_from_entries(last_pid, user_data_dir, &entries)
 }
 
 #[cfg(target_os = "macos")]
@@ -1697,102 +1700,12 @@ pub fn resolve_vscode_pid_from_entries(
     user_data_dir: &str,
     entries: &[(u32, Option<String>)],
 ) -> Option<u32> {
-    let target = normalize_path_for_compare(user_data_dir);
-    if target.is_empty() {
-        return None;
-    }
-
-    if let Some(pid) = last_pid {
-        if is_pid_running(pid)
-            && (entries.iter().any(|(entry_pid, dir)| {
-                *entry_pid == pid && dir.as_ref().map(|value| value == &target).unwrap_or(false)
-            }) || is_vscode_pid_for_user_data_dir(pid, &target))
-        {
-            return Some(pid);
-        }
-    }
-
-    let mut matches = Vec::new();
-    for (pid, dir) in entries {
-        if let Some(dir) = dir {
-            if dir == &target {
-                matches.push(*pid);
-            }
-        } else if is_vscode_pid_for_user_data_dir(*pid, &target) {
-            matches.push(*pid);
-        }
-    }
-
-    pick_preferred_pid(matches)
+    resolve_pid_from_entries_by_user_data_dir(last_pid, Some(user_data_dir), entries)
 }
 
 pub fn resolve_vscode_pid(last_pid: Option<u32>, user_data_dir: &str) -> Option<u32> {
     let entries = collect_vscode_process_entries();
     resolve_vscode_pid_from_entries(last_pid, user_data_dir, &entries)
-}
-
-fn is_vscode_pid_for_user_data_dir(pid: u32, target: &str) -> bool {
-    if pid == 0 || target.is_empty() || !is_pid_running(pid) {
-        return false;
-    }
-
-    let mut system = System::new();
-    system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
-    let process = match system.process(Pid::from_u32(pid)) {
-        Some(value) => value,
-        None => return false,
-    };
-
-    #[cfg(any(target_os = "windows", target_os = "linux"))]
-    let name = process.name().to_string_lossy().to_lowercase();
-    let exe_path = process
-        .exe()
-        .and_then(|p| p.to_str())
-        .unwrap_or("")
-        .to_lowercase();
-    let args_str = process
-        .cmd()
-        .iter()
-        .map(|arg| arg.to_string_lossy().to_lowercase())
-        .collect::<Vec<String>>()
-        .join(" ");
-    let is_helper = is_helper_command_line(&args_str) || args_str.contains("crashpad");
-
-    #[cfg(target_os = "macos")]
-    let is_vscode = exe_path.contains("visual studio code.app/contents/macos/");
-    #[cfg(target_os = "windows")]
-    let is_vscode = name == "code.exe" || exe_path.ends_with("\\code.exe");
-    #[cfg(target_os = "linux")]
-    let is_vscode = name == "code" || exe_path.ends_with("/code");
-
-    if !is_vscode || is_helper {
-        return false;
-    }
-
-    let args = process.cmd();
-    let dir = extract_user_data_dir(args)
-        .map(|value| normalize_path_for_compare(&value))
-        .filter(|value| !value.is_empty());
-    if let Some(value) = dir {
-        return value == target;
-    }
-
-    is_default_vscode_user_data_dir(target)
-}
-
-fn is_default_vscode_user_data_dir(target: &str) -> bool {
-    if target.is_empty() {
-        return false;
-    }
-
-    let default_dir = get_default_vscode_user_data_dir_for_os()
-        .map(|value| normalize_path_for_compare(&value))
-        .filter(|value| !value.is_empty());
-
-    match default_dir {
-        Some(default_dir) => default_dir == target,
-        None => false,
-    }
 }
 
 fn get_default_vscode_user_data_dir_for_os() -> Option<String> {
@@ -4188,6 +4101,13 @@ pub fn start_vscode_default_with_args_with_new_window(
 pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     let _ = timeout_secs;
+    let default_dir = get_default_vscode_user_data_dir_for_os()
+        .map(|value| normalize_path_for_compare(&value))
+        .filter(|value| !value.is_empty());
+    crate::modules::logger::log_info(&format!(
+        "[VSCode Close] default_dir={:?}",
+        default_dir
+    ));
     close_managed_instances_common(
         "VSCode Close",
         "正在关闭 VS Code...",
@@ -4199,40 +4119,35 @@ pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), 
         timeout_secs,
         collect_vscode_process_entries,
         |entries, target_dirs| {
-            let mut grouped: HashMap<String, Vec<u32>> = HashMap::new();
-            for (pid, dir) in entries {
-                if let Some(dir) = dir {
-                    if target_dirs.contains(dir) {
-                        grouped.entry(dir.clone()).or_default().push(*pid);
-                    }
-                    continue;
-                }
-                for target in target_dirs {
-                    if is_vscode_pid_for_user_data_dir(*pid, target) {
-                        grouped.entry(target.clone()).or_default().push(*pid);
-                        break;
-                    }
-                }
-            }
-            let mut pids: Vec<u32> = Vec::new();
-            for (_, group) in grouped {
-                if let Some(pid) = pick_preferred_pid(group) {
-                    pids.push(pid);
-                }
-            }
-            pids
+            entries
+                .iter()
+                .filter_map(|(pid, dir)| {
+                    let resolved_dir = dir
+                        .as_ref()
+                        .map(|value| normalize_path_for_compare(value))
+                        .filter(|value| !value.is_empty())
+                        .or_else(|| default_dir.clone());
+                    resolved_dir
+                        .as_ref()
+                        .map(|value| target_dirs.contains(value))
+                        .unwrap_or(false)
+                        .then_some(*pid)
+                })
+                .collect()
         },
         |target_dirs| {
             collect_vscode_process_entries()
                 .into_iter()
-                .filter(|(pid, dir)| {
-                    if let Some(dir) = dir {
-                        target_dirs.contains(dir)
-                    } else {
-                        target_dirs
-                            .iter()
-                            .any(|target| is_vscode_pid_for_user_data_dir(*pid, target))
-                    }
+                .filter(|(_, dir)| {
+                    let resolved_dir = dir
+                        .as_ref()
+                        .map(|value| normalize_path_for_compare(value))
+                        .filter(|value| !value.is_empty())
+                        .or_else(|| default_dir.clone());
+                    resolved_dir
+                        .as_ref()
+                        .map(|value| target_dirs.contains(value))
+                        .unwrap_or(false)
                 })
                 .collect()
         },
