@@ -976,6 +976,238 @@ fn normalize_path_for_compare(raw: &str) -> String {
     }
 }
 
+#[cfg(target_os = "windows")]
+#[derive(Debug, Clone)]
+struct WindowsPathMatchPolicy {
+    raw_path: String,
+    expected_exe_name: String,
+    exact_paths: HashSet<String>,
+    parent_dirs: HashSet<String>,
+}
+
+#[cfg(target_os = "windows")]
+fn escape_powershell_single_quoted(raw: &str) -> String {
+    raw.replace('\'', "''")
+}
+
+#[cfg(target_os = "windows")]
+fn resolve_windows_shortcut_target(shortcut_path: &str) -> Option<String> {
+    use std::os::windows::process::CommandExt;
+
+    let escaped = escape_powershell_single_quoted(shortcut_path);
+    let command = format!(
+        "$s=(New-Object -ComObject WScript.Shell).CreateShortcut('{escaped}');$s.TargetPath"
+    );
+    let output = Command::new("powershell")
+        .args(["-NoProfile", "-Command", &command])
+        .creation_flags(0x08000000)
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let target = stdout.trim();
+    if target.is_empty() {
+        None
+    } else {
+        Some(target.to_string())
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn build_windows_path_match_policy(app: &str, expected_exe_name: &str) -> Option<WindowsPathMatchPolicy> {
+    let config = config::get_user_config();
+    let raw_path = match app {
+        "antigravity" => config.antigravity_app_path,
+        "vscode" => config.vscode_app_path,
+        _ => String::new(),
+    };
+    let raw_path = raw_path.trim().trim_matches('"').to_string();
+    if raw_path.is_empty() {
+        return None;
+    }
+
+    let mut candidates = vec![raw_path.clone()];
+    if raw_path.to_lowercase().ends_with(".lnk") {
+        if let Some(resolved) = resolve_windows_shortcut_target(&raw_path) {
+            candidates.push(resolved);
+        }
+    }
+
+    let mut exact_paths = HashSet::new();
+    let mut parent_dirs = HashSet::new();
+    for candidate in candidates {
+        let trimmed = candidate.trim().trim_matches('"');
+        if trimmed.is_empty() {
+            continue;
+        }
+        let normalized = normalize_path_for_compare(trimmed);
+        if normalized.is_empty() {
+            continue;
+        }
+        if normalized.ends_with(expected_exe_name) {
+            exact_paths.insert(normalized.clone());
+            if let Some(parent) = Path::new(&normalized).parent() {
+                let parent_normalized = normalize_path_for_compare(&parent.to_string_lossy());
+                if !parent_normalized.is_empty() {
+                    parent_dirs.insert(parent_normalized);
+                }
+            }
+        } else if Path::new(&normalized).is_dir() {
+            parent_dirs.insert(normalized.clone());
+        } else if let Some(parent) = Path::new(&normalized).parent() {
+            let parent_normalized = normalize_path_for_compare(&parent.to_string_lossy());
+            if !parent_normalized.is_empty() {
+                parent_dirs.insert(parent_normalized);
+            }
+        }
+    }
+
+    Some(WindowsPathMatchPolicy {
+        raw_path,
+        expected_exe_name: expected_exe_name.to_string(),
+        exact_paths,
+        parent_dirs,
+    })
+}
+
+#[cfg(target_os = "windows")]
+fn query_windows_exe_path_by_pid(pid: u32) -> Option<String> {
+    use std::os::windows::process::CommandExt;
+
+    if pid == 0 {
+        return None;
+    }
+    let command = format!(
+        "$p=Get-CimInstance Win32_Process -Filter \"ProcessId={}\"; if ($p) {{ $p.ExecutablePath }}",
+        pid
+    );
+    let output = Command::new("powershell")
+        .args(["-NoProfile", "-Command", &command])
+        .creation_flags(0x08000000)
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let path = stdout.trim();
+    if path.is_empty() {
+        None
+    } else {
+        let normalized = normalize_path_for_compare(path);
+        if normalized.is_empty() {
+            None
+        } else {
+            Some(normalized)
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn collect_process_exe_map_by_pids(pids: &[u32]) -> HashMap<u32, String> {
+    let mut result = HashMap::new();
+    if pids.is_empty() {
+        return result;
+    }
+
+    let mut system = System::new();
+    system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+    for pid in pids {
+        if let Some(process) = system.process(Pid::from_u32(*pid)) {
+            if let Some(exe) = process.exe() {
+                let normalized = normalize_path_for_compare(&exe.to_string_lossy());
+                if !normalized.is_empty() {
+                    result.insert(*pid, normalized);
+                    continue;
+                }
+            }
+        }
+        if let Some(exe) = query_windows_exe_path_by_pid(*pid) {
+            result.insert(*pid, exe);
+        }
+    }
+
+    result
+}
+
+#[cfg(target_os = "windows")]
+fn pid_matches_windows_path_policy(
+    pid: u32,
+    policy: &WindowsPathMatchPolicy,
+    exe_map: &HashMap<u32, String>,
+) -> bool {
+    let exe = match exe_map.get(&pid) {
+        Some(value) => value,
+        None => return false,
+    };
+    if policy.exact_paths.contains(exe) {
+        return true;
+    }
+
+    let exe_name = Path::new(exe)
+        .file_name()
+        .and_then(|value| value.to_str())
+        .map(|value| value.to_lowercase())
+        .unwrap_or_default();
+    if exe_name != policy.expected_exe_name {
+        return false;
+    }
+
+    let parent = Path::new(exe)
+        .parent()
+        .map(|value| normalize_path_for_compare(&value.to_string_lossy()))
+        .unwrap_or_default();
+    !parent.is_empty() && policy.parent_dirs.contains(&parent)
+}
+
+#[cfg(target_os = "windows")]
+fn filter_pids_by_windows_config_path(
+    app: &str,
+    expected_exe_name: &str,
+    pids: &[u32],
+) -> Vec<u32> {
+    let mut candidates: Vec<u32> = pids.to_vec();
+    candidates.sort();
+    candidates.dedup();
+    if candidates.is_empty() {
+        return candidates;
+    }
+
+    let policy = match build_windows_path_match_policy(app, expected_exe_name) {
+        Some(value) => value,
+        None => {
+            crate::modules::logger::log_info(&format!(
+                "[ClosePath] {} 未配置路径，使用默认匹配策略",
+                app
+            ));
+            return candidates;
+        }
+    };
+
+    let exe_map = collect_process_exe_map_by_pids(&candidates);
+    let mut matched = Vec::new();
+    for pid in &candidates {
+        if pid_matches_windows_path_policy(*pid, &policy, &exe_map) {
+            matched.push(*pid);
+        }
+    }
+    if !matched.is_empty() {
+        crate::modules::logger::log_info(&format!(
+            "[ClosePath] {} 命中配置路径过滤: raw='{}' matched_pids={:?}",
+            app, policy.raw_path, matched
+        ));
+        return matched;
+    }
+
+    crate::modules::logger::log_warn(&format!(
+        "[ClosePath] {} 配置路径未命中运行进程，回退默认匹配: raw='{}' candidates={:?}",
+        app, policy.raw_path, candidates
+    ));
+    candidates
+}
+
 fn is_helper_command_line(cmdline_lower: &str) -> bool {
     cmdline_lower.contains("--type=")
         || cmdline_lower.contains("helper")
@@ -2371,10 +2603,10 @@ fn get_antigravity_pids() -> Vec<u32> {
     pids
 }
 
-fn collect_antigravity_main_pids() -> Vec<u32> {
+fn collect_antigravity_main_pids() -> (Vec<u32>, HashMap<u32, String>) {
     let entries = collect_antigravity_process_entries();
     if entries.is_empty() {
-        return Vec::new();
+        return (Vec::new(), HashMap::new());
     }
 
     let mut groups: HashMap<String, Vec<u32>> = HashMap::new();
@@ -2388,36 +2620,105 @@ fn collect_antigravity_main_pids() -> Vec<u32> {
     }
 
     let mut result: Vec<u32> = Vec::new();
-    for (_, pids) in groups {
+    let mut pid_dirs: HashMap<u32, String> = HashMap::new();
+    for (dir, pids) in groups {
         if let Some(pid) = pick_preferred_pid(pids) {
             result.push(pid);
+            if !dir.is_empty() {
+                pid_dirs.insert(pid, dir);
+            }
         }
     }
     result.sort();
     result.dedup();
-    result
+    (result, pid_dirs)
 }
 
 /// 关闭 Antigravity 进程
 pub fn close_antigravity(timeout_secs: u64) -> Result<(), String> {
-    #[cfg(target_os = "windows")]
-    let _ = timeout_secs; // Silence unused warning on Windows
     crate::modules::logger::log_info("正在关闭 Antigravity...");
 
-    let pids = collect_antigravity_main_pids();
-    if pids.is_empty() {
+    let (base_pids, pid_dirs) = collect_antigravity_main_pids();
+    if base_pids.is_empty() {
         crate::modules::logger::log_info("Antigravity 未在运行，无需关闭");
         return Ok(());
     }
 
-    crate::modules::logger::log_info(&format!(
-        "准备关闭 {} 个 Antigravity 主进程...",
-        pids.len()
-    ));
-    let _ = close_pids(&pids, timeout_secs);
+    #[cfg(target_os = "windows")]
+    let pids = {
+        let filtered = filter_pids_by_windows_config_path("antigravity", "antigravity.exe", &base_pids);
+        if filtered.is_empty() {
+            crate::modules::logger::log_info("Antigravity 目标进程为空，无需关闭");
+            return Ok(());
+        }
+        filtered
+    };
 
-    if is_antigravity_running() {
-        return Err("无法关闭 Antigravity 进程，请手动关闭后重试".to_string());
+    #[cfg(not(target_os = "windows"))]
+    let pids = base_pids;
+
+    if pids.is_empty() {
+        crate::modules::logger::log_info("Antigravity 目标进程为空，无需关闭");
+        return Ok(());
+    }
+
+    let target_dirs: HashSet<String> = pids
+        .iter()
+        .filter_map(|pid| pid_dirs.get(pid).cloned())
+        .filter(|value| !value.is_empty())
+        .collect();
+
+    crate::modules::logger::log_info(&format!(
+        "准备关闭 {} 个 Antigravity 主进程... pids={:?}",
+        pids.len(),
+        pids
+    ));
+    let close_result = close_pids(&pids, timeout_secs);
+
+    let remaining_pids: Vec<u32> = pids
+        .iter()
+        .copied()
+        .filter(|pid| is_pid_running(*pid))
+        .collect();
+    let still_target_dirs_running = if target_dirs.is_empty() {
+        false
+    } else {
+        collect_antigravity_process_entries().into_iter().any(|(_, dir)| {
+            dir.map(|value| normalize_path_for_compare(&value))
+                .filter(|value| !value.is_empty())
+                .map(|value| target_dirs.contains(&value))
+                .unwrap_or(false)
+        })
+    };
+
+    if !remaining_pids.is_empty() || still_target_dirs_running {
+        let close_err = close_result
+            .as_ref()
+            .err()
+            .cloned()
+            .unwrap_or_else(|| "-".to_string());
+        let reason_code = if !remaining_pids.is_empty() {
+            "AG_CLOSE_REMAINING_PID"
+        } else {
+            "AG_CLOSE_TARGET_DIR_RUNNING"
+        };
+        let residual_desc = describe_pids_with_exe(&remaining_pids, 8);
+        let target_dirs_desc = format_string_set_for_error(&target_dirs, 4);
+        crate::modules::logger::log_warn(&format!(
+            "关闭 Antigravity 后仍检测到残留进程: reason={}, residual={}, target_dirs={}, still_target_dirs_running={}, close_err={}",
+            reason_code, residual_desc, target_dirs_desc, still_target_dirs_running, close_err
+        ));
+        return Err(format!(
+            "{}: 关闭 Antigravity 失败（stage=close_antigravity, residual={}, target_dirs={}, close_err={}）",
+            reason_code, residual_desc, target_dirs_desc, close_err
+        ));
+    }
+
+    if let Err(err) = close_result {
+        crate::modules::logger::log_warn(&format!(
+            "关闭 Antigravity 返回超时但最终已退出: close_err={}",
+            err
+        ));
     }
 
     crate::modules::logger::log_info("Antigravity 已成功关闭");
@@ -2552,6 +2853,38 @@ fn send_close_signal(pid: u32) {
     }
 }
 
+#[cfg(target_os = "windows")]
+fn force_kill_pid_tree(pid: u32) {
+    use std::os::windows::process::CommandExt;
+
+    if pid == 0 || !is_pid_running(pid) {
+        return;
+    }
+    let output = Command::new("taskkill")
+        .args(["/PID", &pid.to_string(), "/T", "/F"])
+        .creation_flags(0x08000000)
+        .output();
+    match output {
+        Ok(value) if value.status.success() => {
+            crate::modules::logger::log_info(&format!("[ForceKill] taskkill /T /F 成功 pid={}", pid));
+        }
+        Ok(value) => {
+            let stderr = String::from_utf8_lossy(&value.stderr);
+            crate::modules::logger::log_warn(&format!(
+                "[ForceKill] taskkill /T /F 失败 pid={} err={}",
+                pid,
+                stderr.trim()
+            ));
+        }
+        Err(e) => {
+            crate::modules::logger::log_warn(&format!(
+                "[ForceKill] 调用 taskkill /T /F 失败 pid={} err={}",
+                pid, e
+            ));
+        }
+    }
+}
+
 fn wait_pids_exit(pids: &[u32], timeout_secs: u64) -> bool {
     if pids.is_empty() {
         return true;
@@ -2575,6 +2908,50 @@ fn wait_pids_exit(pids: &[u32], timeout_secs: u64) -> bool {
     }
 }
 
+fn format_string_set_for_error(values: &HashSet<String>, limit: usize) -> String {
+    if values.is_empty() {
+        return "-".to_string();
+    }
+    let mut list: Vec<String> = values.iter().cloned().collect();
+    list.sort();
+    if list.len() > limit {
+        let mut head = list[..limit].to_vec();
+        head.push(format!("...+{}", list.len() - limit));
+        return head.join(", ");
+    }
+    list.join(", ")
+}
+
+fn describe_pids_with_exe(pids: &[u32], limit: usize) -> String {
+    if pids.is_empty() {
+        return "-".to_string();
+    }
+    let mut sorted = pids.to_vec();
+    sorted.sort();
+    sorted.dedup();
+
+    let mut system = System::new();
+    system.refresh_processes(sysinfo::ProcessesToUpdate::All, true);
+
+    let mut parts = Vec::new();
+    for pid in sorted.iter().take(limit) {
+        let desc = if let Some(process) = system.process(Pid::from_u32(*pid)) {
+            let exe = process
+                .exe()
+                .and_then(|path| path.to_str())
+                .unwrap_or("-");
+            format!("{}:{}", pid, exe)
+        } else {
+            format!("{}:exited", pid)
+        };
+        parts.push(desc);
+    }
+    if sorted.len() > limit {
+        parts.push(format!("...+{}", sorted.len() - limit));
+    }
+    parts.join(", ")
+}
+
 fn close_pids(pids: &[u32], timeout_secs: u64) -> Result<(), String> {
     if pids.is_empty() {
         return Ok(());
@@ -2595,10 +2972,25 @@ fn close_pids(pids: &[u32], timeout_secs: u64) -> Result<(), String> {
     }
 
     if wait_pids_exit(&targets, timeout_secs) {
-        Ok(())
-    } else {
-        Err("无法关闭实例进程，请手动关闭后重试".to_string())
+        return Ok(());
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        crate::modules::logger::log_warn(&format!(
+            "[ForceKill] 常规关闭超时，准备强制结束进程树: {:?}",
+            targets
+        ));
+        for pid in &targets {
+            force_kill_pid_tree(*pid);
+        }
+        let force_timeout = std::cmp::max(3, std::cmp::min(timeout_secs, 8));
+        if wait_pids_exit(&targets, force_timeout) {
+            return Ok(());
+        }
+    }
+
+    Err("无法关闭实例进程，请手动关闭后重试".to_string())
 }
 
 /// 启动 Antigravity
@@ -3864,8 +4256,6 @@ pub fn start_vscode_default_with_args_with_new_window(
 }
 
 pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), String> {
-    #[cfg(target_os = "windows")]
-    let _ = timeout_secs;
     crate::modules::logger::log_info("正在关闭 VS Code...");
 
     let target_dirs: HashSet<String> = user_data_dirs
@@ -3900,6 +4290,12 @@ pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), 
             pids.push(pid);
         }
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        pids = filter_pids_by_windows_config_path("vscode", "code.exe", &pids);
+    }
+
     pids.sort();
     pids.dedup();
     if pids.is_empty() {
@@ -3908,8 +4304,9 @@ pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), 
     }
 
     crate::modules::logger::log_info(&format!(
-        "准备关闭 {} 个 VS Code 主进程...",
-        pids.len()
+        "准备关闭 {} 个 VS Code 主进程... pids={:?}",
+        pids.len(),
+        pids
     ));
 
     for pid in &pids {
@@ -3919,7 +4316,13 @@ pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), 
         return Ok(());
     }
 
-    let _ = close_pids(&pids, timeout_secs);
+    let close_result = close_pids(&pids, timeout_secs);
+
+    let remaining_pids: Vec<u32> = pids
+        .iter()
+        .copied()
+        .filter(|pid| is_pid_running(*pid))
+        .collect();
 
     let still_running = collect_vscode_process_entries().into_iter().any(|(pid, dir)| {
         if let Some(dir) = dir {
@@ -3930,8 +4333,33 @@ pub fn close_vscode(user_data_dirs: &[String], timeout_secs: u64) -> Result<(), 
                 .any(|target| is_vscode_pid_for_user_data_dir(pid, target))
         }
     });
-    if still_running {
-        return Err("无法关闭受管 VS Code 实例进程，请手动关闭后重试".to_string());
+    if !remaining_pids.is_empty() || still_running {
+        let close_err = close_result
+            .as_ref()
+            .err()
+            .cloned()
+            .unwrap_or_else(|| "-".to_string());
+        let reason_code = if !remaining_pids.is_empty() {
+            "VSCODE_CLOSE_REMAINING_PID"
+        } else {
+            "VSCODE_CLOSE_TARGET_DIR_RUNNING"
+        };
+        let residual_desc = describe_pids_with_exe(&remaining_pids, 8);
+        let target_dirs_desc = format_string_set_for_error(&target_dirs, 4);
+        crate::modules::logger::log_warn(&format!(
+            "关闭 VS Code 后仍检测到残留进程: reason={}, residual={}, target_dirs={}, still_running={}, close_err={}",
+            reason_code, residual_desc, target_dirs_desc, still_running, close_err
+        ));
+        return Err(format!(
+            "{}: 关闭 VS Code 失败（stage=close_vscode, residual={}, target_dirs={}, close_err={}）",
+            reason_code, residual_desc, target_dirs_desc, close_err
+        ));
+    }
+    if let Err(err) = close_result {
+        crate::modules::logger::log_warn(&format!(
+            "关闭 VS Code 返回超时但最终已退出: close_err={}",
+            err
+        ));
     }
     Ok(())
 }
