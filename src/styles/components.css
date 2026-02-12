@@ -354,10 +354,12 @@
 }
 
 .page-tabs.filter-tabs {
+  --page-tab-item-radius: 16px;
+  --page-tab-shell-padding: 8px;
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 8px;
+  border-radius: calc(var(--page-tab-item-radius) + var(--page-tab-shell-padding));
+  padding: var(--page-tab-shell-padding);
   gap: 8px;
   box-shadow: var(--shadow-lg);
   backdrop-filter: blur(20px);
@@ -430,7 +432,7 @@
 .page-tabs.filter-tabs .filter-tab {
   height: 42px;
   padding: 0 16px;
-  border-radius: 16px;
+  border-radius: var(--page-tab-item-radius);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.02em;

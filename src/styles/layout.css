@@ -24,6 +24,8 @@
 
 /* SideNav - 左侧悬浮胶囊 */
 .side-nav {
+  --side-nav-item-radius: 18px;
+  --side-nav-shell-padding-x: 12px;
   position: fixed;
   inset-inline-start: 24px;
   top: 50%;
@@ -35,7 +37,7 @@
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-lg);
-  border-radius: 34px;
+  border-radius: calc(var(--side-nav-item-radius) + var(--side-nav-shell-padding-x));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -87,7 +89,7 @@
 .nav-item {
   width: 44px;
   height: 44px;
-  border-radius: 18px;
+  border-radius: var(--side-nav-item-radius);
   border: none;
   background: transparent;
   color: var(--text-secondary);
