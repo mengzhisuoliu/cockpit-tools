@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -15,6 +15,10 @@ use crate::modules;
 static ACCOUNT_INDEX_LOCK: std::sync::LazyLock<Mutex<()>> =
     std::sync::LazyLock::new(|| Mutex::new(()));
 static AUTO_SWITCH_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
+static QUOTA_ALERT_LAST_SENT: std::sync::LazyLock<Mutex<HashMap<String, i64>>> =
+    std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
+
+const QUOTA_ALERT_COOLDOWN_SECONDS: i64 = 300;
 
 // 使用与 AntigravityCockpit 插件相同的数据目录
 const DATA_DIR: &str = ".antigravity_cockpit";
@@ -555,8 +559,25 @@ pub struct RefreshStats {
     pub details: Vec<String>,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct QuotaAlertPayload {
+    pub platform: String,
+    pub current_account_id: String,
+    pub current_email: String,
+    pub threshold: i32,
+    pub lowest_percentage: i32,
+    pub low_models: Vec<String>,
+    pub recommended_account_id: Option<String>,
+    pub recommended_email: Option<String>,
+    pub triggered_at: i64,
+}
+
 fn normalize_auto_switch_threshold(raw: i32) -> i32 {
-    raw.clamp(1, 100)
+    raw.clamp(0, 100)
+}
+
+fn normalize_quota_alert_threshold(raw: i32) -> i32 {
+    raw.clamp(0, 100)
 }
 
 fn should_trigger_auto_switch(account: &Account, threshold: i32) -> bool {
@@ -591,6 +612,22 @@ fn can_be_auto_switch_candidate(account: &Account, current_id: &str, threshold: 
     quota.models.iter().all(|m| m.percentage >= threshold)
 }
 
+fn can_be_quota_alert_candidate(account: &Account, current_id: &str) -> bool {
+    if account.id == current_id || account.disabled {
+        return false;
+    }
+
+    let Some(quota) = account.quota.as_ref() else {
+        return false;
+    };
+
+    if quota.is_forbidden || quota.models.is_empty() {
+        return false;
+    }
+
+    true
+}
+
 fn average_quota_percentage(account: &Account) -> f64 {
     let Some(quota) = account.quota.as_ref() else {
         return 0.0;
@@ -600,6 +637,231 @@ fn average_quota_percentage(account: &Account) -> f64 {
     }
     let sum: i32 = quota.models.iter().map(|m| m.percentage).sum();
     sum as f64 / quota.models.len() as f64
+}
+
+fn build_quota_alert_cooldown_key(account_id: &str, threshold: i32) -> String {
+    format!("{}:{}", account_id, threshold)
+}
+
+fn should_emit_quota_alert(cooldown_key: &str, now: i64) -> bool {
+    let Ok(mut state) = QUOTA_ALERT_LAST_SENT.lock() else {
+        return true;
+    };
+
+    if let Some(last_sent) = state.get(cooldown_key) {
+        if now - *last_sent < QUOTA_ALERT_COOLDOWN_SECONDS {
+            return false;
+        }
+    }
+
+    state.insert(cooldown_key.to_string(), now);
+    true
+}
+
+fn clear_quota_alert_cooldown(account_id: &str, threshold: i32) {
+    if let Ok(mut state) = QUOTA_ALERT_LAST_SENT.lock() {
+        state.remove(&build_quota_alert_cooldown_key(account_id, threshold));
+    }
+}
+
+fn pick_quota_alert_recommendation(accounts: &[Account], current_id: &str) -> Option<Account> {
+    let mut candidates: Vec<Account> = accounts
+        .iter()
+        .filter(|a| can_be_quota_alert_candidate(a, current_id))
+        .cloned()
+        .collect();
+
+    if candidates.is_empty() {
+        return None;
+    }
+
+    candidates.sort_by(|a, b| {
+        let avg_a = average_quota_percentage(a);
+        let avg_b = average_quota_percentage(b);
+        avg_b
+            .partial_cmp(&avg_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.last_used.cmp(&b.last_used))
+    });
+
+    candidates.into_iter().next()
+}
+
+fn build_quota_alert_notification_text(payload: &QuotaAlertPayload) -> (String, String) {
+    let title = format!(
+        "{} 配额预警",
+        match payload.platform.as_str() {
+            "codex" => "Codex",
+            "github_copilot" => "GitHub Copilot",
+            "windsurf" => "Windsurf",
+            _ => "Antigravity",
+        }
+    );
+    let model_text = if payload.low_models.is_empty() {
+        "未知模型".to_string()
+    } else {
+        payload.low_models.join(", ")
+    };
+    let mut body = format!(
+        "{} 低于 {}%（最低 {}%，模型：{}）",
+        payload.current_email, payload.threshold, payload.lowest_percentage, model_text
+    );
+    if let Some(email) = payload.recommended_email.as_ref() {
+        body.push_str(&format!("，建议切换到 {}", email));
+    }
+    (title, body)
+}
+
+fn focus_main_window_and_emit_quota_alert(
+    app_handle: &tauri::AppHandle,
+    payload: &QuotaAlertPayload,
+) {
+    use tauri::Manager;
+
+    if let Some(window) = app_handle.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+    emit_quota_alert(app_handle, payload);
+}
+
+pub fn emit_quota_alert(app_handle: &tauri::AppHandle, payload: &QuotaAlertPayload) {
+    use tauri::Emitter;
+    let _ = app_handle.emit("quota:alert", payload);
+}
+
+#[cfg(not(target_os = "macos"))]
+pub fn send_quota_alert_native_notification(payload: &QuotaAlertPayload) {
+    let Some(app_handle) = crate::get_app_handle() else {
+        return;
+    };
+
+    use tauri_plugin_notification::NotificationExt;
+
+    let (title, body) = build_quota_alert_notification_text(payload);
+
+    if let Err(e) = app_handle
+        .notification()
+        .builder()
+        .title(&title)
+        .body(body)
+        .show()
+    {
+        modules::logger::log_warn(&format!("[QuotaAlert] 原生通知发送失败: {}", e));
+    }
+}
+
+#[cfg(target_os = "macos")]
+pub fn send_quota_alert_native_notification(payload: &QuotaAlertPayload) {
+    let Some(app_handle) = crate::get_app_handle().cloned() else {
+        return;
+    };
+    let payload_for_click = payload.clone();
+    let (title, body) = build_quota_alert_notification_text(payload);
+
+    std::thread::spawn(move || {
+        let mut notification = mac_notification_sys::Notification::new();
+        notification
+            .title(title.as_str())
+            .message(body.as_str())
+            .wait_for_click(true)
+            .asynchronous(false);
+
+        if let Err(e) = mac_notification_sys::set_application(&app_handle.config().identifier) {
+            modules::logger::log_warn(&format!("[QuotaAlert] 设置通知应用标识失败: {}", e));
+        }
+
+        match notification.send() {
+            Ok(mac_notification_sys::NotificationResponse::Click)
+            | Ok(mac_notification_sys::NotificationResponse::ActionButton(_)) => {
+                focus_main_window_and_emit_quota_alert(&app_handle, &payload_for_click);
+            }
+            Ok(_) => {}
+            Err(e) => {
+                modules::logger::log_warn(&format!("[QuotaAlert] 原生通知发送失败: {}", e));
+            }
+        }
+    });
+}
+
+pub fn dispatch_quota_alert(payload: &QuotaAlertPayload) {
+    modules::logger::log_warn(&format!(
+        "[QuotaAlert] 触发配额预警: platform={}, current_id={}, threshold={}%, lowest={}%",
+        payload.platform, payload.current_account_id, payload.threshold, payload.lowest_percentage
+    ));
+
+    if let Some(app_handle) = crate::get_app_handle() {
+        emit_quota_alert(app_handle, payload);
+    }
+    send_quota_alert_native_notification(payload);
+}
+
+pub fn run_quota_alert_if_needed() -> Result<Option<QuotaAlertPayload>, String> {
+    let cfg = crate::modules::config::get_user_config();
+    if !cfg.quota_alert_enabled {
+        return Ok(None);
+    }
+
+    let threshold = normalize_quota_alert_threshold(cfg.quota_alert_threshold);
+    let current_id = match get_current_account_id()? {
+        Some(id) => id,
+        None => return Ok(None),
+    };
+
+    let accounts = list_accounts()?;
+    let current = match accounts.iter().find(|a| a.id == current_id) {
+        Some(acc) => acc,
+        None => return Ok(None),
+    };
+
+    if current.disabled {
+        clear_quota_alert_cooldown(&current_id, threshold);
+        return Ok(None);
+    }
+
+    let Some(quota) = current.quota.as_ref() else {
+        clear_quota_alert_cooldown(&current_id, threshold);
+        return Ok(None);
+    };
+
+    let low_models: Vec<(String, i32)> = if quota.is_forbidden {
+        vec![("all".to_string(), 0)]
+    } else {
+        quota
+            .models
+            .iter()
+            .filter(|model| model.percentage <= threshold)
+            .map(|model| (model.name.clone(), model.percentage))
+            .collect()
+    };
+
+    if low_models.is_empty() {
+        clear_quota_alert_cooldown(&current_id, threshold);
+        return Ok(None);
+    }
+
+    let now = chrono::Utc::now().timestamp();
+    let cooldown_key = build_quota_alert_cooldown_key(&current_id, threshold);
+    if !should_emit_quota_alert(&cooldown_key, now) {
+        return Ok(None);
+    }
+
+    let recommendation = pick_quota_alert_recommendation(&accounts, &current_id);
+    let lowest_percentage = low_models.iter().map(|(_, pct)| *pct).min().unwrap_or(0);
+    let payload = QuotaAlertPayload {
+        platform: "antigravity".to_string(),
+        current_account_id: current_id.clone(),
+        current_email: current.email.clone(),
+        threshold,
+        lowest_percentage,
+        low_models: low_models.into_iter().map(|(name, _)| name).collect(),
+        recommended_account_id: recommendation.as_ref().map(|acc| acc.id.clone()),
+        recommended_email: recommendation.as_ref().map(|acc| acc.email.clone()),
+        triggered_at: now,
+    };
+    dispatch_quota_alert(&payload);
+    Ok(Some(payload))
 }
 
 async fn run_auto_switch_if_needed_inner() -> Result<Option<Account>, String> {

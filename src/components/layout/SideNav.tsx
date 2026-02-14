@@ -10,12 +10,13 @@ interface SideNavProps {
   page: Page;
   setPage: (page: Page) => void;
   onOpenPlatformLayout: () => void;
+  easterEggClickCount: number;
+  onEasterEggTriggerClick: () => void;
 }
 
 interface FlyingRocket {
   id: number;
   x: number;
-  y: number;
 }
 
 const PAGE_PLATFORM_MAP: Partial<Record<Page, PlatformId>> = {
@@ -25,12 +26,16 @@ const PAGE_PLATFORM_MAP: Partial<Record<Page, PlatformId>> = {
   windsurf: 'windsurf',
 };
 
-export function SideNav({ page, setPage, onOpenPlatformLayout }: SideNavProps) {
+export function SideNav({
+  page,
+  setPage,
+  onOpenPlatformLayout,
+  easterEggClickCount,
+  onEasterEggTriggerClick,
+}: SideNavProps) {
   const { t } = useTranslation();
-  const [clickCount, setClickCount] = useState(0);
   const [flyingRockets, setFlyingRockets] = useState<FlyingRocket[]>([]);
   const [showMore, setShowMore] = useState(false);
-  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rocketIdRef = useRef(0);
   const logoRef = useRef<HTMLDivElement>(null);
   const morePopoverRef = useRef<HTMLDivElement>(null);
@@ -46,21 +51,11 @@ export function SideNav({ page, setPage, onOpenPlatformLayout }: SideNavProps) {
   const isMoreActive = !!currentPlatformId && !sidebarVisiblePlatformIds.includes(currentPlatformId);
 
   const handleLogoClick = useCallback(() => {
-    // 清除之前的重置计时器
-    if (resetTimerRef.current) {
-      clearTimeout(resetTimerRef.current);
-    }
-
-    // 增加点击计数
-    setClickCount(prev => prev + 1);
-
-    // 创建新的飞行火箭
     const newRocket: FlyingRocket = {
       id: rocketIdRef.current++,
       x: (Math.random() - 0.5) * 40, // 随机水平偏移
-      y: 0,
     };
-    
+
     setFlyingRockets(prev => [...prev, newRocket]);
 
     // 动画完成后移除火箭 (1.5秒)
@@ -68,11 +63,8 @@ export function SideNav({ page, setPage, onOpenPlatformLayout }: SideNavProps) {
       setFlyingRockets(prev => prev.filter(r => r.id !== newRocket.id));
     }, 1500);
 
-    // 设置新的重置计时器 (2秒不点击后重置)
-    resetTimerRef.current = setTimeout(() => {
-      setClickCount(0);
-    }, 2000);
-  }, []);
+    onEasterEggTriggerClick();
+  }, [onEasterEggTriggerClick]);
 
   useEffect(() => {
     if (!showMore) return;
@@ -96,8 +88,8 @@ export function SideNav({ page, setPage, onOpenPlatformLayout }: SideNavProps) {
          >
            <Rocket size={20} />
            {/* 点击计数器保持在里面，跟随缩放 */}
-           {clickCount > 0 && (
-             <span className="rocket-click-count">{clickCount}</span>
+           {easterEggClickCount > 0 && (
+             <span className="rocket-click-count">{easterEggClickCount}</span>
            )}
          </div>
 

@@ -34,6 +34,7 @@ import { getPlatformLabel, renderPlatformIcon } from '../utils/platformMeta';
 interface DashboardPageProps {
   onNavigate: (page: Page) => void;
   onOpenPlatformLayout: () => void;
+  onEasterEggTriggerClick: () => void;
 }
 
 const GHCP_CURRENT_ACCOUNT_ID_KEY = 'agtools.github_copilot.current_account_id';
@@ -81,7 +82,7 @@ function buildCreditMetrics(
   };
 }
 
-export function DashboardPage({ onNavigate, onOpenPlatformLayout }: DashboardPageProps) {
+export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTriggerClick }: DashboardPageProps) {
   const { t } = useTranslation();
   const { orderedPlatformIds, hiddenPlatformIds } = usePlatformLayoutStore();
   const visiblePlatformOrder = useMemo(
@@ -1058,7 +1059,16 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout }: DashboardPag
               onClick={() => onNavigate(PLATFORM_PAGE_MAP[platformId])}
               title={t('dashboard.switchTo', '切换到此账号')}
             >
-              <div className={`stat-icon-bg ${iconClass}`}>{renderPlatformIcon(platformId, 24)}</div>
+              <div
+                className={`stat-icon-bg ${iconClass} stat-icon-trigger`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  onEasterEggTriggerClick();
+                }}
+              >
+                {renderPlatformIcon(platformId, 24)}
+              </div>
               <div className="stat-info">
                 <span className="stat-label">{getPlatformLabel(platformId, t)}</span>
                 <span className="stat-value">{platformCounts[platformId]}</span>

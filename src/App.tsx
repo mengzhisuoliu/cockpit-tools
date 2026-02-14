@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { listen, UnlistenFn } from '@tauri-apps/api/event';
@@ -19,9 +19,17 @@ import { SideNav } from './components/layout/SideNav';
 import { PlatformLayoutModal } from './components/PlatformLayoutModal';
 import { UpdateNotification } from './components/UpdateNotification';
 import { CloseConfirmDialog } from './components/CloseConfirmDialog';
+import { BreakoutModal } from './components/easter-egg/BreakoutModal';
+import { GlobalModal } from './components/GlobalModal';
 import { Page } from './types/navigation';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
+import { useEasterEggTrigger } from './hooks/useEasterEggTrigger';
+import { useGlobalModal } from './hooks/useGlobalModal';
 import { changeLanguage, getCurrentLanguage, normalizeLanguage } from './i18n';
+import { useAccountStore } from './stores/useAccountStore';
+import { useCodexAccountStore } from './stores/useCodexAccountStore';
+import { useGitHubCopilotAccountStore } from './stores/useGitHubCopilotAccountStore';
+import { useWindsurfAccountStore } from './stores/useWindsurfAccountStore';
 
 import { DashboardPage } from './pages/DashboardPage';
 
@@ -65,6 +73,49 @@ type WakeupTaskResultPayload = {
   records: WakeupHistoryRecord[];
 };
 
+type QuotaAlertPayload = {
+  platform?: string;
+  current_account_id: string;
+  current_email: string;
+  threshold: number;
+  lowest_percentage: number;
+  low_models: string[];
+  recommended_account_id?: string | null;
+  recommended_email?: string | null;
+  triggered_at: number;
+};
+
+type QuotaAlertPlatform = 'antigravity' | 'codex' | 'github_copilot' | 'windsurf';
+
+function normalizeQuotaAlertPlatform(platform: string | undefined): QuotaAlertPlatform {
+  switch (platform) {
+    case 'codex':
+      return 'codex';
+    case 'github_copilot':
+      return 'github_copilot';
+    case 'windsurf':
+      return 'windsurf';
+    default:
+      return 'antigravity';
+  }
+}
+
+function getQuotaAlertPlatformLabel(
+  platform: QuotaAlertPlatform,
+  t: (key: string, defaultValue: string) => string,
+): string {
+  switch (platform) {
+    case 'codex':
+      return t('nav.codex', 'Codex');
+    case 'github_copilot':
+      return t('nav.githubCopilot', 'GitHub Copilot');
+    case 'windsurf':
+      return 'Windsurf';
+    default:
+      return t('nav.overview', 'Antigravity');
+  }
+}
+
 function App() {
   const { t } = useTranslation();
   const [page, setPage] = useState<Page>('dashboard');
@@ -72,10 +123,21 @@ function App() {
   const [updateNotificationKey, setUpdateNotificationKey] = useState(0);
   const [showCloseDialog, setShowCloseDialog] = useState(false);
   const [showPlatformLayoutModal, setShowPlatformLayoutModal] = useState(false);
+  const [showBreakout, setShowBreakout] = useState(false);
   const [appPathMissing, setAppPathMissing] = useState<AppPathMissingDetail | null>(null);
   const [appPathSetting, setAppPathSetting] = useState(false);
   const [appPathDetecting, setAppPathDetecting] = useState(false);
   const [appPathDraft, setAppPathDraft] = useState('');
+  const { showModal, closeModal } = useGlobalModal();
+  const openBreakout = useCallback(() => setShowBreakout(true), []);
+  const {
+    count: easterEggClickCount,
+    registerClick: handleEasterEggTriggerClick,
+  } = useEasterEggTrigger({
+    threshold: 20,
+    windowMs: 8000,
+    onTrigger: openBreakout,
+  });
   
   // 启用自动刷新 hook
   useAutoRefresh();
@@ -205,6 +267,129 @@ function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    let unlisten: UnlistenFn | undefined;
+    let disposed = false;
+
+    listen<QuotaAlertPayload>('quota:alert', (event) => {
+      const payload = event.payload;
+      if (!payload || !payload.current_account_id) {
+        return;
+      }
+
+      const platform = normalizeQuotaAlertPlatform(payload.platform);
+      const platformLabel = getQuotaAlertPlatformLabel(platform, t);
+      const hasRecommendation = Boolean(payload.recommended_account_id && payload.recommended_email);
+      const modelsText = payload.low_models.length > 0
+        ? payload.low_models.join(', ')
+        : t('quotaAlert.modal.unknownModel', '未知模型');
+
+      showModal({
+        title: t('quotaAlert.modal.title', '配额预警'),
+        description: t(
+          'quotaAlert.modal.desc',
+          '当前账号配额已达到预警阈值，请尽快处理。'
+        ),
+        width: 'md',
+        closeOnOverlay: false,
+        content: (
+          <div className="quota-alert-modal-content">
+            <div className="quota-alert-modal-row">
+              <span>{t('quotaAlert.modal.platform', '平台')}</span>
+              <strong>{platformLabel}</strong>
+            </div>
+            <div className="quota-alert-modal-row">
+              <span>{t('quotaAlert.modal.account', '当前账号')}</span>
+              <strong>{payload.current_email}</strong>
+            </div>
+            <div className="quota-alert-modal-row">
+              <span>{t('quotaAlert.modal.threshold', '预警阈值')}</span>
+              <strong>{payload.threshold}%</strong>
+            </div>
+            <div className="quota-alert-modal-row">
+              <span>{t('quotaAlert.modal.lowest', '当前最低')}</span>
+              <strong>{payload.lowest_percentage}%</strong>
+            </div>
+            <div className="quota-alert-modal-row quota-alert-modal-row--stack">
+              <span>{t('quotaAlert.modal.models', '触发模型')}</span>
+              <strong>{modelsText}</strong>
+            </div>
+            <div className="quota-alert-modal-row">
+              <span>{t('quotaAlert.modal.recommended', '建议切换')}</span>
+              <strong>
+                {payload.recommended_email || t('quotaAlert.modal.noRecommendation', '暂无可切换账号')}
+              </strong>
+            </div>
+          </div>
+        ),
+        actions: [
+          {
+            id: 'quota-alert-later',
+            label: t('quotaAlert.modal.later', '稍后处理'),
+            variant: 'secondary',
+          },
+          ...(hasRecommendation
+            ? [{
+                id: 'quota-alert-switch',
+                label: t('quotaAlert.modal.switchNow', '快捷切号到 {{email}}', {
+                  email: payload.recommended_email as string,
+                }),
+                variant: 'primary' as const,
+                autoClose: false,
+                onClick: async () => {
+                  try {
+                    const targetAccountId = payload.recommended_account_id as string;
+                    if (platform === 'codex') {
+                      await useCodexAccountStore.getState().switchAccount(targetAccountId);
+                      setPage('codex');
+                    } else if (platform === 'github_copilot') {
+                      await useGitHubCopilotAccountStore.getState().switchAccount(targetAccountId);
+                      setPage('github-copilot');
+                    } else if (platform === 'windsurf') {
+                      await useWindsurfAccountStore.getState().switchAccount(targetAccountId);
+                      setPage('windsurf');
+                    } else {
+                      await useAccountStore.getState().switchAccount(targetAccountId);
+                      setPage('overview');
+                    }
+                    closeModal();
+                  } catch (error) {
+                    showModal({
+                      title: t('quotaAlert.modal.switchFailedTitle', '切号失败'),
+                      description: t('quotaAlert.modal.switchFailedBody', '快捷切号失败：{{error}}', {
+                        error: String(error),
+                      }),
+                      width: 'sm',
+                      actions: [
+                        {
+                          id: 'quota-alert-switch-failed-ok',
+                          label: t('common.confirm', '确定'),
+                          variant: 'primary',
+                        },
+                      ],
+                    });
+                  }
+                },
+              }]
+            : []),
+        ],
+      });
+    }).then((fn) => {
+      if (disposed) {
+        fn();
+        return;
+      }
+      unlisten = fn;
+    });
+
+    return () => {
+      disposed = true;
+      if (unlisten) {
+        unlisten();
+      }
+    };
+  }, [closeModal, showModal, t]);
 
   useEffect(() => {
     let unlisten: UnlistenFn | undefined;
@@ -456,10 +641,15 @@ function App() {
       {showUpdateNotification && (
         <UpdateNotification key={updateNotificationKey} onClose={() => setShowUpdateNotification(false)} />
       )}
+      <GlobalModal />
 
       {/* 关闭确认对话框 */}
       {showCloseDialog && (
         <CloseConfirmDialog onClose={() => setShowCloseDialog(false)} />
+      )}
+
+      {showBreakout && (
+        <BreakoutModal onClose={() => setShowBreakout(false)} />
       )}
 
       {appPathMissing && (
@@ -563,7 +753,13 @@ function App() {
       />
       
       {/* 左侧悬浮导航 */}
-      <SideNav page={page} setPage={setPage} onOpenPlatformLayout={() => setShowPlatformLayoutModal(true)} />
+      <SideNav
+        page={page}
+        setPage={setPage}
+        onOpenPlatformLayout={() => setShowPlatformLayoutModal(true)}
+        easterEggClickCount={easterEggClickCount}
+        onEasterEggTriggerClick={handleEasterEggTriggerClick}
+      />
 
       <PlatformLayoutModal open={showPlatformLayoutModal} onClose={() => setShowPlatformLayoutModal(false)} />
 
@@ -571,7 +767,11 @@ function App() {
         {/* overview 现在是合并后的账号总览页面 */}
 
         {page === 'dashboard' && (
-          <DashboardPage onNavigate={setPage} onOpenPlatformLayout={() => setShowPlatformLayoutModal(true)} />
+          <DashboardPage
+            onNavigate={setPage}
+            onOpenPlatformLayout={() => setShowPlatformLayoutModal(true)}
+            onEasterEggTriggerClick={handleEasterEggTriggerClick}
+          />
         )}
         {page === 'overview' && <AccountsPage onNavigate={setPage} />}
         {page === 'codex' && <CodexAccountsPage />}

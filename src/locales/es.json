@@ -1175,6 +1175,13 @@
       "thresholdDesc": "El cambio automático se activa cuando la cuota de cualquier modelo cae por debajo de este porcentaje",
       "hint": "Cambia automáticamente a la cuenta con la cuota más alta cuando la cuota de cualquier modelo cae por debajo del umbral."
     },
+    "quotaAlert": {
+      "title": "Alerta de cuota",
+      "enable": "Activar alerta de cuota",
+      "threshold": "Umbral de alerta",
+      "thresholdDesc": "Activa la alerta cuando la cuota de cualquier modelo cae por debajo de este porcentaje",
+      "hint": "Cuando la cuota de cualquier modelo de la cuenta actual caiga por debajo del umbral, se enviará una notificación nativa y se mostrará una acción de cambio rápido en la app."
+    },
     "customInput": "Personalizado",
     "apply": "Aplicar",
     "inputMinutes": "Introduzca minutos",
@@ -1184,6 +1191,28 @@
       "appPath": "Ruta de Windsurf"
     },
     "windsurfRefreshInterval": "Actualización automática de cuota"
+  },
+  "quotaAlert": {
+    "bannerText": "Alerta de cuota para {{email}} (umbral {{threshold}}%, mínimo {{lowest}}%, modelos: {{models}})",
+    "switchAction": "Cambio rápido: {{email}}",
+    "switching": "Cambiando...",
+    "switchFailed": "El cambio rápido falló: {{error}}",
+    "modal": {
+      "title": "Alerta de cuota",
+      "desc": "La cuota de la cuenta actual ha alcanzado el umbral de alerta. Atiéndelo cuanto antes.",
+      "unknownModel": "Modelo desconocido",
+      "platform": "Plataforma",
+      "account": "Cuenta actual",
+      "threshold": "Umbral de alerta",
+      "lowest": "Mínimo actual",
+      "models": "Modelos activados",
+      "recommended": "Cambio recomendado",
+      "noRecommendation": "No hay cuenta disponible para cambiar",
+      "later": "Más tarde",
+      "switchNow": "Cambio rápido a {{email}}",
+      "switchFailedTitle": "Error al cambiar",
+      "switchFailedBody": "El cambio rápido falló: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Ocultar correos",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Oculto",
     "openFromMore": "Gestionar diseño de plataformas",
     "dragHandleLabel": "Arrastrar para reordenar"
+  },
+  "breakout": {
+    "gameOver": "Juego terminado",
+    "gameOverRank": "Puesto actual #{{rank}}",
+    "startGame": "Iniciar juego",
+    "startHint": "Haz clic en iniciar o pulsa Espacio",
+    "rankTitle": "Clasificación histórica",
+    "rankCurrent": "Actual",
+    "rankNoData": "--",
+    "restart": "Reiniciar",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "paused": "En pausa",
+    "level": "Nivel {{level}}",
+    "levelCleared": "Nivel superado",
+    "nextLevel": "Siguiente nivel",
+    "history": "Historial",
+    "historyShort": "Historial",
+    "historyEmpty": "Sin registros todavía",
+    "historyClear": "Limpiar",
+    "historyScoreShort": "Puntaje {{score}}",
+    "historyLevelShort": "Nv {{level}}",
+    "historyDurationShort": "Tiempo {{duration}}",
+    "historyReasonGameOver": "Juego terminado",
+    "historyReasonManualExit": "Salida manual"
   }
 }

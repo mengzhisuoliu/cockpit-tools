@@ -774,6 +774,14 @@ fn handle_set_language(language: &str, source: Option<&str>) -> Result<String, S
         opencode_sync_on_switch: current.opencode_sync_on_switch,
         auto_switch_enabled: current.auto_switch_enabled,
         auto_switch_threshold: current.auto_switch_threshold,
+        quota_alert_enabled: current.quota_alert_enabled,
+        quota_alert_threshold: current.quota_alert_threshold,
+        codex_quota_alert_enabled: current.codex_quota_alert_enabled,
+        codex_quota_alert_threshold: current.codex_quota_alert_threshold,
+        ghcp_quota_alert_enabled: current.ghcp_quota_alert_enabled,
+        ghcp_quota_alert_threshold: current.ghcp_quota_alert_threshold,
+        windsurf_quota_alert_enabled: current.windsurf_quota_alert_enabled,
+        windsurf_quota_alert_threshold: current.windsurf_quota_alert_threshold,
     };
 
     config::save_user_config(&new_config)?;

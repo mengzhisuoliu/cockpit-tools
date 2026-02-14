@@ -2,3 +2,41 @@
 @import './styles/layout.css';
 @import './styles/components.css';
 @import './styles/pages.css';
+
+.quota-alert-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quota-alert-modal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-tertiary);
+}
+
+.quota-alert-modal-row span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.quota-alert-modal-row strong {
+  color: var(--text-primary);
+  font-size: 13px;
+  text-align: right;
+  word-break: break-word;
+}
+
+.quota-alert-modal-row--stack {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.quota-alert-modal-row--stack strong {
+  text-align: left;
+}

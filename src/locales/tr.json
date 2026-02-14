@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Herhangi bir modelin kotası bu yüzdenin altına düştüğünde otomatik geçiş tetiklenir",
       "hint": "Herhangi bir modelin kotası eşiğin altına düştüğünde en yüksek kotaya sahip hesaba otomatik olarak geçiş yapar."
     },
+    "quotaAlert": {
+      "title": "Kota Uyarısı",
+      "enable": "Kota uyarısını etkinleştir",
+      "threshold": "Uyarı eşiği",
+      "thresholdDesc": "Herhangi bir modelin kotası bu yüzdenin altına düştüğünde uyarı tetikle",
+      "hint": "Mevcut hesaptaki herhangi bir modelin kotası eşik altına düştüğünde yerel bildirim gönder ve uygulamada hızlı hesap değiştirme eylemi göster."
+    },
     "customInput": "Özel",
     "apply": "Uygula",
     "inputMinutes": "Dakika girin",
@@ -1184,6 +1191,28 @@
       "appPath": "Windsurf Yolu"
     },
     "windsurfRefreshInterval": "Kotayı otomatik yenile"
+  },
+  "quotaAlert": {
+    "bannerText": "{{email}} için kota uyarısı (eşik {{threshold}}%, en düşük {{lowest}}%, modeller: {{models}})",
+    "switchAction": "Hızlı geçiş: {{email}}",
+    "switching": "Geçiliyor...",
+    "switchFailed": "Hızlı geçiş başarısız: {{error}}",
+    "modal": {
+      "title": "Kota Uyarısı",
+      "desc": "Mevcut hesabın kotası uyarı eşiğine ulaştı. Lütfen kısa sürede ilgilenin.",
+      "unknownModel": "Bilinmeyen model",
+      "platform": "Platform",
+      "account": "Mevcut hesap",
+      "threshold": "Uyarı eşiği",
+      "lowest": "Mevcut en düşük",
+      "models": "Tetiklenen modeller",
+      "recommended": "Önerilen geçiş",
+      "noRecommendation": "Geçiş için uygun hesap yok",
+      "later": "Daha sonra",
+      "switchNow": "{{email}} hesabına hızlı geçiş",
+      "switchFailedTitle": "Geçiş başarısız",
+      "switchFailedBody": "Hızlı geçiş başarısız: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "E-postaları gizle",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Gizli",
     "openFromMore": "Platform düzenini yönet",
     "dragHandleLabel": "Sürükleyerek sırala"
+  },
+  "breakout": {
+    "gameOver": "Oyun bitti",
+    "gameOverRank": "Mevcut sıralama #{{rank}}",
+    "startGame": "Oyunu başlat",
+    "startHint": "Başlat'a tıkla veya Boşluk tuşuna bas",
+    "rankTitle": "Geçmiş sıralama",
+    "rankCurrent": "Mevcut",
+    "rankNoData": "--",
+    "restart": "Yeniden başlat",
+    "pause": "Duraklat",
+    "resume": "Devam et",
+    "paused": "Duraklatıldı",
+    "level": "Seviye {{level}}",
+    "levelCleared": "Seviye tamamlandı",
+    "nextLevel": "Sonraki seviye",
+    "history": "Geçmiş",
+    "historyShort": "Geçmiş",
+    "historyEmpty": "Henüz kayıt yok",
+    "historyClear": "Temizle",
+    "historyScoreShort": "Skor {{score}}",
+    "historyLevelShort": "Sv {{level}}",
+    "historyDurationShort": "Süre {{duration}}",
+    "historyReasonGameOver": "Oyun bitti",
+    "historyReasonManualExit": "Manuel çıkış"
   }
 }

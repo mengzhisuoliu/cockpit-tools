@@ -1175,6 +1175,13 @@
       "thresholdDesc": "A troca automática é acionada quando a cota de qualquer modelo cai abaixo deste percentual",
       "hint": "Troca automaticamente para a conta com a maior cota quando a cota de qualquer modelo cai abaixo do limiar."
     },
+    "quotaAlert": {
+      "title": "Alerta de cota",
+      "enable": "Ativar alerta de cota",
+      "threshold": "Limite de alerta",
+      "thresholdDesc": "Dispara um alerta quando a cota de qualquer modelo ficar abaixo desta porcentagem",
+      "hint": "Quando a cota de qualquer modelo da conta atual cair abaixo do limite, envie uma notificação nativa e mostre uma ação de troca rápida na aplicação."
+    },
     "customInput": "Personalizado",
     "apply": "Aplicar",
     "inputMinutes": "Digite os minutos",
@@ -1184,6 +1191,28 @@
       "appPath": "Caminho do Windsurf"
     },
     "windsurfRefreshInterval": "Atualização automática de cota"
+  },
+  "quotaAlert": {
+    "bannerText": "Alerta de cota para {{email}} (limite {{threshold}}%, mínimo {{lowest}}%, modelos: {{models}})",
+    "switchAction": "Troca rápida: {{email}}",
+    "switching": "Trocando...",
+    "switchFailed": "Falha na troca rápida: {{error}}",
+    "modal": {
+      "title": "Alerta de cota",
+      "desc": "A cota da conta atual atingiu o limite de alerta. Trate isso o quanto antes.",
+      "unknownModel": "Modelo desconhecido",
+      "platform": "Plataforma",
+      "account": "Conta atual",
+      "threshold": "Limite de alerta",
+      "lowest": "Menor valor atual",
+      "models": "Modelos acionados",
+      "recommended": "Troca recomendada",
+      "noRecommendation": "Nenhuma conta disponível para troca",
+      "later": "Depois",
+      "switchNow": "Trocar rapidamente para {{email}}",
+      "switchFailedTitle": "Falha na troca",
+      "switchFailedBody": "Falha na troca rápida: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Ocultar e-mails",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Oculto",
     "openFromMore": "Gerenciar layout de plataformas",
     "dragHandleLabel": "Arrastar para reordenar"
+  },
+  "breakout": {
+    "gameOver": "Fim de jogo",
+    "gameOverRank": "Posição atual #{{rank}}",
+    "startGame": "Iniciar jogo",
+    "startHint": "Clique em iniciar ou pressione Espaço",
+    "rankTitle": "Ranking histórico",
+    "rankCurrent": "Atual",
+    "rankNoData": "--",
+    "restart": "Reiniciar",
+    "pause": "Pausar",
+    "resume": "Continuar",
+    "paused": "Pausado",
+    "level": "Nível {{level}}",
+    "levelCleared": "Nível concluído",
+    "nextLevel": "Próximo nível",
+    "history": "Histórico",
+    "historyShort": "Histórico",
+    "historyEmpty": "Sem registros ainda",
+    "historyClear": "Limpar",
+    "historyScoreShort": "Pontuação {{score}}",
+    "historyLevelShort": "Nv {{level}}",
+    "historyDurationShort": "Tempo {{duration}}",
+    "historyReasonGameOver": "Fim de jogo",
+    "historyReasonManualExit": "Saída manual"
   }
 }

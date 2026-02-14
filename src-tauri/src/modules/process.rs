@@ -282,10 +282,7 @@ fn reg_query_value(key: &str, value_name: &str) -> Option<String> {
     } else {
         format!("reg query \"{}\" /v {}", key, value_name)
     };
-    let output = Command::new("cmd")
-        .args(["/u", "/c", &cmd])
-        .output()
-        .ok()?;
+    let output = Command::new("cmd").args(["/u", "/c", &cmd]).output().ok()?;
     if !output.status.success() {
         return None;
     }
@@ -358,10 +355,7 @@ fn detect_vscode_exec_path_by_registry() -> Option<std::path::PathBuf> {
     let keywords = ["visual studio code", "vs code", "vscode"];
     for root in uninstall_roots {
         let cmd = format!("reg query \"{}\" /s /v DisplayName", root);
-        let output = match Command::new("cmd")
-            .args(["/u", "/c", &cmd])
-            .output()
-        {
+        let output = match Command::new("cmd").args(["/u", "/c", &cmd]).output() {
             Ok(o) => o,
             Err(_) => continue,
         };
@@ -608,7 +602,6 @@ exit 0
     }
 
     parse_windows_exec_candidates(app_label, exe_names, display_keywords, output)
-
 }
 
 #[cfg(not(target_os = "windows"))]

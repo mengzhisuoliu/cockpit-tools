@@ -174,6 +174,44 @@
   background-color: var(--bg-secondary);
 }
 
+.settings-select--input-mode {
+  background-image: none;
+  padding-right: 12px;
+  cursor: text;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.settings-select--with-unit {
+  padding-right: 34px;
+}
+
+.settings-select--input-mode::-webkit-outer-spin-button,
+.settings-select--input-mode::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.settings-inline-input {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.settings-inline-input .settings-select {
+  width: 100%;
+}
+
+.settings-input-unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
 .settings-input {
   padding: 6px 12px;
   border-radius: 8px;

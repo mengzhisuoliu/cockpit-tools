@@ -7,6 +7,26 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.7.1] - 2026-02-14
+
+### Added
+- **Cross-platform quota alert workflow**: Added quota alert calculations and event dispatch for Antigravity, Codex, GitHub Copilot, and Windsurf, with per-platform model/credit metric detection.
+- **Quota alert settings surface**: Added quota alert enable/threshold controls in both Settings and Quick Settings, with synchronized i18n keys.
+- **Global modal infrastructure**: Added reusable global modal store/hook/component (`useGlobalModal` + Zustand + `GlobalModal`) for cross-module prompts and alert actions.
+- **Notification capability integration**: Integrated Tauri notification capability in app runtime/capabilities with macOS click-to-focus handling.
+
+### Changed
+- **Quota refresh behavior**: Refresh-all and refresh-current flows for Codex/GitHub Copilot/Windsurf now trigger quota-alert checks after successful quota/token refresh.
+- **Alert payload model**: `quota:alert` payload now carries `platform`, and the frontend modal quick-switch action now routes to the correct platform switch flow/page.
+- **Settings input interaction**: Refresh interval and threshold controls now use preset + inline numeric input mode with Enter/blur apply behavior.
+- **Config model propagation**: `quota_alert_enabled` and `quota_alert_threshold` are now persisted through command save/get and websocket language-save paths.
+- **Log retention policy**: Logger initialization now cleans up expired `app.log*` files older than 3 days.
+
+### Fixed
+- **Quota alert listener lifecycle**: Prevented duplicate `quota:alert` subscriptions caused by async unlisten timing in React effect cleanup.
+- **Threshold consistency at 0%**: Runtime threshold normalization now honors `0%`, matching frontend options and user expectations.
+
+---
 ## [0.7.0] - 2026-02-12
 
 ### Added

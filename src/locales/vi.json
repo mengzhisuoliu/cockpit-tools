@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Tự động chuyển đổi được kích hoạt khi hạn ngạch của bất kỳ mô hình nào giảm xuống dưới tỷ lệ phần trăm này",
       "hint": "Tự động chuyển sang tài khoản có hạn ngạch cao nhất khi hạn ngạch của bất kỳ mô hình nào giảm xuống dưới ngưỡng."
     },
+    "quotaAlert": {
+      "title": "Cảnh báo hạn mức",
+      "enable": "Bật cảnh báo hạn mức",
+      "threshold": "Ngưỡng cảnh báo",
+      "thresholdDesc": "Kích hoạt cảnh báo khi hạn mức của bất kỳ mô hình nào thấp hơn tỷ lệ này",
+      "hint": "Khi hạn mức của bất kỳ mô hình nào trong tài khoản hiện tại thấp hơn ngưỡng, gửi thông báo hệ thống và hiển thị thao tác chuyển tài khoản nhanh trong ứng dụng."
+    },
     "customInput": "Tùy chỉnh",
     "apply": "Áp dụng",
     "inputMinutes": "Nhập số phút",
@@ -1184,6 +1191,28 @@
       "appPath": "Đường dẫn Windsurf"
     },
     "windsurfRefreshInterval": "Tự động làm mới hạn ngạch"
+  },
+  "quotaAlert": {
+    "bannerText": "Cảnh báo hạn mức cho {{email}} (ngưỡng {{threshold}}%, thấp nhất {{lowest}}%, mô hình: {{models}})",
+    "switchAction": "Chuyển nhanh: {{email}}",
+    "switching": "Đang chuyển...",
+    "switchFailed": "Chuyển nhanh thất bại: {{error}}",
+    "modal": {
+      "title": "Cảnh báo hạn mức",
+      "desc": "Hạn mức của tài khoản hiện tại đã chạm ngưỡng cảnh báo. Vui lòng xử lý sớm.",
+      "unknownModel": "Mô hình không xác định",
+      "platform": "Nền tảng",
+      "account": "Tài khoản hiện tại",
+      "threshold": "Ngưỡng cảnh báo",
+      "lowest": "Mức thấp nhất hiện tại",
+      "models": "Mô hình kích hoạt",
+      "recommended": "Đề xuất chuyển",
+      "noRecommendation": "Không có tài khoản phù hợp để chuyển",
+      "later": "Để sau",
+      "switchNow": "Chuyển nhanh sang {{email}}",
+      "switchFailedTitle": "Chuyển thất bại",
+      "switchFailedBody": "Chuyển nhanh thất bại: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Ẩn email",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Ẩn",
     "openFromMore": "Quản lý bố cục nền tảng",
     "dragHandleLabel": "Kéo để sắp xếp lại"
+  },
+  "breakout": {
+    "gameOver": "Kết thúc game",
+    "gameOverRank": "Hạng hiện tại #{{rank}}",
+    "startGame": "Bắt đầu chơi",
+    "startHint": "Bấm bắt đầu hoặc nhấn phím Space",
+    "rankTitle": "Xếp hạng lịch sử",
+    "rankCurrent": "Hiện tại",
+    "rankNoData": "--",
+    "restart": "Chơi lại",
+    "pause": "Tạm dừng",
+    "resume": "Tiếp tục",
+    "paused": "Đã tạm dừng",
+    "level": "Màn {{level}}",
+    "levelCleared": "Qua màn",
+    "nextLevel": "Màn tiếp theo",
+    "history": "Lịch sử",
+    "historyShort": "Lịch sử",
+    "historyEmpty": "Chưa có bản ghi",
+    "historyClear": "Xóa",
+    "historyScoreShort": "Điểm {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Thời gian {{duration}}",
+    "historyReasonGameOver": "Kết thúc game",
+    "historyReasonManualExit": "Thoát thủ công"
   }
 }

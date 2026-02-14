@@ -1175,6 +1175,13 @@
       "thresholdDesc": "모델 할당량이 이 비율 아래로 떨어지면 자동 전환이 트리거됩니다",
       "hint": "모델 할당량이 임계값 아래로 떨어지면 할당량이 가장 많은 계정으로 자동 전환합니다."
     },
+    "quotaAlert": {
+      "title": "할당량 경고",
+      "enable": "할당량 경고 사용",
+      "threshold": "경고 임계값",
+      "thresholdDesc": "모든 모델 중 하나라도 할당량이 이 비율보다 낮아지면 경고를 트리거합니다",
+      "hint": "현재 계정의 모델 할당량이 임계값 아래로 내려가면 네이티브 알림을 보내고 앱에서 빠른 계정 전환 동작을 표시합니다."
+    },
     "customInput": "사용자 지정",
     "apply": "적용",
     "inputMinutes": "분 입력",
@@ -1184,6 +1191,28 @@
       "appPath": "Windsurf 경로"
     },
     "windsurfRefreshInterval": "할당량 자동 새로고침"
+  },
+  "quotaAlert": {
+    "bannerText": "{{email}} 할당량 경고 (임계값 {{threshold}}%, 최저 {{lowest}}%, 모델: {{models}})",
+    "switchAction": "빠른 전환: {{email}}",
+    "switching": "전환 중...",
+    "switchFailed": "빠른 전환 실패: {{error}}",
+    "modal": {
+      "title": "할당량 경고",
+      "desc": "현재 계정 할당량이 경고 임계값에 도달했습니다. 빠르게 처리해 주세요.",
+      "unknownModel": "알 수 없는 모델",
+      "platform": "플랫폼",
+      "account": "현재 계정",
+      "threshold": "경고 임계값",
+      "lowest": "현재 최저값",
+      "models": "트리거된 모델",
+      "recommended": "권장 전환",
+      "noRecommendation": "전환 가능한 계정이 없습니다",
+      "later": "나중에",
+      "switchNow": "{{email}}로 빠른 전환",
+      "switchFailedTitle": "전환 실패",
+      "switchFailedBody": "빠른 전환 실패: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "이메일 숨기기",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "숨김",
     "openFromMore": "플랫폼 레이아웃 관리",
     "dragHandleLabel": "드래그하여 순서 변경"
+  },
+  "breakout": {
+    "gameOver": "게임 종료",
+    "gameOverRank": "현재 순위 #{{rank}}",
+    "startGame": "게임 시작",
+    "startHint": "시작 버튼 또는 스페이스를 누르세요",
+    "rankTitle": "기록 순위",
+    "rankCurrent": "현재",
+    "rankNoData": "--",
+    "restart": "다시 시작",
+    "pause": "일시정지",
+    "resume": "계속",
+    "paused": "일시정지됨",
+    "level": "레벨 {{level}}",
+    "levelCleared": "레벨 클리어",
+    "nextLevel": "다음 레벨",
+    "history": "기록",
+    "historyShort": "기록",
+    "historyEmpty": "기록이 없습니다",
+    "historyClear": "지우기",
+    "historyScoreShort": "점수 {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "시간 {{duration}}",
+    "historyReasonGameOver": "게임 종료",
+    "historyReasonManualExit": "수동 종료"
   }
 }

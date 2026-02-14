@@ -1175,6 +1175,13 @@
       "thresholdDesc": "任意のモデルのクォータがこのパーセンテージを下回ると自動切替がトリガーされます",
       "hint": "任意のモデルのクォータが閾値を下回ると、最もクォータの多いアカウントに自動的に切り替えます。"
     },
+    "quotaAlert": {
+      "title": "クォータ警告",
+      "enable": "クォータ警告を有効化",
+      "threshold": "警告しきい値",
+      "thresholdDesc": "任意モデルのクォータがこの割合を下回ると警告を発生",
+      "hint": "現在アカウントの任意モデルのクォータがしきい値を下回ると、ネイティブ通知を送信し、アプリ内にクイック切替アクションを表示します。"
+    },
     "customInput": "カスタム",
     "apply": "適用",
     "inputMinutes": "分数を入力",
@@ -1184,6 +1191,28 @@
       "appPath": "Windsurf パス"
     },
     "windsurfRefreshInterval": "クォータ自動更新"
+  },
+  "quotaAlert": {
+    "bannerText": "{{email}} のクォータ警告（しきい値 {{threshold}}%、最低 {{lowest}}%、モデル: {{models}}）",
+    "switchAction": "クイック切替: {{email}}",
+    "switching": "切替中...",
+    "switchFailed": "クイック切替に失敗しました: {{error}}",
+    "modal": {
+      "title": "クォータ警告",
+      "desc": "現在のアカウントのクォータが警告しきい値に達しました。早めに対応してください。",
+      "unknownModel": "不明なモデル",
+      "platform": "プラットフォーム",
+      "account": "現在のアカウント",
+      "threshold": "警告しきい値",
+      "lowest": "現在の最低値",
+      "models": "発生モデル",
+      "recommended": "推奨切替先",
+      "noRecommendation": "切替可能なアカウントがありません",
+      "later": "あとで",
+      "switchNow": "{{email}} にクイック切替",
+      "switchFailedTitle": "切替失敗",
+      "switchFailedBody": "クイック切替に失敗しました: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "メールを隠す",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "非表示",
     "openFromMore": "プラットフォームレイアウトを管理",
     "dragHandleLabel": "ドラッグして並び替え"
+  },
+  "breakout": {
+    "gameOver": "ゲームオーバー",
+    "gameOverRank": "現在の順位 #{{rank}}",
+    "startGame": "ゲーム開始",
+    "startHint": "開始を押すかスペースキーを押してください",
+    "rankTitle": "履歴ランキング",
+    "rankCurrent": "現在",
+    "rankNoData": "--",
+    "restart": "リスタート",
+    "pause": "一時停止",
+    "resume": "再開",
+    "paused": "一時停止中",
+    "level": "レベル {{level}}",
+    "levelCleared": "レベルクリア",
+    "nextLevel": "次のレベル",
+    "history": "履歴",
+    "historyShort": "履歴",
+    "historyEmpty": "履歴はまだありません",
+    "historyClear": "クリア",
+    "historyScoreShort": "スコア {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "時間 {{duration}}",
+    "historyReasonGameOver": "ゲームオーバー",
+    "historyReasonManualExit": "手動終了"
   }
 }

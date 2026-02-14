@@ -39,9 +39,19 @@ interface GeneralConfig {
   opencode_sync_on_switch: boolean;
   auto_switch_enabled: boolean;
   auto_switch_threshold: number;
+  quota_alert_enabled: boolean;
+  quota_alert_threshold: number;
+  codex_quota_alert_enabled: boolean;
+  codex_quota_alert_threshold: number;
+  ghcp_quota_alert_enabled: boolean;
+  ghcp_quota_alert_threshold: number;
+  windsurf_quota_alert_enabled: boolean;
+  windsurf_quota_alert_threshold: number;
 }
 
 type AppPathTarget = 'antigravity' | 'codex' | 'vscode' | 'opencode' | 'windsurf';
+const REFRESH_PRESET_VALUES = ['-1', '2', '5', '10', '15'];
+const THRESHOLD_PRESET_VALUES = ['0', '20', '40', '60'];
 
 export function SettingsPage() {
   const { t } = useTranslation();
@@ -82,7 +92,24 @@ export function SettingsPage() {
   const [appPathResetDetectingTargets, setAppPathResetDetectingTargets] = useState<Set<AppPathTarget>>(new Set());
   const [opencodeSyncOnSwitch, setOpencodeSyncOnSwitch] = useState(true);
   const [autoSwitchEnabled, setAutoSwitchEnabled] = useState(false);
-  const [autoSwitchThreshold, setAutoSwitchThreshold] = useState('5');
+  const [autoSwitchThreshold, setAutoSwitchThreshold] = useState('20');
+  const [quotaAlertEnabled, setQuotaAlertEnabled] = useState(false);
+  const [quotaAlertThreshold, setQuotaAlertThreshold] = useState('20');
+  const [codexQuotaAlertEnabled, setCodexQuotaAlertEnabled] = useState(false);
+  const [codexQuotaAlertThreshold, setCodexQuotaAlertThreshold] = useState('20');
+  const [ghcpQuotaAlertEnabled, setGhcpQuotaAlertEnabled] = useState(false);
+  const [ghcpQuotaAlertThreshold, setGhcpQuotaAlertThreshold] = useState('20');
+  const [windsurfQuotaAlertEnabled, setWindsurfQuotaAlertEnabled] = useState(false);
+  const [windsurfQuotaAlertThreshold, setWindsurfQuotaAlertThreshold] = useState('20');
+  const [autoRefreshCustomMode, setAutoRefreshCustomMode] = useState(false);
+  const [codexAutoRefreshCustomMode, setCodexAutoRefreshCustomMode] = useState(false);
+  const [ghcpAutoRefreshCustomMode, setGhcpAutoRefreshCustomMode] = useState(false);
+  const [windsurfAutoRefreshCustomMode, setWindsurfAutoRefreshCustomMode] = useState(false);
+  const [autoSwitchThresholdCustomMode, setAutoSwitchThresholdCustomMode] = useState(false);
+  const [quotaAlertThresholdCustomMode, setQuotaAlertThresholdCustomMode] = useState(false);
+  const [codexQuotaAlertThresholdCustomMode, setCodexQuotaAlertThresholdCustomMode] = useState(false);
+  const [ghcpQuotaAlertThresholdCustomMode, setGhcpQuotaAlertThresholdCustomMode] = useState(false);
+  const [windsurfQuotaAlertThresholdCustomMode, setWindsurfQuotaAlertThresholdCustomMode] = useState(false);
   const [generalLoaded, setGeneralLoaded] = useState(false);
   const generalSaveTimerRef = useRef<number | null>(null);
   const suppressGeneralSaveRef = useRef(false);
@@ -140,6 +167,11 @@ export function SettingsPage() {
     const codexAutoRefreshNum = parseInt(codexAutoRefresh, 10) || -1;
     const ghcpAutoRefreshNum = parseInt(ghcpAutoRefresh, 10) || -1;
     const windsurfAutoRefreshNum = parseInt(windsurfAutoRefresh, 10) || -1;
+    const parsedAutoSwitchThreshold = Number.parseInt(autoSwitchThreshold, 10);
+    const parsedQuotaAlertThreshold = Number.parseInt(quotaAlertThreshold, 10);
+    const parsedCodexQuotaAlertThreshold = Number.parseInt(codexQuotaAlertThreshold, 10);
+    const parsedGhcpQuotaAlertThreshold = Number.parseInt(ghcpQuotaAlertThreshold, 10);
+    const parsedWindsurfQuotaAlertThreshold = Number.parseInt(windsurfQuotaAlertThreshold, 10);
 
     if (suppressGeneralSaveRef.current) {
       suppressGeneralSaveRef.current = false;
@@ -163,7 +195,21 @@ export function SettingsPage() {
           windsurfAppPath,
           opencodeSyncOnSwitch,
           autoSwitchEnabled,
-          autoSwitchThreshold: parseInt(autoSwitchThreshold, 10) || 5,
+          autoSwitchThreshold: Number.isNaN(parsedAutoSwitchThreshold) ? 20 : parsedAutoSwitchThreshold,
+          quotaAlertEnabled,
+          quotaAlertThreshold: Number.isNaN(parsedQuotaAlertThreshold) ? 20 : parsedQuotaAlertThreshold,
+          codexQuotaAlertEnabled,
+          codexQuotaAlertThreshold: Number.isNaN(parsedCodexQuotaAlertThreshold)
+            ? 20
+            : parsedCodexQuotaAlertThreshold,
+          ghcpQuotaAlertEnabled,
+          ghcpQuotaAlertThreshold: Number.isNaN(parsedGhcpQuotaAlertThreshold)
+            ? 20
+            : parsedGhcpQuotaAlertThreshold,
+          windsurfQuotaAlertEnabled,
+          windsurfQuotaAlertThreshold: Number.isNaN(parsedWindsurfQuotaAlertThreshold)
+            ? 20
+            : parsedWindsurfQuotaAlertThreshold,
         });
         window.dispatchEvent(new Event('config-updated'));
       } catch (err) {
@@ -194,6 +240,14 @@ export function SettingsPage() {
     opencodeSyncOnSwitch,
     autoSwitchEnabled,
     autoSwitchThreshold,
+    quotaAlertEnabled,
+    quotaAlertThreshold,
+    codexQuotaAlertEnabled,
+    codexQuotaAlertThreshold,
+    ghcpQuotaAlertEnabled,
+    ghcpQuotaAlertThreshold,
+    windsurfQuotaAlertEnabled,
+    windsurfQuotaAlertThreshold,
     t,
   ]);
 
@@ -328,7 +382,24 @@ export function SettingsPage() {
       setWindsurfAppPath(config.windsurf_app_path || '');
       setOpencodeSyncOnSwitch(config.opencode_sync_on_switch ?? true);
       setAutoSwitchEnabled(config.auto_switch_enabled ?? false);
-      setAutoSwitchThreshold(String(config.auto_switch_threshold ?? 5));
+      setAutoSwitchThreshold(String(config.auto_switch_threshold ?? 20));
+      setQuotaAlertEnabled(config.quota_alert_enabled ?? false);
+      setQuotaAlertThreshold(String(config.quota_alert_threshold ?? 20));
+      setCodexQuotaAlertEnabled(config.codex_quota_alert_enabled ?? false);
+      setCodexQuotaAlertThreshold(String(config.codex_quota_alert_threshold ?? 20));
+      setGhcpQuotaAlertEnabled(config.ghcp_quota_alert_enabled ?? false);
+      setGhcpQuotaAlertThreshold(String(config.ghcp_quota_alert_threshold ?? 20));
+      setWindsurfQuotaAlertEnabled(config.windsurf_quota_alert_enabled ?? false);
+      setWindsurfQuotaAlertThreshold(String(config.windsurf_quota_alert_threshold ?? 20));
+      setAutoRefreshCustomMode(false);
+      setCodexAutoRefreshCustomMode(false);
+      setGhcpAutoRefreshCustomMode(false);
+      setWindsurfAutoRefreshCustomMode(false);
+      setAutoSwitchThresholdCustomMode(false);
+      setQuotaAlertThresholdCustomMode(false);
+      setCodexQuotaAlertThresholdCustomMode(false);
+      setGhcpQuotaAlertThresholdCustomMode(false);
+      setWindsurfQuotaAlertThresholdCustomMode(false);
       // 同步语言
       changeLanguage(config.language);
       applyTheme(config.theme);
@@ -444,6 +515,27 @@ export function SettingsPage() {
       });
     }
   };
+
+  const sanitizeNumberInput = (value: string) => value.replace(/[^\d]/g, '');
+
+  const normalizeNumberInput = (value: string, min: number, max?: number): string => {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      return String(min);
+    }
+    const bounded = Math.max(min, max ? Math.min(parsed, max) : parsed);
+    return String(bounded);
+  };
+
+  const autoRefreshIsPreset = REFRESH_PRESET_VALUES.includes(autoRefresh);
+  const codexAutoRefreshIsPreset = REFRESH_PRESET_VALUES.includes(codexAutoRefresh);
+  const ghcpAutoRefreshIsPreset = REFRESH_PRESET_VALUES.includes(ghcpAutoRefresh);
+  const windsurfAutoRefreshIsPreset = REFRESH_PRESET_VALUES.includes(windsurfAutoRefresh);
+  const autoSwitchThresholdIsPreset = THRESHOLD_PRESET_VALUES.includes(autoSwitchThreshold);
+  const quotaAlertThresholdIsPreset = THRESHOLD_PRESET_VALUES.includes(quotaAlertThreshold);
+  const codexQuotaAlertThresholdIsPreset = THRESHOLD_PRESET_VALUES.includes(codexQuotaAlertThreshold);
+  const ghcpQuotaAlertThresholdIsPreset = THRESHOLD_PRESET_VALUES.includes(ghcpQuotaAlertThreshold);
+  const windsurfQuotaAlertThresholdIsPreset = THRESHOLD_PRESET_VALUES.includes(windsurfQuotaAlertThreshold);
 
   // 检查更新
   const handleCheckUpdate = async () => {
@@ -572,43 +664,60 @@ export function SettingsPage() {
                 </div>
                 <div className="row-control">
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select 
-                      className="settings-select" 
-                      style={{ minWidth: '120px', width: 'auto' }}
-                      value={['-1', '2', '5', '10', '15'].includes(autoRefresh) ? autoRefresh : 'custom'} 
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'custom') {
-                          if (['-1', '2', '5', '10', '15'].includes(autoRefresh)) {
-                            setAutoRefresh('12');
-                          }
-                        } else {
-                          setAutoRefresh(val);
-                        }
-                      }}
-                    >
-                      <option value="-1" disabled={hasActiveResetTasks}>{t('settings.general.autoRefreshDisabled')}</option>
-                      <option value="2">2 {t('settings.general.minutes')}</option>
-                      <option value="5" disabled={hasActiveResetTasks}>5 {t('settings.general.minutes')}</option>
-                      <option value="10" disabled={hasActiveResetTasks}>10 {t('settings.general.minutes')}</option>
-                      <option value="15" disabled={hasActiveResetTasks}>15 {t('settings.general.minutes')}</option>
-                      <option value="custom" disabled={hasActiveResetTasks}>{t('settings.general.autoRefreshCustom')}</option>
-                    </select>
-                    
-                    {!['-1', '2', '5', '10', '15'].includes(autoRefresh) && (
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                        <input 
-                          type="number" 
-                          min="1"
-                          className="settings-input"
-                          style={{ width: '80px', paddingRight: '24px' }}
+                    {autoRefreshCustomMode ? (
+                      <div className="settings-inline-input" style={{ minWidth: '120px', width: 'auto' }}>
+                        <input
+                          type="number"
+                          min={1}
+                          max={999}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
                           value={autoRefresh}
-                          onChange={(e) => setAutoRefresh(e.target.value)}
-                        />
-                        <span style={{ position: 'absolute', right: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {t('settings.general.minutes')}
-                        </span>
+                          placeholder={t('quickSettings.inputMinutes', '输入分钟数')}
+                          onChange={(e) => setAutoRefresh(sanitizeNumberInput(e.target.value))}
+                        onBlur={() => {
+                          const normalized = normalizeNumberInput(autoRefresh, 1, 999);
+                          setAutoRefresh(normalized);
+                          setAutoRefreshCustomMode(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const normalized = normalizeNumberInput(autoRefresh, 1, 999);
+                            setAutoRefresh(normalized);
+                            setAutoRefreshCustomMode(false);
+                          }
+                        }}
+                      />
+                        <span className="settings-input-unit">{t('settings.general.minutes')}</span>
                       </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        style={{ minWidth: '120px', width: 'auto' }}
+                        value={autoRefresh}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setAutoRefreshCustomMode(true);
+                            setAutoRefresh(autoRefresh !== '-1' ? autoRefresh : '1');
+                            return;
+                          }
+                          setAutoRefreshCustomMode(false);
+                          setAutoRefresh(val);
+                        }}
+                      >
+                        {!autoRefreshIsPreset && (
+                          <option value={autoRefresh}>
+                            {autoRefresh} {t('settings.general.minutes')}
+                          </option>
+                        )}
+                        <option value="-1" disabled={hasActiveResetTasks}>{t('settings.general.autoRefreshDisabled')}</option>
+                        <option value="2">2 {t('settings.general.minutes')}</option>
+                        <option value="5" disabled={hasActiveResetTasks}>5 {t('settings.general.minutes')}</option>
+                        <option value="10" disabled={hasActiveResetTasks}>10 {t('settings.general.minutes')}</option>
+                        <option value="15" disabled={hasActiveResetTasks}>15 {t('settings.general.minutes')}</option>
+                        <option value="custom" disabled={hasActiveResetTasks}>{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
                     )}
                   </div>
                   
@@ -690,17 +799,135 @@ export function SettingsPage() {
                     <div className="row-desc">{t('quickSettings.autoSwitch.thresholdDesc', '任意模型配额低于此百分比时触发自动切号')}</div>
                   </div>
                   <div className="row-control">
-                    <select
-                      className="settings-select"
-                      value={autoSwitchThreshold}
-                      onChange={(e) => setAutoSwitchThreshold(e.target.value)}
-                    >
-                      <option value="3">3%</option>
-                      <option value="5">5%</option>
-                      <option value="10">10%</option>
-                      <option value="15">15%</option>
-                      <option value="20">20%</option>
-                    </select>
+                    {autoSwitchThresholdCustomMode ? (
+                      <div className="settings-inline-input">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
+                          value={autoSwitchThreshold}
+                          placeholder={t('quickSettings.inputPercent', '输入百分比')}
+                          onChange={(e) => setAutoSwitchThreshold(sanitizeNumberInput(e.target.value))}
+                        onBlur={() => {
+                          const normalized = normalizeNumberInput(autoSwitchThreshold, 0, 100);
+                          setAutoSwitchThreshold(normalized);
+                          setAutoSwitchThresholdCustomMode(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const normalized = normalizeNumberInput(autoSwitchThreshold, 0, 100);
+                            setAutoSwitchThreshold(normalized);
+                            setAutoSwitchThresholdCustomMode(false);
+                          }
+                        }}
+                      />
+                        <span className="settings-input-unit">%</span>
+                      </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        value={autoSwitchThreshold}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setAutoSwitchThresholdCustomMode(true);
+                            setAutoSwitchThreshold(autoSwitchThreshold || '20');
+                            return;
+                          }
+                          setAutoSwitchThresholdCustomMode(false);
+                          setAutoSwitchThreshold(val);
+                        }}
+                      >
+                        {!autoSwitchThresholdIsPreset && (
+                          <option value={autoSwitchThreshold}>{autoSwitchThreshold}%</option>
+                        )}
+                        <option value="0">0%</option>
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60">60%</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('quickSettings.quotaAlert.enable', '超额预警')}</div>
+                  <div className="row-desc">{t('quickSettings.quotaAlert.hint', '当当前账号任意模型配额低于阈值时，发送原生通知并在页面提示快捷切号。')}</div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={quotaAlertEnabled}
+                      onChange={(e) => setQuotaAlertEnabled(e.target.checked)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+              {quotaAlertEnabled && (
+                <div className="settings-row" style={{ animation: 'fadeUp 0.3s ease both' }}>
+                  <div className="row-label">
+                    <div className="row-title">{t('quickSettings.quotaAlert.threshold', '预警阈值')}</div>
+                    <div className="row-desc">{t('quickSettings.quotaAlert.thresholdDesc', '任意模型配额低于此百分比时触发预警')}</div>
+                  </div>
+                  <div className="row-control">
+                    {quotaAlertThresholdCustomMode ? (
+                      <div className="settings-inline-input">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
+                          value={quotaAlertThreshold}
+                          placeholder={t('quickSettings.inputPercent', '输入百分比')}
+                          onChange={(e) => setQuotaAlertThreshold(sanitizeNumberInput(e.target.value))}
+                          onBlur={() => {
+                            const normalized = normalizeNumberInput(quotaAlertThreshold, 0, 100);
+                            setQuotaAlertThreshold(normalized);
+                            setQuotaAlertThresholdCustomMode(false);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const normalized = normalizeNumberInput(quotaAlertThreshold, 0, 100);
+                              setQuotaAlertThreshold(normalized);
+                              setQuotaAlertThresholdCustomMode(false);
+                            }
+                          }}
+                        />
+                        <span className="settings-input-unit">%</span>
+                      </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        value={quotaAlertThreshold}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setQuotaAlertThresholdCustomMode(true);
+                            setQuotaAlertThreshold(quotaAlertThreshold || '20');
+                            return;
+                          }
+                          setQuotaAlertThresholdCustomMode(false);
+                          setQuotaAlertThreshold(val);
+                        }}
+                      >
+                        {!quotaAlertThresholdIsPreset && (
+                          <option value={quotaAlertThreshold}>{quotaAlertThreshold}%</option>
+                        )}
+                        <option value="0">0%</option>
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60">60%</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
+                    )}
                   </div>
                 </div>
               )}
@@ -715,43 +942,60 @@ export function SettingsPage() {
                 </div>
                 <div className="row-control">
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select
-                      className="settings-select"
-                      style={{ minWidth: '120px', width: 'auto' }}
-                      value={['-1', '2', '5', '10', '15'].includes(codexAutoRefresh) ? codexAutoRefresh : 'custom'}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'custom') {
-                          if (['-1', '2', '5', '10', '15'].includes(codexAutoRefresh)) {
-                            setCodexAutoRefresh('12');
-                          }
-                        } else {
-                          setCodexAutoRefresh(val);
-                        }
-                      }}
-                    >
-                      <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
-                      <option value="2">2 {t('settings.general.minutes')}</option>
-                      <option value="5">5 {t('settings.general.minutes')}</option>
-                      <option value="10">10 {t('settings.general.minutes')}</option>
-                      <option value="15">15 {t('settings.general.minutes')}</option>
-                      <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
-                    </select>
-
-                    {!['-1', '2', '5', '10', '15'].includes(codexAutoRefresh) && (
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    {codexAutoRefreshCustomMode ? (
+                      <div className="settings-inline-input" style={{ minWidth: '120px', width: 'auto' }}>
                         <input
                           type="number"
-                          min="1"
-                          className="settings-input"
-                          style={{ width: '80px', paddingRight: '24px' }}
+                          min={1}
+                          max={999}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
                           value={codexAutoRefresh}
-                          onChange={(e) => setCodexAutoRefresh(e.target.value)}
-                        />
-                        <span style={{ position: 'absolute', right: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {t('settings.general.minutes')}
-                        </span>
+                          placeholder={t('quickSettings.inputMinutes', '输入分钟数')}
+                          onChange={(e) => setCodexAutoRefresh(sanitizeNumberInput(e.target.value))}
+                        onBlur={() => {
+                          const normalized = normalizeNumberInput(codexAutoRefresh, 1, 999);
+                          setCodexAutoRefresh(normalized);
+                          setCodexAutoRefreshCustomMode(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const normalized = normalizeNumberInput(codexAutoRefresh, 1, 999);
+                            setCodexAutoRefresh(normalized);
+                            setCodexAutoRefreshCustomMode(false);
+                          }
+                        }}
+                      />
+                        <span className="settings-input-unit">{t('settings.general.minutes')}</span>
                       </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        style={{ minWidth: '120px', width: 'auto' }}
+                        value={codexAutoRefresh}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setCodexAutoRefreshCustomMode(true);
+                            setCodexAutoRefresh(codexAutoRefresh !== '-1' ? codexAutoRefresh : '1');
+                            return;
+                          }
+                          setCodexAutoRefreshCustomMode(false);
+                          setCodexAutoRefresh(val);
+                        }}
+                      >
+                        {!codexAutoRefreshIsPreset && (
+                          <option value={codexAutoRefresh}>
+                            {codexAutoRefresh} {t('settings.general.minutes')}
+                          </option>
+                        )}
+                        <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
+                        <option value="2">2 {t('settings.general.minutes')}</option>
+                        <option value="5">5 {t('settings.general.minutes')}</option>
+                        <option value="10">10 {t('settings.general.minutes')}</option>
+                        <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
                     )}
                   </div>
                 </div>
@@ -845,6 +1089,84 @@ export function SettingsPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('quickSettings.quotaAlert.enable', '超额预警')}</div>
+                  <div className="row-desc">{t('quickSettings.quotaAlert.hint', '当当前账号任意模型配额低于阈值时，发送原生通知并在页面提示快捷切号。')}</div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={codexQuotaAlertEnabled}
+                      onChange={(e) => setCodexQuotaAlertEnabled(e.target.checked)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+              {codexQuotaAlertEnabled && (
+                <div className="settings-row" style={{ animation: 'fadeUp 0.3s ease both' }}>
+                  <div className="row-label">
+                    <div className="row-title">{t('quickSettings.quotaAlert.threshold', '预警阈值')}</div>
+                    <div className="row-desc">{t('quickSettings.quotaAlert.thresholdDesc', '任意模型配额低于此百分比时触发预警')}</div>
+                  </div>
+                  <div className="row-control">
+                    {codexQuotaAlertThresholdCustomMode ? (
+                      <div className="settings-inline-input">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
+                          value={codexQuotaAlertThreshold}
+                          placeholder={t('quickSettings.inputPercent', '输入百分比')}
+                          onChange={(e) => setCodexQuotaAlertThreshold(sanitizeNumberInput(e.target.value))}
+                          onBlur={() => {
+                            const normalized = normalizeNumberInput(codexQuotaAlertThreshold, 0, 100);
+                            setCodexQuotaAlertThreshold(normalized);
+                            setCodexQuotaAlertThresholdCustomMode(false);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const normalized = normalizeNumberInput(codexQuotaAlertThreshold, 0, 100);
+                              setCodexQuotaAlertThreshold(normalized);
+                              setCodexQuotaAlertThresholdCustomMode(false);
+                            }
+                          }}
+                        />
+                        <span className="settings-input-unit">%</span>
+                      </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        value={codexQuotaAlertThreshold}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setCodexQuotaAlertThresholdCustomMode(true);
+                            setCodexQuotaAlertThreshold(codexQuotaAlertThreshold || '20');
+                            return;
+                          }
+                          setCodexQuotaAlertThresholdCustomMode(false);
+                          setCodexQuotaAlertThreshold(val);
+                        }}
+                      >
+                        {!codexQuotaAlertThresholdIsPreset && (
+                          <option value={codexQuotaAlertThreshold}>{codexQuotaAlertThreshold}%</option>
+                        )}
+                        <option value="0">0%</option>
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60">60%</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="group-title">{t('settings.general.githubCopilotSettingsTitle', 'GitHub Copilot 设置')}</div>
@@ -856,43 +1178,60 @@ export function SettingsPage() {
                 </div>
                 <div className="row-control">
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select
-                      className="settings-select"
-                      style={{ minWidth: '120px', width: 'auto' }}
-                      value={['-1', '2', '5', '10', '15'].includes(ghcpAutoRefresh) ? ghcpAutoRefresh : 'custom'}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'custom') {
-                          if (['-1', '2', '5', '10', '15'].includes(ghcpAutoRefresh)) {
-                            setGhcpAutoRefresh('12');
-                          }
-                        } else {
-                          setGhcpAutoRefresh(val);
-                        }
-                      }}
-                    >
-                      <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
-                      <option value="2">2 {t('settings.general.minutes')}</option>
-                      <option value="5">5 {t('settings.general.minutes')}</option>
-                      <option value="10">10 {t('settings.general.minutes')}</option>
-                      <option value="15">15 {t('settings.general.minutes')}</option>
-                      <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
-                    </select>
-
-                    {!['-1', '2', '5', '10', '15'].includes(ghcpAutoRefresh) && (
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    {ghcpAutoRefreshCustomMode ? (
+                      <div className="settings-inline-input" style={{ minWidth: '120px', width: 'auto' }}>
                         <input
                           type="number"
-                          min="1"
-                          className="settings-input"
-                          style={{ width: '80px', paddingRight: '24px' }}
+                          min={1}
+                          max={999}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
                           value={ghcpAutoRefresh}
-                          onChange={(e) => setGhcpAutoRefresh(e.target.value)}
-                        />
-                        <span style={{ position: 'absolute', right: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {t('settings.general.minutes')}
-                        </span>
+                          placeholder={t('quickSettings.inputMinutes', '输入分钟数')}
+                          onChange={(e) => setGhcpAutoRefresh(sanitizeNumberInput(e.target.value))}
+                        onBlur={() => {
+                          const normalized = normalizeNumberInput(ghcpAutoRefresh, 1, 999);
+                          setGhcpAutoRefresh(normalized);
+                          setGhcpAutoRefreshCustomMode(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const normalized = normalizeNumberInput(ghcpAutoRefresh, 1, 999);
+                            setGhcpAutoRefresh(normalized);
+                            setGhcpAutoRefreshCustomMode(false);
+                          }
+                        }}
+                      />
+                        <span className="settings-input-unit">{t('settings.general.minutes')}</span>
                       </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        style={{ minWidth: '120px', width: 'auto' }}
+                        value={ghcpAutoRefresh}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setGhcpAutoRefreshCustomMode(true);
+                            setGhcpAutoRefresh(ghcpAutoRefresh !== '-1' ? ghcpAutoRefresh : '1');
+                            return;
+                          }
+                          setGhcpAutoRefreshCustomMode(false);
+                          setGhcpAutoRefresh(val);
+                        }}
+                      >
+                        {!ghcpAutoRefreshIsPreset && (
+                          <option value={ghcpAutoRefresh}>
+                            {ghcpAutoRefresh} {t('settings.general.minutes')}
+                          </option>
+                        )}
+                        <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
+                        <option value="2">2 {t('settings.general.minutes')}</option>
+                        <option value="5">5 {t('settings.general.minutes')}</option>
+                        <option value="10">10 {t('settings.general.minutes')}</option>
+                        <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
                     )}
                   </div>
                 </div>
@@ -932,6 +1271,84 @@ export function SettingsPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('quickSettings.quotaAlert.enable', '超额预警')}</div>
+                  <div className="row-desc">{t('quickSettings.quotaAlert.hint', '当当前账号任意模型配额低于阈值时，发送原生通知并在页面提示快捷切号。')}</div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={ghcpQuotaAlertEnabled}
+                      onChange={(e) => setGhcpQuotaAlertEnabled(e.target.checked)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+              {ghcpQuotaAlertEnabled && (
+                <div className="settings-row" style={{ animation: 'fadeUp 0.3s ease both' }}>
+                  <div className="row-label">
+                    <div className="row-title">{t('quickSettings.quotaAlert.threshold', '预警阈值')}</div>
+                    <div className="row-desc">{t('quickSettings.quotaAlert.thresholdDesc', '任意模型配额低于此百分比时触发预警')}</div>
+                  </div>
+                  <div className="row-control">
+                    {ghcpQuotaAlertThresholdCustomMode ? (
+                      <div className="settings-inline-input">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
+                          value={ghcpQuotaAlertThreshold}
+                          placeholder={t('quickSettings.inputPercent', '输入百分比')}
+                          onChange={(e) => setGhcpQuotaAlertThreshold(sanitizeNumberInput(e.target.value))}
+                          onBlur={() => {
+                            const normalized = normalizeNumberInput(ghcpQuotaAlertThreshold, 0, 100);
+                            setGhcpQuotaAlertThreshold(normalized);
+                            setGhcpQuotaAlertThresholdCustomMode(false);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const normalized = normalizeNumberInput(ghcpQuotaAlertThreshold, 0, 100);
+                              setGhcpQuotaAlertThreshold(normalized);
+                              setGhcpQuotaAlertThresholdCustomMode(false);
+                            }
+                          }}
+                        />
+                        <span className="settings-input-unit">%</span>
+                      </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        value={ghcpQuotaAlertThreshold}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setGhcpQuotaAlertThresholdCustomMode(true);
+                            setGhcpQuotaAlertThreshold(ghcpQuotaAlertThreshold || '20');
+                            return;
+                          }
+                          setGhcpQuotaAlertThresholdCustomMode(false);
+                          setGhcpQuotaAlertThreshold(val);
+                        }}
+                      >
+                        {!ghcpQuotaAlertThresholdIsPreset && (
+                          <option value={ghcpQuotaAlertThreshold}>{ghcpQuotaAlertThreshold}%</option>
+                        )}
+                        <option value="0">0%</option>
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60">60%</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="group-title">{t('settings.general.windsurfSettingsTitle', 'Windsurf 设置')}</div>
@@ -943,43 +1360,60 @@ export function SettingsPage() {
                 </div>
                 <div className="row-control">
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <select
-                      className="settings-select"
-                      style={{ minWidth: '120px', width: 'auto' }}
-                      value={['-1', '2', '5', '10', '15'].includes(windsurfAutoRefresh) ? windsurfAutoRefresh : 'custom'}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === 'custom') {
-                          if (['-1', '2', '5', '10', '15'].includes(windsurfAutoRefresh)) {
-                            setWindsurfAutoRefresh('12');
-                          }
-                        } else {
-                          setWindsurfAutoRefresh(val);
-                        }
-                      }}
-                    >
-                      <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
-                      <option value="2">2 {t('settings.general.minutes')}</option>
-                      <option value="5">5 {t('settings.general.minutes')}</option>
-                      <option value="10">10 {t('settings.general.minutes')}</option>
-                      <option value="15">15 {t('settings.general.minutes')}</option>
-                      <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
-                    </select>
-
-                    {!['-1', '2', '5', '10', '15'].includes(windsurfAutoRefresh) && (
-                      <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    {windsurfAutoRefreshCustomMode ? (
+                      <div className="settings-inline-input" style={{ minWidth: '120px', width: 'auto' }}>
                         <input
                           type="number"
-                          min="1"
-                          className="settings-input"
-                          style={{ width: '80px', paddingRight: '24px' }}
+                          min={1}
+                          max={999}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
                           value={windsurfAutoRefresh}
-                          onChange={(e) => setWindsurfAutoRefresh(e.target.value)}
-                        />
-                        <span style={{ position: 'absolute', right: '8px', fontSize: '12px', color: 'var(--text-muted)' }}>
-                          {t('settings.general.minutes')}
-                        </span>
+                          placeholder={t('quickSettings.inputMinutes', '输入分钟数')}
+                          onChange={(e) => setWindsurfAutoRefresh(sanitizeNumberInput(e.target.value))}
+                        onBlur={() => {
+                          const normalized = normalizeNumberInput(windsurfAutoRefresh, 1, 999);
+                          setWindsurfAutoRefresh(normalized);
+                          setWindsurfAutoRefreshCustomMode(false);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const normalized = normalizeNumberInput(windsurfAutoRefresh, 1, 999);
+                            setWindsurfAutoRefresh(normalized);
+                            setWindsurfAutoRefreshCustomMode(false);
+                          }
+                        }}
+                      />
+                        <span className="settings-input-unit">{t('settings.general.minutes')}</span>
                       </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        style={{ minWidth: '120px', width: 'auto' }}
+                        value={windsurfAutoRefresh}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setWindsurfAutoRefreshCustomMode(true);
+                            setWindsurfAutoRefresh(windsurfAutoRefresh !== '-1' ? windsurfAutoRefresh : '1');
+                            return;
+                          }
+                          setWindsurfAutoRefreshCustomMode(false);
+                          setWindsurfAutoRefresh(val);
+                        }}
+                      >
+                        {!windsurfAutoRefreshIsPreset && (
+                          <option value={windsurfAutoRefresh}>
+                            {windsurfAutoRefresh} {t('settings.general.minutes')}
+                          </option>
+                        )}
+                        <option value="-1">{t('settings.general.autoRefreshDisabled')}</option>
+                        <option value="2">2 {t('settings.general.minutes')}</option>
+                        <option value="5">5 {t('settings.general.minutes')}</option>
+                        <option value="10">10 {t('settings.general.minutes')}</option>
+                        <option value="15">15 {t('settings.general.minutes')}</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
                     )}
                   </div>
                 </div>
@@ -1019,6 +1453,84 @@ export function SettingsPage() {
                   </div>
                 </div>
               </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('quickSettings.quotaAlert.enable', '超额预警')}</div>
+                  <div className="row-desc">{t('quickSettings.quotaAlert.hint', '当当前账号任意模型配额低于阈值时，发送原生通知并在页面提示快捷切号。')}</div>
+                </div>
+                <div className="row-control">
+                  <label className="switch">
+                    <input
+                      type="checkbox"
+                      checked={windsurfQuotaAlertEnabled}
+                      onChange={(e) => setWindsurfQuotaAlertEnabled(e.target.checked)}
+                    />
+                    <span className="slider"></span>
+                  </label>
+                </div>
+              </div>
+              {windsurfQuotaAlertEnabled && (
+                <div className="settings-row" style={{ animation: 'fadeUp 0.3s ease both' }}>
+                  <div className="row-label">
+                    <div className="row-title">{t('quickSettings.quotaAlert.threshold', '预警阈值')}</div>
+                    <div className="row-desc">{t('quickSettings.quotaAlert.thresholdDesc', '任意模型配额低于此百分比时触发预警')}</div>
+                  </div>
+                  <div className="row-control">
+                    {windsurfQuotaAlertThresholdCustomMode ? (
+                      <div className="settings-inline-input">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="settings-select settings-select--input-mode settings-select--with-unit"
+                          value={windsurfQuotaAlertThreshold}
+                          placeholder={t('quickSettings.inputPercent', '输入百分比')}
+                          onChange={(e) => setWindsurfQuotaAlertThreshold(sanitizeNumberInput(e.target.value))}
+                          onBlur={() => {
+                            const normalized = normalizeNumberInput(windsurfQuotaAlertThreshold, 0, 100);
+                            setWindsurfQuotaAlertThreshold(normalized);
+                            setWindsurfQuotaAlertThresholdCustomMode(false);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const normalized = normalizeNumberInput(windsurfQuotaAlertThreshold, 0, 100);
+                              setWindsurfQuotaAlertThreshold(normalized);
+                              setWindsurfQuotaAlertThresholdCustomMode(false);
+                            }
+                          }}
+                        />
+                        <span className="settings-input-unit">%</span>
+                      </div>
+                    ) : (
+                      <select
+                        className="settings-select"
+                        value={windsurfQuotaAlertThreshold}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === 'custom') {
+                            setWindsurfQuotaAlertThresholdCustomMode(true);
+                            setWindsurfQuotaAlertThreshold(windsurfQuotaAlertThreshold || '20');
+                            return;
+                          }
+                          setWindsurfQuotaAlertThresholdCustomMode(false);
+                          setWindsurfQuotaAlertThreshold(val);
+                        }}
+                      >
+                        {!windsurfQuotaAlertThresholdIsPreset && (
+                          <option value={windsurfQuotaAlertThreshold}>{windsurfQuotaAlertThreshold}%</option>
+                        )}
+                        <option value="0">0%</option>
+                        <option value="20">20%</option>
+                        <option value="40">40%</option>
+                        <option value="60">60%</option>
+                        <option value="custom">{t('settings.general.autoRefreshCustom')}</option>
+                      </select>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
           </>

@@ -51,6 +51,22 @@ pub struct GeneralConfig {
     pub auto_switch_enabled: bool,
     /// 自动切号阈值（百分比）
     pub auto_switch_threshold: i32,
+    /// 是否启用配额预警通知
+    pub quota_alert_enabled: bool,
+    /// 配额预警阈值（百分比）
+    pub quota_alert_threshold: i32,
+    /// 是否启用 Codex 配额预警通知
+    pub codex_quota_alert_enabled: bool,
+    /// Codex 配额预警阈值（百分比）
+    pub codex_quota_alert_threshold: i32,
+    /// 是否启用 GitHub Copilot 配额预警通知
+    pub ghcp_quota_alert_enabled: bool,
+    /// GitHub Copilot 配额预警阈值（百分比）
+    pub ghcp_quota_alert_threshold: i32,
+    /// 是否启用 Windsurf 配额预警通知
+    pub windsurf_quota_alert_enabled: bool,
+    /// Windsurf 配额预警阈值（百分比）
+    pub windsurf_quota_alert_threshold: i32,
 }
 
 #[tauri::command]
@@ -141,6 +157,14 @@ pub fn save_network_config(ws_enabled: bool, ws_port: u16) -> Result<bool, Strin
         opencode_sync_on_switch: current.opencode_sync_on_switch,
         auto_switch_enabled: current.auto_switch_enabled,
         auto_switch_threshold: current.auto_switch_threshold,
+        quota_alert_enabled: current.quota_alert_enabled,
+        quota_alert_threshold: current.quota_alert_threshold,
+        codex_quota_alert_enabled: current.codex_quota_alert_enabled,
+        codex_quota_alert_threshold: current.codex_quota_alert_threshold,
+        ghcp_quota_alert_enabled: current.ghcp_quota_alert_enabled,
+        ghcp_quota_alert_threshold: current.ghcp_quota_alert_threshold,
+        windsurf_quota_alert_enabled: current.windsurf_quota_alert_enabled,
+        windsurf_quota_alert_threshold: current.windsurf_quota_alert_threshold,
     };
 
     config::save_user_config(&new_config)?;
@@ -175,6 +199,14 @@ pub fn get_general_config() -> Result<GeneralConfig, String> {
         opencode_sync_on_switch: user_config.opencode_sync_on_switch,
         auto_switch_enabled: user_config.auto_switch_enabled,
         auto_switch_threshold: user_config.auto_switch_threshold,
+        quota_alert_enabled: user_config.quota_alert_enabled,
+        quota_alert_threshold: user_config.quota_alert_threshold,
+        codex_quota_alert_enabled: user_config.codex_quota_alert_enabled,
+        codex_quota_alert_threshold: user_config.codex_quota_alert_threshold,
+        ghcp_quota_alert_enabled: user_config.ghcp_quota_alert_enabled,
+        ghcp_quota_alert_threshold: user_config.ghcp_quota_alert_threshold,
+        windsurf_quota_alert_enabled: user_config.windsurf_quota_alert_enabled,
+        windsurf_quota_alert_threshold: user_config.windsurf_quota_alert_threshold,
     })
 }
 
@@ -196,6 +228,14 @@ pub fn save_general_config(
     opencode_sync_on_switch: bool,
     auto_switch_enabled: Option<bool>,
     auto_switch_threshold: Option<i32>,
+    quota_alert_enabled: Option<bool>,
+    quota_alert_threshold: Option<i32>,
+    codex_quota_alert_enabled: Option<bool>,
+    codex_quota_alert_threshold: Option<i32>,
+    ghcp_quota_alert_enabled: Option<bool>,
+    ghcp_quota_alert_threshold: Option<i32>,
+    windsurf_quota_alert_enabled: Option<bool>,
+    windsurf_quota_alert_threshold: Option<i32>,
 ) -> Result<(), String> {
     let current = config::get_user_config();
     let normalized_opencode_path = opencode_app_path.trim().to_string();
@@ -239,6 +279,19 @@ pub fn save_general_config(
         opencode_sync_on_switch,
         auto_switch_enabled: auto_switch_enabled.unwrap_or(current.auto_switch_enabled),
         auto_switch_threshold: auto_switch_threshold.unwrap_or(current.auto_switch_threshold),
+        quota_alert_enabled: quota_alert_enabled.unwrap_or(current.quota_alert_enabled),
+        quota_alert_threshold: quota_alert_threshold.unwrap_or(current.quota_alert_threshold),
+        codex_quota_alert_enabled: codex_quota_alert_enabled
+            .unwrap_or(current.codex_quota_alert_enabled),
+        codex_quota_alert_threshold: codex_quota_alert_threshold
+            .unwrap_or(current.codex_quota_alert_threshold),
+        ghcp_quota_alert_enabled: ghcp_quota_alert_enabled.unwrap_or(current.ghcp_quota_alert_enabled),
+        ghcp_quota_alert_threshold: ghcp_quota_alert_threshold
+            .unwrap_or(current.ghcp_quota_alert_threshold),
+        windsurf_quota_alert_enabled: windsurf_quota_alert_enabled
+            .unwrap_or(current.windsurf_quota_alert_enabled),
+        windsurf_quota_alert_threshold: windsurf_quota_alert_threshold
+            .unwrap_or(current.windsurf_quota_alert_threshold),
     };
 
     config::save_user_config(&new_config)?;

@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Automatyczne przełączanie zostanie wyzwolone, gdy limit dowolnego modelu spadnie poniżej tego procentu",
       "hint": "Automatycznie przełącza na konto z najwyższym limitem, gdy limit dowolnego modelu spadnie poniżej progu."
     },
+    "quotaAlert": {
+      "title": "Alert limitu",
+      "enable": "Włącz alert limitu",
+      "threshold": "Próg alertu",
+      "thresholdDesc": "Wyzwól alert, gdy limit dowolnego modelu spadnie poniżej tego procentu",
+      "hint": "Gdy limit dowolnego modelu bieżącego konta spadnie poniżej progu, wyślij natywne powiadomienie i pokaż w aplikacji akcję szybkiego przełączenia konta."
+    },
     "customInput": "Niestandardowy",
     "apply": "Zastosuj",
     "inputMinutes": "Wpisz minuty",
@@ -1184,6 +1191,28 @@
       "appPath": "Ścieżka Windsurf"
     },
     "windsurfRefreshInterval": "Automatyczne odświeżanie limitu"
+  },
+  "quotaAlert": {
+    "bannerText": "Alert limitu dla {{email}} (próg {{threshold}}%, minimum {{lowest}}%, modele: {{models}})",
+    "switchAction": "Szybkie przełączenie: {{email}}",
+    "switching": "Przełączanie...",
+    "switchFailed": "Szybkie przełączenie nie powiodło się: {{error}}",
+    "modal": {
+      "title": "Alert limitu",
+      "desc": "Limit bieżącego konta osiągnął próg alertu. Zajmij się tym jak najszybciej.",
+      "unknownModel": "Nieznany model",
+      "platform": "Platforma",
+      "account": "Bieżące konto",
+      "threshold": "Próg alertu",
+      "lowest": "Bieżące minimum",
+      "models": "Modele wyzwalające",
+      "recommended": "Zalecane przełączenie",
+      "noRecommendation": "Brak dostępnego konta do przełączenia",
+      "later": "Później",
+      "switchNow": "Szybko przełącz na {{email}}",
+      "switchFailedTitle": "Przełączenie nie powiodło się",
+      "switchFailedBody": "Szybkie przełączenie nie powiodło się: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Ukryj e-maile",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Ukryte",
     "openFromMore": "Zarządzaj układem platform",
     "dragHandleLabel": "Przeciągnij, aby zmienić kolejność"
+  },
+  "breakout": {
+    "gameOver": "Koniec gry",
+    "gameOverRank": "Aktualna pozycja #{{rank}}",
+    "startGame": "Rozpocznij grę",
+    "startHint": "Kliknij start lub naciśnij Spację",
+    "rankTitle": "Ranking historyczny",
+    "rankCurrent": "Aktualny",
+    "rankNoData": "--",
+    "restart": "Zrestartuj",
+    "pause": "Pauza",
+    "resume": "Wznów",
+    "paused": "Wstrzymano",
+    "level": "Poziom {{level}}",
+    "levelCleared": "Poziom ukończony",
+    "nextLevel": "Następny poziom",
+    "history": "Historia",
+    "historyShort": "Historia",
+    "historyEmpty": "Brak zapisów",
+    "historyClear": "Wyczyść",
+    "historyScoreShort": "Wynik {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Czas {{duration}}",
+    "historyReasonGameOver": "Koniec gry",
+    "historyReasonManualExit": "Ręczne wyjście"
   }
 }

@@ -216,51 +216,41 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
 }
 
-/* Custom input row */
-.qs-custom-input-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.qs-number-input {
-  width: 100px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-  background: var(--bg-tertiary);
-  color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.15s;
+.qs-select--input-mode {
+  background-image: none;
+  padding-right: 12px;
+  cursor: text;
   appearance: textfield;
   -moz-appearance: textfield;
 }
 
-.qs-number-input::-webkit-outer-spin-button,
-.qs-number-input::-webkit-inner-spin-button {
+.qs-select--with-unit {
+  padding-right: 36px;
+}
+
+.qs-select--input-mode::-webkit-outer-spin-button,
+.qs-select--input-mode::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.qs-number-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 15%, transparent);
+.qs-inline-input {
+  position: relative;
+  width: 100%;
 }
 
-.qs-number-input::placeholder {
-  color: var(--text-muted);
-  font-weight: 400;
+.qs-inline-input .qs-select {
+  width: 100%;
 }
 
-.qs-unit {
+.qs-input-unit {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   font-size: 12px;
   color: var(--text-muted);
-  font-weight: 500;
-  flex-shrink: 0;
-  min-width: 24px;
+  pointer-events: none;
 }
 
 /* Path controls */

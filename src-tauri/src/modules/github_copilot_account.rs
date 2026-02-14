@@ -2,11 +2,16 @@ use crate::models::github_copilot::{
     GitHubCopilotAccount, GitHubCopilotAccountIndex, GitHubCopilotOAuthCompletePayload,
 };
 use crate::modules::{account, github_copilot_oauth, logger};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
+use std::sync::Mutex;
 
 const ACCOUNTS_INDEX_FILE: &str = "github_copilot_accounts.json";
 const ACCOUNTS_DIR: &str = "github_copilot_accounts";
+static GHCP_QUOTA_ALERT_LAST_SENT: std::sync::LazyLock<Mutex<HashMap<String, i64>>> =
+    std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
+const GHCP_QUOTA_ALERT_COOLDOWN_SECONDS: i64 = 300;
 
 fn now_ts() -> i64 {
     chrono::Utc::now().timestamp()
@@ -270,4 +275,246 @@ pub fn export_accounts(account_ids: &[String]) -> Result<String, String> {
         .filter_map(|id| load_account_file(id))
         .collect();
     serde_json::to_string_pretty(&accounts).map_err(|e| format!("序列化失败: {}", e))
+}
+
+fn normalize_quota_alert_threshold(raw: i32) -> i32 {
+    raw.clamp(0, 100)
+}
+
+fn clamp_percent(value: f64) -> i32 {
+    value.round().clamp(0.0, 100.0) as i32
+}
+
+fn parse_token_map(token: &str) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let prefix = token.split(':').next().unwrap_or(token);
+    for item in prefix.split(';') {
+        let mut parts = item.splitn(2, '=');
+        let key = parts.next().unwrap_or("").trim();
+        if key.is_empty() {
+            continue;
+        }
+        let value = parts.next().unwrap_or("").trim();
+        map.insert(key.to_string(), value.to_string());
+    }
+    map
+}
+
+fn parse_token_number(map: &HashMap<String, String>, key: &str) -> Option<f64> {
+    map.get(key)
+        .and_then(|value| value.trim().parse::<f64>().ok())
+        .filter(|value| value.is_finite())
+}
+
+fn get_json_number(value: &serde_json::Value) -> Option<f64> {
+    match value {
+        serde_json::Value::Number(num) => num.as_f64(),
+        serde_json::Value::String(text) => text.trim().parse::<f64>().ok(),
+        _ => None,
+    }
+    .filter(|value| value.is_finite())
+}
+
+fn calc_remaining_percent(remaining: f64, total: f64) -> Option<i32> {
+    if total <= 0.0 {
+        return None;
+    }
+    Some(clamp_percent((remaining.max(0.0) / total) * 100.0))
+}
+
+fn extract_limited_metrics(account: &GitHubCopilotAccount) -> Vec<(String, i32)> {
+    let Some(limited) = account
+        .copilot_limited_user_quotas
+        .as_ref()
+        .and_then(|value| value.as_object())
+    else {
+        return Vec::new();
+    };
+
+    let token_map = parse_token_map(&account.copilot_token);
+    let mut metrics = Vec::new();
+
+    if let Some(remaining_completions) = limited.get("completions").and_then(get_json_number) {
+        let total_completions = parse_token_number(&token_map, "cq").unwrap_or(remaining_completions);
+        if let Some(percent) = calc_remaining_percent(remaining_completions, total_completions) {
+            metrics.push(("Inline Suggestions".to_string(), percent));
+        }
+    }
+
+    if let Some(remaining_chat) = limited.get("chat").and_then(get_json_number) {
+        let total_chat = parse_token_number(&token_map, "tq").unwrap_or(remaining_chat);
+        if let Some(percent) = calc_remaining_percent(remaining_chat, total_chat) {
+            metrics.push(("Chat Messages".to_string(), percent));
+        }
+    }
+
+    metrics
+}
+
+fn extract_premium_metric(account: &GitHubCopilotAccount) -> Option<(String, i32)> {
+    let snapshots = account
+        .copilot_quota_snapshots
+        .as_ref()
+        .and_then(|value| value.as_object())?;
+
+    let premium = snapshots
+        .get("premium_interactions")
+        .or_else(|| snapshots.get("premium_models"))
+        .and_then(|value| value.as_object())?;
+
+    if premium.get("unlimited").and_then(|value| value.as_bool()) == Some(true) {
+        return Some(("Premium Interactions".to_string(), 100));
+    }
+
+    let percent_remaining = premium
+        .get("percent_remaining")
+        .and_then(get_json_number)
+        .map(clamp_percent)?;
+
+    Some(("Premium Interactions".to_string(), percent_remaining))
+}
+
+fn extract_quota_metrics(account: &GitHubCopilotAccount) -> Vec<(String, i32)> {
+    let mut metrics = extract_limited_metrics(account);
+    if let Some(premium) = extract_premium_metric(account) {
+        metrics.push(premium);
+    }
+    metrics
+}
+
+fn average_quota_percentage(metrics: &[(String, i32)]) -> f64 {
+    if metrics.is_empty() {
+        return 0.0;
+    }
+    let sum: i32 = metrics.iter().map(|(_, pct)| *pct).sum();
+    sum as f64 / metrics.len() as f64
+}
+
+fn resolve_current_account_id(accounts: &[GitHubCopilotAccount]) -> Option<String> {
+    if let Ok(settings) = crate::modules::github_copilot_instance::load_default_settings() {
+        if let Some(bind_id) = settings.bind_account_id {
+            let trimmed = bind_id.trim();
+            if !trimmed.is_empty() {
+                return Some(trimmed.to_string());
+            }
+        }
+    }
+
+    accounts
+        .iter()
+        .max_by_key(|account| account.last_used)
+        .map(|account| account.id.clone())
+}
+
+fn display_email(account: &GitHubCopilotAccount) -> String {
+    account
+        .github_email
+        .clone()
+        .filter(|text| !text.trim().is_empty())
+        .unwrap_or_else(|| account.github_login.clone())
+}
+
+fn build_quota_alert_cooldown_key(account_id: &str, threshold: i32) -> String {
+    format!("github_copilot:{}:{}", account_id, threshold)
+}
+
+fn should_emit_quota_alert(cooldown_key: &str, now: i64) -> bool {
+    let Ok(mut state) = GHCP_QUOTA_ALERT_LAST_SENT.lock() else {
+        return true;
+    };
+
+    if let Some(last_sent) = state.get(cooldown_key) {
+        if now - *last_sent < GHCP_QUOTA_ALERT_COOLDOWN_SECONDS {
+            return false;
+        }
+    }
+
+    state.insert(cooldown_key.to_string(), now);
+    true
+}
+
+fn clear_quota_alert_cooldown(account_id: &str, threshold: i32) {
+    if let Ok(mut state) = GHCP_QUOTA_ALERT_LAST_SENT.lock() {
+        state.remove(&build_quota_alert_cooldown_key(account_id, threshold));
+    }
+}
+
+fn pick_quota_alert_recommendation(
+    accounts: &[GitHubCopilotAccount],
+    current_id: &str,
+) -> Option<GitHubCopilotAccount> {
+    let mut candidates: Vec<GitHubCopilotAccount> = accounts
+        .iter()
+        .filter(|account| account.id != current_id)
+        .filter(|account| !extract_quota_metrics(account).is_empty())
+        .cloned()
+        .collect();
+
+    if candidates.is_empty() {
+        return None;
+    }
+
+    candidates.sort_by(|a, b| {
+        let avg_a = average_quota_percentage(&extract_quota_metrics(a));
+        let avg_b = average_quota_percentage(&extract_quota_metrics(b));
+        avg_b
+            .partial_cmp(&avg_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.last_used.cmp(&b.last_used))
+    });
+
+    candidates.into_iter().next()
+}
+
+pub fn run_quota_alert_if_needed() -> Result<Option<crate::modules::account::QuotaAlertPayload>, String> {
+    let cfg = crate::modules::config::get_user_config();
+    if !cfg.ghcp_quota_alert_enabled {
+        return Ok(None);
+    }
+
+    let threshold = normalize_quota_alert_threshold(cfg.ghcp_quota_alert_threshold);
+    let accounts = list_accounts();
+    let current_id = match resolve_current_account_id(&accounts) {
+        Some(id) => id,
+        None => return Ok(None),
+    };
+
+    let current = match accounts.iter().find(|account| account.id == current_id) {
+        Some(account) => account,
+        None => return Ok(None),
+    };
+
+    let metrics = extract_quota_metrics(current);
+    let low_models: Vec<(String, i32)> = metrics
+        .into_iter()
+        .filter(|(_, pct)| *pct <= threshold)
+        .collect();
+
+    if low_models.is_empty() {
+        clear_quota_alert_cooldown(&current_id, threshold);
+        return Ok(None);
+    }
+
+    let now = chrono::Utc::now().timestamp();
+    let cooldown_key = build_quota_alert_cooldown_key(&current_id, threshold);
+    if !should_emit_quota_alert(&cooldown_key, now) {
+        return Ok(None);
+    }
+
+    let recommendation = pick_quota_alert_recommendation(&accounts, &current_id);
+    let lowest_percentage = low_models.iter().map(|(_, pct)| *pct).min().unwrap_or(0);
+    let payload = crate::modules::account::QuotaAlertPayload {
+        platform: "github_copilot".to_string(),
+        current_account_id: current_id,
+        current_email: display_email(current),
+        threshold,
+        lowest_percentage,
+        low_models: low_models.into_iter().map(|(name, _)| name).collect(),
+        recommended_account_id: recommendation.as_ref().map(|account| account.id.clone()),
+        recommended_email: recommendation.as_ref().map(display_email),
+        triggered_at: now,
+    };
+
+    crate::modules::account::dispatch_quota_alert(&payload);
+    Ok(Some(payload))
 }

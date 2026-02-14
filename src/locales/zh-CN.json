@@ -35,6 +35,31 @@
     "morePlatforms": "更多平台",
     "instances": "多开实例"
   },
+  "breakout": {
+    "gameOver": "本局结束",
+    "gameOverRank": "当前历史排名 #{{rank}}",
+    "startGame": "开始游戏",
+    "startHint": "点击开始按钮或按空格",
+    "rankTitle": "历史排名",
+    "rankCurrent": "当前",
+    "rankNoData": "--",
+    "restart": "重新开始",
+    "pause": "暂停",
+    "resume": "继续",
+    "paused": "已暂停",
+    "level": "关卡 {{level}}",
+    "levelCleared": "关卡完成",
+    "nextLevel": "下一关",
+    "history": "历史记录",
+    "historyShort": "历史",
+    "historyEmpty": "暂无历史记录",
+    "historyClear": "清空",
+    "historyScoreShort": "分 {{score}}",
+    "historyLevelShort": "关 {{level}}",
+    "historyDurationShort": "时长 {{duration}}",
+    "historyReasonGameOver": "本局结束",
+    "historyReasonManualExit": "手动退出"
+  },
   "platformLayout": {
     "title": "平台布局",
     "sidebarSelected": "侧边栏已选择 {{count}}/{{max}}",
@@ -1190,6 +1215,13 @@
       "thresholdDesc": "任意模型配额低于此百分比时触发自动切号",
       "hint": "当任意模型配额低于阈值时，自动切换到配额最高的账号。"
     },
+    "quotaAlert": {
+      "title": "超额预警",
+      "enable": "超额预警",
+      "threshold": "预警阈值",
+      "thresholdDesc": "任意模型配额低于此百分比时触发预警",
+      "hint": "当当前账号任意模型配额低于阈值时，发送原生通知并在页面提示快捷切号。"
+    },
     "customInput": "自定义",
     "apply": "确定",
     "inputMinutes": "输入分钟数",
@@ -1199,6 +1231,28 @@
       "appPath": "Windsurf 路径"
     },
     "windsurfRefreshInterval": "配额自动刷新"
+  },
+  "quotaAlert": {
+    "bannerText": "账号 {{email}} 触发配额预警（阈值 {{threshold}}%，最低 {{lowest}}%，模型：{{models}}）",
+    "switchAction": "快捷切号：{{email}}",
+    "switching": "切换中...",
+    "switchFailed": "快捷切号失败：{{error}}",
+    "modal": {
+      "title": "配额预警",
+      "desc": "当前账号配额已达到预警阈值，请尽快处理。",
+      "unknownModel": "未知模型",
+      "platform": "平台",
+      "account": "当前账号",
+      "threshold": "预警阈值",
+      "lowest": "当前最低",
+      "models": "触发模型",
+      "recommended": "建议切换",
+      "noRecommendation": "暂无可切换账号",
+      "later": "稍后处理",
+      "switchNow": "快捷切号到 {{email}}",
+      "switchFailedTitle": "切号失败",
+      "switchFailedBody": "快捷切号失败：{{error}}"
+    }
   },
   "windsurf": {
     "title": "Windsurf 账号管理",

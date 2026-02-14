@@ -1175,6 +1175,13 @@
       "thresholdDesc": "任意模型配額低於此百分比時觸發自動切換",
       "hint": "當任意模型配額低於閾值時，自動切換到配額最高的帳號。"
     },
+    "quotaAlert": {
+      "title": "超額預警",
+      "enable": "超額預警",
+      "threshold": "預警閾值",
+      "thresholdDesc": "任意模型配額低於此百分比時觸發預警",
+      "hint": "當目前帳號任意模型配額低於閾值時，發送原生通知並在頁面提示快捷切號。"
+    },
     "customInput": "自訂",
     "apply": "確定",
     "inputMinutes": "輸入分鐘數",
@@ -1184,6 +1191,28 @@
       "appPath": "Windsurf 路徑"
     },
     "windsurfRefreshInterval": "配額自動重新整理"
+  },
+  "quotaAlert": {
+    "bannerText": "帳號 {{email}} 觸發配額預警（閾值 {{threshold}}%，最低 {{lowest}}%，模型：{{models}}）",
+    "switchAction": "快捷切號：{{email}}",
+    "switching": "切換中...",
+    "switchFailed": "快捷切號失敗：{{error}}",
+    "modal": {
+      "title": "配額預警",
+      "desc": "目前帳號配額已達到預警閾值，請盡快處理。",
+      "unknownModel": "未知模型",
+      "platform": "平台",
+      "account": "目前帳號",
+      "threshold": "預警閾值",
+      "lowest": "目前最低",
+      "models": "觸發模型",
+      "recommended": "建議切換",
+      "noRecommendation": "暫無可切換帳號",
+      "later": "稍後處理",
+      "switchNow": "快捷切號到 {{email}}",
+      "switchFailedTitle": "切號失敗",
+      "switchFailedBody": "快捷切號失敗：{{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "隱藏電子郵件",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "已隱藏",
     "openFromMore": "管理平台佈局",
     "dragHandleLabel": "拖曳排序"
+  },
+  "breakout": {
+    "gameOver": "本局結束",
+    "gameOverRank": "當前歷史排名 #{{rank}}",
+    "startGame": "開始遊戲",
+    "startHint": "點擊開始按鈕或按空白鍵",
+    "rankTitle": "歷史排名",
+    "rankCurrent": "當前",
+    "rankNoData": "--",
+    "restart": "重新開始",
+    "pause": "暫停",
+    "resume": "繼續",
+    "paused": "已暫停",
+    "level": "關卡 {{level}}",
+    "levelCleared": "關卡完成",
+    "nextLevel": "下一關",
+    "history": "歷史記錄",
+    "historyShort": "歷史",
+    "historyEmpty": "暫無歷史記錄",
+    "historyClear": "清空",
+    "historyScoreShort": "分 {{score}}",
+    "historyLevelShort": "關 {{level}}",
+    "historyDurationShort": "時長 {{duration}}",
+    "historyReasonGameOver": "本局結束",
+    "historyReasonManualExit": "手動退出"
   }
 }

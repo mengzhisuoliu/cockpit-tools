@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Automatické přepnutí se spustí, když kvóta libovolného modelu klesne pod toto procento",
       "hint": "Automaticky přepne na účet s nejvyšší kvótou, když kvóta libovolného modelu klesne pod práh."
     },
+    "quotaAlert": {
+      "title": "Upozornění na kvótu",
+      "enable": "Zapnout upozornění na kvótu",
+      "threshold": "Prahová hodnota upozornění",
+      "thresholdDesc": "Spustí upozornění, když kvóta libovolného modelu klesne pod toto procento",
+      "hint": "Když kvóta libovolného modelu aktuálního účtu klesne pod práh, odešle se nativní oznámení a v aplikaci se zobrazí rychlé přepnutí účtu."
+    },
     "customInput": "Vlastní",
     "apply": "Použít",
     "inputMinutes": "Zadejte minuty",
@@ -1184,6 +1191,28 @@
       "appPath": "Cesta k Windsurf"
     },
     "windsurfRefreshInterval": "Automatická aktualizace kvóty"
+  },
+  "quotaAlert": {
+    "bannerText": "Upozornění na kvótu pro {{email}} (práh {{threshold}} %, minimum {{lowest}} %, modely: {{models}})",
+    "switchAction": "Rychlé přepnutí: {{email}}",
+    "switching": "Přepínání...",
+    "switchFailed": "Rychlé přepnutí selhalo: {{error}}",
+    "modal": {
+      "title": "Upozornění na kvótu",
+      "desc": "Kvóta aktuálního účtu dosáhla prahu upozornění. Vyřešte to co nejdříve.",
+      "unknownModel": "Neznámý model",
+      "platform": "Platforma",
+      "account": "Aktuální účet",
+      "threshold": "Prahová hodnota upozornění",
+      "lowest": "Aktuální minimum",
+      "models": "Spuštěné modely",
+      "recommended": "Doporučené přepnutí",
+      "noRecommendation": "Není k dispozici vhodný účet k přepnutí",
+      "later": "Později",
+      "switchNow": "Rychle přepnout na {{email}}",
+      "switchFailedTitle": "Přepnutí selhalo",
+      "switchFailedBody": "Rychlé přepnutí selhalo: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Skrýt e-maily",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Skryto",
     "openFromMore": "Spravovat rozložení platforem",
     "dragHandleLabel": "Přetažením změnit pořadí"
+  },
+  "breakout": {
+    "gameOver": "Konec hry",
+    "gameOverRank": "Aktuální pořadí #{{rank}}",
+    "startGame": "Spustit hru",
+    "startHint": "Klikni na start nebo stiskni mezerník",
+    "rankTitle": "Historické pořadí",
+    "rankCurrent": "Aktuální",
+    "rankNoData": "--",
+    "restart": "Restartovat",
+    "pause": "Pozastavit",
+    "resume": "Pokračovat",
+    "paused": "Pozastaveno",
+    "level": "Úroveň {{level}}",
+    "levelCleared": "Úroveň dokončena",
+    "nextLevel": "Další úroveň",
+    "history": "Historie",
+    "historyShort": "Historie",
+    "historyEmpty": "Zatím bez záznamů",
+    "historyClear": "Vymazat",
+    "historyScoreShort": "Skóre {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Čas {{duration}}",
+    "historyReasonGameOver": "Konec hry",
+    "historyReasonManualExit": "Ruční ukončení"
   }
 }

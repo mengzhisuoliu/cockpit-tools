@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Le changement automatique se déclenche lorsque le quota d'un modèle tombe en dessous de ce pourcentage",
       "hint": "Bascule automatiquement vers le compte avec le quota le plus élevé lorsque le quota d'un modèle descend en dessous du seuil."
     },
+    "quotaAlert": {
+      "title": "Alerte de quota",
+      "enable": "Activer l'alerte de quota",
+      "threshold": "Seuil d'alerte",
+      "thresholdDesc": "Déclencher une alerte quand le quota d'un modèle passe sous ce pourcentage",
+      "hint": "Lorsque le quota de n'importe quel modèle du compte actuel passe sous le seuil, envoyer une notification native et afficher une action de changement rapide dans l'application."
+    },
     "customInput": "Personnalisé",
     "apply": "Appliquer",
     "inputMinutes": "Entrer les minutes",
@@ -1184,6 +1191,28 @@
       "appPath": "Chemin Windsurf"
     },
     "windsurfRefreshInterval": "Actualisation automatique du quota"
+  },
+  "quotaAlert": {
+    "bannerText": "Alerte de quota pour {{email}} (seuil {{threshold}} %, minimum {{lowest}} %, modèles : {{models}})",
+    "switchAction": "Changement rapide : {{email}}",
+    "switching": "Changement en cours...",
+    "switchFailed": "Échec du changement rapide : {{error}}",
+    "modal": {
+      "title": "Alerte de quota",
+      "desc": "Le quota du compte actuel a atteint le seuil d'alerte. Merci de traiter cela rapidement.",
+      "unknownModel": "Modèle inconnu",
+      "platform": "Plateforme",
+      "account": "Compte actuel",
+      "threshold": "Seuil d'alerte",
+      "lowest": "Minimum actuel",
+      "models": "Modèles déclencheurs",
+      "recommended": "Changement recommandé",
+      "noRecommendation": "Aucun compte de remplacement disponible",
+      "later": "Plus tard",
+      "switchNow": "Changer rapidement vers {{email}}",
+      "switchFailedTitle": "Échec du changement",
+      "switchFailedBody": "Échec du changement rapide : {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Masquer les e-mails",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Masqué",
     "openFromMore": "Gérer la disposition des plateformes",
     "dragHandleLabel": "Glisser pour réorganiser"
+  },
+  "breakout": {
+    "gameOver": "Partie terminée",
+    "gameOverRank": "Classement actuel #{{rank}}",
+    "startGame": "Démarrer",
+    "startHint": "Cliquez sur démarrer ou appuyez sur Espace",
+    "rankTitle": "Classement historique",
+    "rankCurrent": "Actuel",
+    "rankNoData": "--",
+    "restart": "Recommencer",
+    "pause": "Pause",
+    "resume": "Reprendre",
+    "paused": "En pause",
+    "level": "Niveau {{level}}",
+    "levelCleared": "Niveau terminé",
+    "nextLevel": "Niveau suivant",
+    "history": "Historique",
+    "historyShort": "Historique",
+    "historyEmpty": "Aucun enregistrement",
+    "historyClear": "Effacer",
+    "historyScoreShort": "Score {{score}}",
+    "historyLevelShort": "Niv {{level}}",
+    "historyDurationShort": "Durée {{duration}}",
+    "historyReasonGameOver": "Partie terminée",
+    "historyReasonManualExit": "Sortie manuelle"
   }
 }

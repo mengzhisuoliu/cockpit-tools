@@ -84,13 +84,20 @@ pub async fn refresh_all_quotas(
 ) -> Result<modules::account::RefreshStats, String> {
     let result = modules::account::refresh_all_quotas_logic().await;
     if result.is_ok() {
+        let mut switched = false;
         match modules::account::run_auto_switch_if_needed().await {
             Ok(Some(account)) => {
                 modules::logger::log_info(&format!("[AutoSwitch] 自动切号完成: {}", account.email));
+                switched = true;
             }
             Ok(None) => {}
             Err(e) => {
                 modules::logger::log_warn(&format!("[AutoSwitch] 自动切号执行失败: {}", e));
+            }
+        }
+        if !switched {
+            if let Err(e) = modules::account::run_quota_alert_if_needed() {
+                modules::logger::log_warn(&format!("[QuotaAlert] 预警检查失败: {}", e));
             }
         }
         let _ = crate::modules::tray::update_tray_menu(&app);
@@ -109,8 +116,25 @@ pub async fn refresh_current_quota(app: tauri::AppHandle) -> Result<(), String> 
         .map_err(|e| e.to_string())?;
     modules::update_account_quota(&account.id, quota).map_err(|e| e.to_string())?;
 
-    if let Err(e) = modules::account::run_auto_switch_if_needed().await {
-        modules::logger::log_warn(&format!("[AutoSwitch] 当前账号刷新后自动切号失败: {}", e));
+    let mut switched = false;
+    match modules::account::run_auto_switch_if_needed().await {
+        Ok(Some(account)) => {
+            modules::logger::log_info(&format!(
+                "[AutoSwitch] 当前账号刷新后自动切号完成: {}",
+                account.email
+            ));
+            switched = true;
+        }
+        Ok(None) => {}
+        Err(e) => {
+            modules::logger::log_warn(&format!("[AutoSwitch] 当前账号刷新后自动切号失败: {}", e));
+        }
+    }
+
+    if !switched {
+        if let Err(e) = modules::account::run_quota_alert_if_needed() {
+            modules::logger::log_warn(&format!("[QuotaAlert] 当前账号刷新后预警检查失败: {}", e));
+        }
     }
 
     let _ = crate::modules::tray::update_tray_menu(&app);

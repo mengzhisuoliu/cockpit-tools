@@ -1175,6 +1175,13 @@
       "thresholdDesc": "يتم تشغيل التبديل التلقائي عندما تنخفض حصة أي نموذج عن هذه النسبة المئوية",
       "hint": "يتم التبديل تلقائياً إلى الحساب ذي الحصة الأعلى عندما تنخفض حصة أي نموذج عن العتبة."
     },
+    "quotaAlert": {
+      "title": "تنبيه الحصة",
+      "enable": "تفعيل تنبيه الحصة",
+      "threshold": "عتبة التنبيه",
+      "thresholdDesc": "يتم تشغيل التنبيه عندما تنخفض حصة أي نموذج عن هذه النسبة المئوية",
+      "hint": "عندما تنخفض حصة أي نموذج في الحساب الحالي عن العتبة، يتم إرسال إشعار أصلي وإظهار إجراء تبديل سريع داخل التطبيق."
+    },
     "customInput": "مخصص",
     "apply": "تطبيق",
     "inputMinutes": "أدخل الدقائق",
@@ -1184,6 +1191,28 @@
       "appPath": "مسار Windsurf"
     },
     "windsurfRefreshInterval": "تحديث الحصة تلقائياً"
+  },
+  "quotaAlert": {
+    "bannerText": "تنبيه حصة للحساب {{email}} (العتبة {{threshold}}%، الأدنى {{lowest}}%، النماذج: {{models}})",
+    "switchAction": "تبديل سريع: {{email}}",
+    "switching": "جارٍ التبديل...",
+    "switchFailed": "فشل التبديل السريع: {{error}}",
+    "modal": {
+      "title": "تنبيه الحصة",
+      "desc": "وصلت حصة الحساب الحالي إلى عتبة التنبيه. يُرجى المعالجة قريبًا.",
+      "unknownModel": "نموذج غير معروف",
+      "platform": "المنصة",
+      "account": "الحساب الحالي",
+      "threshold": "عتبة التنبيه",
+      "lowest": "أدنى قيمة حاليًا",
+      "models": "النماذج المُشغِّلة",
+      "recommended": "التبديل المقترح",
+      "noRecommendation": "لا يوجد حساب بديل متاح",
+      "later": "لاحقًا",
+      "switchNow": "تبديل سريع إلى {{email}}",
+      "switchFailedTitle": "فشل التبديل",
+      "switchFailedBody": "فشل التبديل السريع: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "إخفاء البريد الإلكتروني",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "مخفي",
     "openFromMore": "إدارة تخطيط المنصات",
     "dragHandleLabel": "اسحب لإعادة الترتيب"
+  },
+  "breakout": {
+    "gameOver": "انتهت اللعبة",
+    "gameOverRank": "تصنيفك الحالي #{{rank}}",
+    "startGame": "ابدأ اللعبة",
+    "startHint": "اضغط بدء أو مفتاح المسافة",
+    "rankTitle": "التصنيف التاريخي",
+    "rankCurrent": "الحالي",
+    "rankNoData": "--",
+    "restart": "إعادة البدء",
+    "pause": "إيقاف مؤقت",
+    "resume": "متابعة",
+    "paused": "متوقف مؤقتًا",
+    "level": "المستوى {{level}}",
+    "levelCleared": "تم إنهاء المستوى",
+    "nextLevel": "المستوى التالي",
+    "history": "السجل",
+    "historyShort": "سجل",
+    "historyEmpty": "لا توجد سجلات بعد",
+    "historyClear": "مسح",
+    "historyScoreShort": "النقاط {{score}}",
+    "historyLevelShort": "م {{level}}",
+    "historyDurationShort": "الوقت {{duration}}",
+    "historyReasonGameOver": "انتهت اللعبة",
+    "historyReasonManualExit": "خروج يدوي"
   }
 }

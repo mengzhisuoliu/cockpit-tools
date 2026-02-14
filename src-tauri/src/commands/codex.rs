@@ -133,6 +133,9 @@ pub fn export_codex_accounts(account_ids: Vec<String>) -> Result<String, String>
 pub async fn refresh_codex_quota(app: AppHandle, account_id: String) -> Result<CodexQuota, String> {
     let result = codex_quota::refresh_account_quota(&account_id).await;
     if result.is_ok() {
+        if let Err(e) = codex_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!("[QuotaAlert][Codex] 预警检查失败: {}", e));
+        }
         let _ = crate::modules::tray::update_tray_menu(&app);
     }
     result
@@ -145,6 +148,9 @@ pub async fn refresh_current_codex_quota(app: AppHandle) -> Result<(), String> {
     };
     let result = codex_quota::refresh_account_quota(&account.id).await;
     if result.is_ok() {
+        if let Err(e) = codex_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!("[QuotaAlert][Codex] 当前账号刷新后预警检查失败: {}", e));
+        }
         let _ = crate::modules::tray::update_tray_menu(&app);
         Ok(())
     } else {
@@ -159,6 +165,11 @@ pub async fn refresh_current_codex_quota(app: AppHandle) -> Result<(), String> {
 pub async fn refresh_all_codex_quotas(app: AppHandle) -> Result<i32, String> {
     let results = codex_quota::refresh_all_quotas().await?;
     let success_count = results.iter().filter(|(_, r)| r.is_ok()).count();
+    if success_count > 0 {
+        if let Err(e) = codex_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!("[QuotaAlert][Codex] 全量刷新后预警检查失败: {}", e));
+        }
+    }
     let _ = crate::modules::tray::update_tray_menu(&app);
     Ok(success_count as i32)
 }

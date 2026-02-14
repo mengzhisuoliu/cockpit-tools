@@ -4,8 +4,14 @@ use crate::models::codex::{
 };
 use crate::modules::{codex_oauth, logger};
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+
+static CODEX_QUOTA_ALERT_LAST_SENT: std::sync::LazyLock<Mutex<HashMap<String, i64>>> =
+    std::sync::LazyLock::new(|| Mutex::new(HashMap::new()));
+const CODEX_QUOTA_ALERT_COOLDOWN_SECONDS: i64 = 300;
 
 /// 获取 Codex 数据目录
 pub fn get_codex_home() -> PathBuf {
@@ -611,4 +617,149 @@ pub fn update_account_tags(account_id: &str, tags: Vec<String>) -> Result<CodexA
     save_account(&account)?;
 
     Ok(account)
+}
+
+fn normalize_quota_alert_threshold(raw: i32) -> i32 {
+    raw.clamp(0, 100)
+}
+
+fn extract_quota_metrics(account: &CodexAccount) -> Vec<(String, i32)> {
+    let Some(quota) = account.quota.as_ref() else {
+        return Vec::new();
+    };
+
+    vec![
+        ("5小时额度".to_string(), quota.hourly_percentage.clamp(0, 100)),
+        ("周额度".to_string(), quota.weekly_percentage.clamp(0, 100)),
+    ]
+}
+
+fn average_quota_percentage(metrics: &[(String, i32)]) -> f64 {
+    if metrics.is_empty() {
+        return 0.0;
+    }
+    let sum: i32 = metrics.iter().map(|(_, pct)| *pct).sum();
+    sum as f64 / metrics.len() as f64
+}
+
+fn build_quota_alert_cooldown_key(account_id: &str, threshold: i32) -> String {
+    format!("codex:{}:{}", account_id, threshold)
+}
+
+fn should_emit_quota_alert(cooldown_key: &str, now: i64) -> bool {
+    let Ok(mut state) = CODEX_QUOTA_ALERT_LAST_SENT.lock() else {
+        return true;
+    };
+
+    if let Some(last_sent) = state.get(cooldown_key) {
+        if now - *last_sent < CODEX_QUOTA_ALERT_COOLDOWN_SECONDS {
+            return false;
+        }
+    }
+
+    state.insert(cooldown_key.to_string(), now);
+    true
+}
+
+fn clear_quota_alert_cooldown(account_id: &str, threshold: i32) {
+    if let Ok(mut state) = CODEX_QUOTA_ALERT_LAST_SENT.lock() {
+        state.remove(&build_quota_alert_cooldown_key(account_id, threshold));
+    }
+}
+
+fn resolve_current_account_id(accounts: &[CodexAccount]) -> Option<String> {
+    if let Some(account) = get_current_account() {
+        return Some(account.id);
+    }
+
+    if let Ok(settings) = crate::modules::codex_instance::load_default_settings() {
+        if let Some(bind_id) = settings.bind_account_id {
+            let trimmed = bind_id.trim();
+            if !trimmed.is_empty() {
+                return Some(trimmed.to_string());
+            }
+        }
+    }
+
+    accounts
+        .iter()
+        .max_by_key(|account| account.last_used)
+        .map(|account| account.id.clone())
+}
+
+fn pick_quota_alert_recommendation(accounts: &[CodexAccount], current_id: &str) -> Option<CodexAccount> {
+    let mut candidates: Vec<CodexAccount> = accounts
+        .iter()
+        .filter(|account| account.id != current_id)
+        .filter(|account| !extract_quota_metrics(account).is_empty())
+        .cloned()
+        .collect();
+
+    if candidates.is_empty() {
+        return None;
+    }
+
+    candidates.sort_by(|a, b| {
+        let avg_a = average_quota_percentage(&extract_quota_metrics(a));
+        let avg_b = average_quota_percentage(&extract_quota_metrics(b));
+        avg_b
+            .partial_cmp(&avg_a)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| a.last_used.cmp(&b.last_used))
+    });
+
+    candidates.into_iter().next()
+}
+
+pub fn run_quota_alert_if_needed() -> Result<Option<crate::modules::account::QuotaAlertPayload>, String> {
+    let cfg = crate::modules::config::get_user_config();
+    if !cfg.codex_quota_alert_enabled {
+        return Ok(None);
+    }
+
+    let threshold = normalize_quota_alert_threshold(cfg.codex_quota_alert_threshold);
+    let accounts = list_accounts();
+    let current_id = match resolve_current_account_id(&accounts) {
+        Some(id) => id,
+        None => return Ok(None),
+    };
+
+    let current = match accounts.iter().find(|account| account.id == current_id) {
+        Some(account) => account,
+        None => return Ok(None),
+    };
+
+    let metrics = extract_quota_metrics(current);
+    let low_models: Vec<(String, i32)> = metrics
+        .into_iter()
+        .filter(|(_, pct)| *pct <= threshold)
+        .collect();
+
+    if low_models.is_empty() {
+        clear_quota_alert_cooldown(&current_id, threshold);
+        return Ok(None);
+    }
+
+    let now = chrono::Utc::now().timestamp();
+    let cooldown_key = build_quota_alert_cooldown_key(&current_id, threshold);
+    if !should_emit_quota_alert(&cooldown_key, now) {
+        return Ok(None);
+    }
+
+    let recommendation = pick_quota_alert_recommendation(&accounts, &current_id);
+    let lowest_percentage = low_models.iter().map(|(_, pct)| *pct).min().unwrap_or(0);
+    let payload = crate::modules::account::QuotaAlertPayload {
+        platform: "codex".to_string(),
+        current_account_id: current_id,
+        current_email: current.email.clone(),
+        threshold,
+        lowest_percentage,
+        low_models: low_models.into_iter().map(|(name, _)| name).collect(),
+        recommended_account_id: recommendation.as_ref().map(|account| account.id.clone()),
+        recommended_email: recommendation.as_ref().map(|account| account.email.clone()),
+        triggered_at: now,
+    };
+
+    crate::modules::account::dispatch_quota_alert(&payload);
+    Ok(Some(payload))
 }

@@ -56,6 +56,9 @@ pub async fn refresh_windsurf_token(
     ));
     match windsurf_account::refresh_account_token(&account_id).await {
         Ok(account) => {
+            if let Err(e) = windsurf_account::run_quota_alert_if_needed() {
+                logger::log_warn(&format!("[QuotaAlert][Windsurf] 预警检查失败: {}", e));
+            }
             logger::log_info(&format!(
                 "[Windsurf Command] 手动刷新账号完成: account_id={}, login={}, elapsed={}ms",
                 account.id,
@@ -100,6 +103,11 @@ pub async fn refresh_all_windsurf_tokens(_app: AppHandle) -> Result<i32, String>
             started_at.elapsed().as_millis(),
             failed.join(" | ")
         ));
+    }
+    if success_count > 0 {
+        if let Err(e) = windsurf_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!("[QuotaAlert][Windsurf] 全量刷新后预警检查失败: {}", e));
+        }
     }
     Ok(success_count as i32)
 }

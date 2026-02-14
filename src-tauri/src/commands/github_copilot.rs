@@ -41,7 +41,13 @@ pub async fn refresh_github_copilot_token(
     _app: AppHandle,
     account_id: String,
 ) -> Result<GitHubCopilotAccount, String> {
-    github_copilot_account::refresh_account_token(&account_id).await
+    let result = github_copilot_account::refresh_account_token(&account_id).await;
+    if result.is_ok() {
+        if let Err(e) = github_copilot_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!("[QuotaAlert][GitHubCopilot] 预警检查失败: {}", e));
+        }
+    }
+    result
 }
 
 /// 刷新所有账号 Copilot token/配额信息（GitHub API）
@@ -49,6 +55,14 @@ pub async fn refresh_github_copilot_token(
 pub async fn refresh_all_github_copilot_tokens(_app: AppHandle) -> Result<i32, String> {
     let results = github_copilot_account::refresh_all_tokens().await?;
     let success_count = results.iter().filter(|(_, r)| r.is_ok()).count();
+    if success_count > 0 {
+        if let Err(e) = github_copilot_account::run_quota_alert_if_needed() {
+            logger::log_warn(&format!(
+                "[QuotaAlert][GitHubCopilot] 全量刷新后预警检查失败: {}",
+                e
+            ));
+        }
+    }
     Ok(success_count as i32)
 }
 

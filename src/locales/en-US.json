@@ -1190,6 +1190,13 @@
       "thresholdDesc": "Auto switch when any model quota falls below this percentage",
       "hint": "Automatically switch to the account with the highest quota when any model quota is below the threshold."
     },
+    "quotaAlert": {
+      "title": "Quota Alert",
+      "enable": "Enable Quota Alert",
+      "threshold": "Alert Threshold",
+      "thresholdDesc": "Trigger alert when any model quota falls below this percentage",
+      "hint": "When any current-account model quota drops below the threshold, send a native notification and show a quick-switch action in the app."
+    },
     "customInput": "Custom",
     "apply": "Apply",
     "inputMinutes": "Enter minutes",
@@ -1199,6 +1206,28 @@
       "appPath": "Windsurf Path"
     },
     "windsurfRefreshInterval": "Quota Auto Refresh"
+  },
+  "quotaAlert": {
+    "bannerText": "Quota alert for {{email}} (threshold {{threshold}}%, lowest {{lowest}}%, models: {{models}})",
+    "switchAction": "Quick switch: {{email}}",
+    "switching": "Switching...",
+    "switchFailed": "Quick switch failed: {{error}}",
+    "modal": {
+      "title": "Quota Alert",
+      "desc": "The current account quota has reached the alert threshold. Please handle it soon.",
+      "unknownModel": "Unknown model",
+      "platform": "Platform",
+      "account": "Current account",
+      "threshold": "Alert threshold",
+      "lowest": "Current lowest",
+      "models": "Triggered models",
+      "recommended": "Recommended switch",
+      "noRecommendation": "No switch candidate available",
+      "later": "Later",
+      "switchNow": "Quick switch to {{email}}",
+      "switchFailedTitle": "Switch failed",
+      "switchFailedBody": "Quick switch failed: {{error}}"
+    }
   },
   "windsurf": {
     "title": "Windsurf Account Management",
@@ -1344,5 +1373,30 @@
       "reason": "Permission scope: read Windsurf auth database (state.vscdb) and use system encryption capabilities (Windows DPAPI / macOS Keychain / Linux Secret Service) to decrypt and write back auth-session data.",
       "storage": "Data scope: only Windsurf auth-session related entries are read/updated; all processes run locally."
     }
+  },
+  "breakout": {
+    "gameOver": "Game Over",
+    "gameOverRank": "Current Rank #{{rank}}",
+    "startGame": "Start Game",
+    "startHint": "Click start or press Space",
+    "rankTitle": "Leaderboard",
+    "rankCurrent": "Current",
+    "rankNoData": "--",
+    "restart": "Restart",
+    "pause": "Pause",
+    "resume": "Resume",
+    "paused": "Paused",
+    "level": "Level {{level}}",
+    "levelCleared": "Level Cleared",
+    "nextLevel": "Next Level",
+    "history": "History",
+    "historyShort": "Log",
+    "historyEmpty": "No records yet",
+    "historyClear": "Clear",
+    "historyScoreShort": "Score {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Time {{duration}}",
+    "historyReasonGameOver": "Game Over",
+    "historyReasonManualExit": "Manual Exit"
   }
 }

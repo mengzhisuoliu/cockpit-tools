@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Il cambio automatico si attiva quando la quota di un modello scende sotto questa percentuale",
       "hint": "Passa automaticamente all'account con la quota più alta quando la quota di un modello scende sotto la soglia."
     },
+    "quotaAlert": {
+      "title": "Avviso quota",
+      "enable": "Abilita avviso quota",
+      "threshold": "Soglia di avviso",
+      "thresholdDesc": "Attiva l'avviso quando la quota di qualsiasi modello scende sotto questa percentuale",
+      "hint": "Quando la quota di qualsiasi modello dell'account corrente scende sotto la soglia, invia una notifica nativa e mostra nell'app un'azione di cambio rapido account."
+    },
     "customInput": "Personalizzato",
     "apply": "Applica",
     "inputMinutes": "Inserire i minuti",
@@ -1184,6 +1191,28 @@
       "appPath": "Percorso Windsurf"
     },
     "windsurfRefreshInterval": "Aggiornamento automatico quota"
+  },
+  "quotaAlert": {
+    "bannerText": "Avviso quota per {{email}} (soglia {{threshold}}%, minimo {{lowest}}%, modelli: {{models}})",
+    "switchAction": "Cambio rapido: {{email}}",
+    "switching": "Cambio in corso...",
+    "switchFailed": "Cambio rapido non riuscito: {{error}}",
+    "modal": {
+      "title": "Avviso quota",
+      "desc": "La quota dell'account corrente ha raggiunto la soglia di avviso. Intervieni al più presto.",
+      "unknownModel": "Modello sconosciuto",
+      "platform": "Piattaforma",
+      "account": "Account corrente",
+      "threshold": "Soglia di avviso",
+      "lowest": "Minimo attuale",
+      "models": "Modelli attivati",
+      "recommended": "Cambio consigliato",
+      "noRecommendation": "Nessun account disponibile per il cambio",
+      "later": "Più tardi",
+      "switchNow": "Passa rapidamente a {{email}}",
+      "switchFailedTitle": "Cambio non riuscito",
+      "switchFailedBody": "Cambio rapido non riuscito: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "Nascondi email",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Nascosto",
     "openFromMore": "Gestisci layout piattaforme",
     "dragHandleLabel": "Trascina per riordinare"
+  },
+  "breakout": {
+    "gameOver": "Partita finita",
+    "gameOverRank": "Posizione attuale #{{rank}}",
+    "startGame": "Avvia gioco",
+    "startHint": "Clicca Avvia o premi Spazio",
+    "rankTitle": "Classifica storica",
+    "rankCurrent": "Attuale",
+    "rankNoData": "--",
+    "restart": "Ricomincia",
+    "pause": "Pausa",
+    "resume": "Riprendi",
+    "paused": "In pausa",
+    "level": "Livello {{level}}",
+    "levelCleared": "Livello completato",
+    "nextLevel": "Livello successivo",
+    "history": "Cronologia",
+    "historyShort": "Cronologia",
+    "historyEmpty": "Nessun record",
+    "historyClear": "Cancella",
+    "historyScoreShort": "Punteggio {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Tempo {{duration}}",
+    "historyReasonGameOver": "Partita finita",
+    "historyReasonManualExit": "Uscita manuale"
   }
 }

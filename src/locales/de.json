@@ -1175,6 +1175,13 @@
       "thresholdDesc": "Automatischer Wechsel wird ausgelöst, wenn das Kontingent eines Modells unter diesen Prozentsatz fällt",
       "hint": "Wechselt automatisch zum Konto mit dem höchsten Kontingent, wenn das Kontingent eines Modells unter den Schwellenwert fällt."
     },
+    "quotaAlert": {
+      "title": "Kontingentwarnung",
+      "enable": "Kontingentwarnung aktivieren",
+      "threshold": "Warnschwelle",
+      "thresholdDesc": "Warnung auslösen, wenn das Kontingent eines Modells unter diesen Prozentsatz fällt",
+      "hint": "Wenn das Kontingent eines beliebigen Modells des aktuellen Kontos unter die Schwelle fällt, wird eine native Benachrichtigung gesendet und in der App eine Schnellwechsel-Aktion angezeigt."
+    },
     "customInput": "Benutzerdefiniert",
     "apply": "Anwenden",
     "inputMinutes": "Minuten eingeben",
@@ -1184,6 +1191,28 @@
       "appPath": "Windsurf-Pfad"
     },
     "windsurfRefreshInterval": "Kontingent automatisch aktualisieren"
+  },
+  "quotaAlert": {
+    "bannerText": "Kontingentwarnung für {{email}} (Schwelle {{threshold}} %, Minimum {{lowest}} %, Modelle: {{models}})",
+    "switchAction": "Schnell wechseln: {{email}}",
+    "switching": "Wechsle...",
+    "switchFailed": "Schnellwechsel fehlgeschlagen: {{error}}",
+    "modal": {
+      "title": "Kontingentwarnung",
+      "desc": "Das Kontingent des aktuellen Kontos hat die Warnschwelle erreicht. Bitte zeitnah handeln.",
+      "unknownModel": "Unbekanntes Modell",
+      "platform": "Plattform",
+      "account": "Aktuelles Konto",
+      "threshold": "Warnschwelle",
+      "lowest": "Aktuelles Minimum",
+      "models": "Auslösende Modelle",
+      "recommended": "Empfohlener Wechsel",
+      "noRecommendation": "Kein geeignetes Konto zum Wechseln verfügbar",
+      "later": "Später",
+      "switchNow": "Schnell zu {{email}} wechseln",
+      "switchFailedTitle": "Wechsel fehlgeschlagen",
+      "switchFailedBody": "Schnellwechsel fehlgeschlagen: {{error}}"
+    }
   },
   "privacy": {
     "hideSensitive": "E-Mails ausblenden",
@@ -1344,5 +1373,30 @@
     "hiddenBadge": "Ausgeblendet",
     "openFromMore": "Plattformlayout verwalten",
     "dragHandleLabel": "Zum Neuanordnen ziehen"
+  },
+  "breakout": {
+    "gameOver": "Spiel vorbei",
+    "gameOverRank": "Aktueller Rang #{{rank}}",
+    "startGame": "Spiel starten",
+    "startHint": "Auf Start klicken oder Leertaste drücken",
+    "rankTitle": "Historisches Ranking",
+    "rankCurrent": "Aktuell",
+    "rankNoData": "--",
+    "restart": "Neu starten",
+    "pause": "Pausieren",
+    "resume": "Fortsetzen",
+    "paused": "Pausiert",
+    "level": "Level {{level}}",
+    "levelCleared": "Level geschafft",
+    "nextLevel": "Nächstes Level",
+    "history": "Verlauf",
+    "historyShort": "Verlauf",
+    "historyEmpty": "Noch keine Einträge",
+    "historyClear": "Leeren",
+    "historyScoreShort": "Punkte {{score}}",
+    "historyLevelShort": "Lv {{level}}",
+    "historyDurationShort": "Zeit {{duration}}",
+    "historyReasonGameOver": "Spiel vorbei",
+    "historyReasonManualExit": "Manuell beendet"
   }
 }

@@ -2,6 +2,7 @@
 //! 管理应用配置，包括 WebSocket 端口等
 
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{OnceLock, RwLock};
@@ -88,6 +89,30 @@ pub struct UserConfig {
     /// 自动切号阈值（百分比），任意模型配额低于此值触发
     #[serde(default = "default_auto_switch_threshold")]
     pub auto_switch_threshold: i32,
+    /// 是否启用配额预警通知
+    #[serde(default = "default_quota_alert_enabled")]
+    pub quota_alert_enabled: bool,
+    /// 配额预警阈值（百分比），任意模型配额低于此值触发
+    #[serde(default = "default_quota_alert_threshold")]
+    pub quota_alert_threshold: i32,
+    /// 是否启用 Codex 配额预警通知
+    #[serde(default = "default_codex_quota_alert_enabled")]
+    pub codex_quota_alert_enabled: bool,
+    /// Codex 配额预警阈值（百分比）
+    #[serde(default = "default_codex_quota_alert_threshold")]
+    pub codex_quota_alert_threshold: i32,
+    /// 是否启用 GitHub Copilot 配额预警通知
+    #[serde(default = "default_ghcp_quota_alert_enabled")]
+    pub ghcp_quota_alert_enabled: bool,
+    /// GitHub Copilot 配额预警阈值（百分比）
+    #[serde(default = "default_ghcp_quota_alert_threshold")]
+    pub ghcp_quota_alert_threshold: i32,
+    /// 是否启用 Windsurf 配额预警通知
+    #[serde(default = "default_windsurf_quota_alert_enabled")]
+    pub windsurf_quota_alert_enabled: bool,
+    /// Windsurf 配额预警阈值（百分比）
+    #[serde(default = "default_windsurf_quota_alert_threshold")]
+    pub windsurf_quota_alert_threshold: i32,
 }
 
 /// 窗口关闭行为
@@ -159,6 +184,30 @@ fn default_auto_switch_enabled() -> bool {
 fn default_auto_switch_threshold() -> i32 {
     5
 }
+fn default_quota_alert_enabled() -> bool {
+    false
+}
+fn default_quota_alert_threshold() -> i32 {
+    20
+}
+fn default_codex_quota_alert_enabled() -> bool {
+    false
+}
+fn default_codex_quota_alert_threshold() -> i32 {
+    20
+}
+fn default_ghcp_quota_alert_enabled() -> bool {
+    false
+}
+fn default_ghcp_quota_alert_threshold() -> i32 {
+    20
+}
+fn default_windsurf_quota_alert_enabled() -> bool {
+    false
+}
+fn default_windsurf_quota_alert_threshold() -> i32 {
+    20
+}
 
 impl Default for UserConfig {
     fn default() -> Self {
@@ -180,6 +229,14 @@ impl Default for UserConfig {
             opencode_sync_on_switch: default_opencode_sync_on_switch(),
             auto_switch_enabled: default_auto_switch_enabled(),
             auto_switch_threshold: default_auto_switch_threshold(),
+            quota_alert_enabled: default_quota_alert_enabled(),
+            quota_alert_threshold: default_quota_alert_threshold(),
+            codex_quota_alert_enabled: default_codex_quota_alert_enabled(),
+            codex_quota_alert_threshold: default_codex_quota_alert_threshold(),
+            ghcp_quota_alert_enabled: default_ghcp_quota_alert_enabled(),
+            ghcp_quota_alert_threshold: default_ghcp_quota_alert_threshold(),
+            windsurf_quota_alert_enabled: default_windsurf_quota_alert_enabled(),
+            windsurf_quota_alert_threshold: default_windsurf_quota_alert_threshold(),
         }
     }
 }
@@ -241,7 +298,51 @@ pub fn load_user_config() -> Result<UserConfig, String> {
     let content =
         fs::read_to_string(&config_path).map_err(|e| format!("读取配置文件失败: {}", e))?;
 
-    serde_json::from_str(&content).map_err(|e| format!("解析配置文件失败: {}", e))
+    let mut value: serde_json::Value =
+        serde_json::from_str(&content).map_err(|e| format!("解析配置文件失败: {}", e))?;
+
+    // 兼容旧配置：平台独立预警字段不存在时，继承历史全局预警配置
+    if let Some(obj) = value.as_object_mut() {
+        let legacy_enabled = obj
+            .get("quota_alert_enabled")
+            .and_then(|v| v.as_bool())
+            .unwrap_or_else(default_quota_alert_enabled);
+        let legacy_threshold = obj
+            .get("quota_alert_threshold")
+            .and_then(|v| v.as_i64())
+            .map(|v| v as i32)
+            .unwrap_or_else(default_quota_alert_threshold);
+
+        if !obj.contains_key("codex_quota_alert_enabled") {
+            obj.insert("codex_quota_alert_enabled".to_string(), json!(legacy_enabled));
+        }
+        if !obj.contains_key("codex_quota_alert_threshold") {
+            obj.insert(
+                "codex_quota_alert_threshold".to_string(),
+                json!(legacy_threshold),
+            );
+        }
+        if !obj.contains_key("ghcp_quota_alert_enabled") {
+            obj.insert("ghcp_quota_alert_enabled".to_string(), json!(legacy_enabled));
+        }
+        if !obj.contains_key("ghcp_quota_alert_threshold") {
+            obj.insert("ghcp_quota_alert_threshold".to_string(), json!(legacy_threshold));
+        }
+        if !obj.contains_key("windsurf_quota_alert_enabled") {
+            obj.insert(
+                "windsurf_quota_alert_enabled".to_string(),
+                json!(legacy_enabled),
+            );
+        }
+        if !obj.contains_key("windsurf_quota_alert_threshold") {
+            obj.insert(
+                "windsurf_quota_alert_threshold".to_string(),
+                json!(legacy_threshold),
+            );
+        }
+    }
+
+    serde_json::from_value(value).map_err(|e| format!("解析配置文件失败: {}", e))
 }
 
 /// 保存用户配置
