@@ -1364,6 +1364,9 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
       const isSelected = selected.has(account.id)
       const quotaError = account.quota_error
       const hasQuotaError = Boolean(quotaError?.message)
+      const accountTags = (account.tags || []).map((tag) => tag.trim()).filter(Boolean)
+      const visibleTags = accountTags.slice(0, 2)
+      const moreTagCount = Math.max(0, accountTags.length - visibleTags.length)
       const warning = refreshWarnings[account.email]
       const warningLabel =
         warning?.kind === 'auth'
@@ -1429,6 +1432,17 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
               {tierLabel}
             </span>
           </div>
+
+          {accountTags.length > 0 && (
+            <div className="card-tags">
+              {visibleTags.map((tag, idx) => (
+                <span key={`${account.id}-${tag}-${idx}`} className="tag-pill">
+                  {tag}
+                </span>
+              ))}
+              {moreTagCount > 0 && <span className="tag-pill more">+{moreTagCount}</span>}
+            </div>
+          )}
 
           <div className="card-quota-grid">
             {isForbidden ? (

@@ -7,6 +7,18 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.8.9] - 2026-02-21
+
+### 新增
+- **五平台账号卡片支持直接显示标签**：Antigravity、Codex、GitHub Copilot、Windsurf、Kiro 的网格卡片现可直接展示账号标签，便于快速识别账号用途。
+
+### 变更
+- **卡片标签展示规则统一**：各平台卡片标签统一为紧凑展示规则（最多显示 2 个标签，超出显示 `+N`）。
+
+### 修复
+- **Release 校验和上传流程不再依赖本地 git 仓库**：在校验文件上传任务中补充 `GH_REPO` 上下文，修复 `fatal: not a git repository` 导致的上传失败。
+
+---
 ## [0.8.8] - 2026-02-21
 
 ### 变更

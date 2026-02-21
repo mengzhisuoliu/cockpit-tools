@@ -96,6 +96,28 @@
   margin-left: -4px; /* 微调对齐 */
 }
 
+.accounts-page .card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+.accounts-page .tag-pill {
+  padding: 2px 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: 1px solid var(--border-light);
+}
+
+.accounts-page .tag-pill.more {
+  background: transparent;
+  border: 1px dashed var(--border);
+}
+
 /* Card Quota Grid - Redesigned */
 .card-quota-grid {
   display: grid;

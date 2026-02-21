@@ -972,6 +972,9 @@ export function WindsurfAccountsPage() {
       const addOnMetrics = resolveAddOnMetrics(credits);
       const planKey = resolvePlanKey(account);
       const planLabel = planKey;
+      const accountTags = (account.tags || []).map((tag) => tag.trim()).filter(Boolean);
+      const visibleTags = accountTags.slice(0, 2);
+      const moreTagCount = Math.max(0, accountTags.length - visibleTags.length);
       const isSelected = selected.has(account.id);
       const isCurrent = currentAccountId === account.id;
 
@@ -998,6 +1001,17 @@ export function WindsurfAccountsPage() {
             )}
             <span className={`tier-badge ${planKey.toLowerCase()}`}>{planLabel}</span>
           </div>
+
+          {accountTags.length > 0 && (
+            <div className="card-tags">
+              {visibleTags.map((tag, idx) => (
+                <span key={`${account.id}-${tag}-${idx}`} className="tag-pill">
+                  {tag}
+                </span>
+              ))}
+              {moreTagCount > 0 && <span className="tag-pill more">+{moreTagCount}</span>}
+            </div>
+          )}
 
           <div className="ghcp-quota-section">
             <div className="quota-item windsurf-credit-item">

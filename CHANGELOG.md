@@ -7,6 +7,18 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.8.9] - 2026-02-21
+
+### Added
+- **Account card tags are now visible across all five platforms**: Account tags now render directly on grid cards in Antigravity, Codex, GitHub Copilot, Windsurf, and Kiro for faster visual identification.
+
+### Changed
+- **Card tag display is unified**: Tag chips now follow a consistent compact rule across platforms (show up to 2 tags with `+N` overflow).
+
+### Fixed
+- **Release checksum upload workflow no longer depends on local git checkout**: Added explicit `GH_REPO` context for `gh release` calls in the checksum upload job to avoid `fatal: not a git repository` failures.
+
+---
 ## [0.8.8] - 2026-02-21
 
 ### Changed
