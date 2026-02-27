@@ -104,14 +104,38 @@ node scripts/release/gen_checksums.cjs \
 3. 对命中厂商提交误报（附 hash、下载链接、仓库地址）。
 4. 误报修复后在 issue/release 回帖同步结果。
 
-## 7. Git 发布建议（与你当前规则对齐）
+## 7. Git 发版流程（远端完成）
 
-1. 修改更新日志（`CHANGELOG.md` / `CHANGELOG.zh-CN.md`）。
-2. 若使用 Homebrew 自维护 Tap，先运行 `npm run release:github-and-cask`（或 `--skip-build` 变体）并确认 `Casks/cockpit-tools.rb` 已更新。
-3. 发布前若涉及“发布 + 推远端 + 打标签”，先运行：
+正式发版按“Git 远端完成”判定，建议顺序如下：
+
+1. 更新版本与更新日志（`package.json`、`CHANGELOG.md`、`CHANGELOG.zh-CN.md`）。
+2. 执行版本同步：
 
 ```bash
-node scripts/check_locales.cjs
+npm run sync-version
 ```
 
-4. 提交、打 tag、推送。
+3. 执行发布预检（阻断）：
+
+```bash
+npm run release:preflight
+```
+
+4. 提交发布改动。
+5. 创建与版本一致的标签（例如 `v0.9.2`）。
+6. 先推送分支，再推送标签：
+
+```bash
+git push origin <branch> && git push origin v<major>.<minor>.<patch>
+```
+
+完成判定（阻断）：
+
+1. 远端分支已更新（通常 `origin/main`）。
+2. 远端版本标签已存在，且与 `package.json.version` 一致。
+3. 满足以上两项即视为发版完成。
+
+补充说明：
+
+1. GitHub Actions、GitHub Release 资产上传、`SHA256SUMS.txt`、Homebrew Cask 更新属于后置异步流程，不作为发版完成的阻断条件。
+2. 若需要，可在发版完成后继续观察 Actions 与 Release 资产状态。

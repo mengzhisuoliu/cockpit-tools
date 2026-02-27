@@ -7,6 +7,15 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.9.3] - 2026-02-27
+
+### Fixed
+- **AppImage blank-page rendering on Linux (including Arch) caused by absolute asset paths**: Vite build output now uses relative asset paths (`base: "./"`), so packaged AppImage can resolve frontend JS/CSS correctly.
+
+### Changed
+- **Release-process documentation aligned to current completion rule**: Updated `docs/release-process.md` to treat `remote branch + remote tag` as release completion, while GitHub Actions/asset publishing remains a post-release async step.
+
+---
 ## [0.9.2] - 2026-02-27
 
 ### Changed

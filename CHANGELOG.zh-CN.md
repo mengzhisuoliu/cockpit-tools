@@ -7,6 +7,15 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.9.3] - 2026-02-27
+
+### 修复
+- **Linux（含 Arch）AppImage 因静态资源绝对路径导致空白页**：Vite 构建产物改为相对资源路径（`base: "./"`），确保 AppImage 内可正确加载前端 JS/CSS。
+
+### 变更
+- **发布流程文档口径对齐当前完成标准**：更新 `docs/release-process.md`，将“远端分支 + 远端标签”定义为发版完成；GitHub Actions 与发布资产更新改为发版后异步流程。
+
+---
 ## [0.9.2] - 2026-02-27
 
 ### 变更
