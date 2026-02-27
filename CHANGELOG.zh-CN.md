@@ -7,6 +7,16 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.9.2] - 2026-02-27
+
+### 变更
+- **Windows 唤醒/验证改为执行前预检运行时就绪状态**：为“立即测试”和“批量验证”增加前后端预检门禁，先校验官方 LS 是否可用，不再在请求发出后才失败。
+- **Windows 官方 LS 路径改为基于已配置的 Antigravity 启动路径推导**：运行时从 `antigravity_app_path` 推导 `resources/app/extensions/antigravity/bin` 下的 LS，按固定文件名优先级匹配，并在同目录内兜底匹配。
+
+### 修复
+- **缺失路径引导前置触发**：当 Windows 缺少 Antigravity 路径或 LS 二进制时，会在执行唤醒前直接触发现有 `app-path-missing` 引导，避免网关启动后出现 500 才报错。
+
+---
 ## [0.9.1] - 2026-02-27
 
 ### 新增

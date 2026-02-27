@@ -7,6 +7,16 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.9.2] - 2026-02-27
+
+### Changed
+- **Windows wakeup/verification now prechecks runtime readiness before execution**: Added a frontend + backend preflight gate so wakeup test and batch verification validate official LS readiness first, instead of failing after request dispatch.
+- **Official LS path resolution now derives from configured Antigravity app path on Windows**: Runtime now resolves LS from the configured `antigravity_app_path` (`resources/app/extensions/antigravity/bin`), with deterministic filename priority and fallback matching in the same bin directory.
+
+### Fixed
+- **Path-missing guidance now triggers before wakeup starts**: When Antigravity app path or LS binary is unavailable on Windows, the existing `app-path-missing` flow is triggered immediately, preventing late 500 errors from gateway startup.
+
+---
 ## [0.9.1] - 2026-02-27
 
 ### Added
