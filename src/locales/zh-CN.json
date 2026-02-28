@@ -817,7 +817,7 @@
     "title": "唤醒任务",
     "subtitle": "管理唤醒任务，支持独立启停与统一开关。",
     "verification": {
-      "title": "账号验证",
+      "title": "账户检测",
       "columns": {
         "verifiedAt": "验证时间"
       },
@@ -826,13 +826,14 @@
       },
       "actions": {
         "selectAllAccounts": "全选",
-        "clearSelectedAccounts": "取消全选"
+        "clearSelectedAccounts": "取消全选",
+        "runCheckNow": "立即检测"
       },
       "runHint": {
         "title": "验证说明",
-        "line1": "立即验证会通过「本地网关 + 官方 Language Server 协议」模拟 Antigravity 客户端发起最小对话请求。",
+        "line1": "立即检测会通过「本地网关 + 官方 Language Server 协议」模拟 Antigravity 客户端发起最小对话请求。",
         "line2": "该过程会消耗少量 Token（通常为一次短对话），实际消耗取决于模型与账号策略。",
-        "line3": "该操作不会修改唤醒任务配置，仅用于校验账号可用性并写入验证记录。",
+        "line3": "该操作不会修改唤醒任务配置，仅用于检测账号可用性并写入检测记录。",
         "line4": "若返回 403，需要先完成账号验证；结果中会提供验证地址与快捷操作。"
       },
       "deleteConfirm": "是否确认删除？"

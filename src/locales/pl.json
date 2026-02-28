@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Zaznacz wszystko",
-        "clearSelectedAccounts": "Wyczyść zaznaczenie"
+        "clearSelectedAccounts": "Wyczyść zaznaczenie",
+        "runCheckNow": "Zakończ weryfikację"
       },
       "deleteConfirm": "Czy potwierdzasz usunięcie?",
       "runHint": {
         "title": "Uwagi dotyczące weryfikacji",
-        "line1": "„Zweryfikuj teraz” wysyła minimalne żądanie czatu, symulując klienta Antigravity przez lokalną bramę i oficjalny protokół Language Server.",
+        "line1": "„Sprawdź teraz” wysyła minimalne żądanie czatu, symulując klienta Antigravity przez lokalną bramę i oficjalny protokół Language Server.",
         "line2": "Operacja zużywa niewielką liczbę tokenów (zwykle jedną krótką rozmowę). Rzeczywiste zużycie zależy od modelu i polityki konta.",
-        "line3": "Ta operacja nie zmienia konfiguracji zadań wybudzania. Służy jedynie do sprawdzenia dostępności konta i zapisania historii weryfikacji.",
+        "line3": "Ta operacja nie zmienia konfiguracji zadań wybudzania. Służy jedynie do sprawdzenia dostępności konta i zapisania historii sprawdzenia.",
         "line4": "Jeśli zwrócony zostanie kod 403, najpierw należy ukończyć weryfikację konta. Wynik zawiera adres weryfikacyjny i szybkie akcje."
       }
     }

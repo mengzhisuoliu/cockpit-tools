@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Vybrat vše",
-        "clearSelectedAccounts": "Zrušit výběr"
+        "clearSelectedAccounts": "Zrušit výběr",
+        "runCheckNow": "Dokončit ověření"
       },
       "deleteConfirm": "Opravdu chcete smazat?",
       "runHint": {
         "title": "Poznámky k ověření",
-        "line1": "„Ověřit nyní“ odešle minimální chat požadavek simulací klienta Antigravity přes lokální bránu a oficiální protokol Language Server.",
+        "line1": "„Zkontrolovat nyní“ odešle minimální chat požadavek simulací klienta Antigravity přes lokální bránu a oficiální protokol Language Server.",
         "line2": "Tento proces spotřebuje malé množství tokenů (obvykle jeden krátký dialog). Skutečná spotřeba závisí na modelu a zásadách účtu.",
-        "line3": "Tato akce nemění nastavení úloh probuzení. Pouze ověří dostupnost účtu a zapíše záznam ověření.",
+        "line3": "Tato akce nemění nastavení úloh probuzení. Pouze zkontroluje dostupnost účtu a zapíše záznam kontroly.",
         "line4": "Pokud se vrátí 403, je nutné nejdříve dokončit ověření účtu. Výsledek nabídne ověřovací URL a rychlé akce."
       }
     }

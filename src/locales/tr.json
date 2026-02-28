@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Tümünü seç",
-        "clearSelectedAccounts": "Seçimi temizle"
+        "clearSelectedAccounts": "Seçimi temizle",
+        "runCheckNow": "Doğrulamayı tamamla"
       },
       "deleteConfirm": "Silme işlemi onaylansın mı?",
       "runHint": {
         "title": "Doğrulama notları",
-        "line1": "“Şimdi doğrula”, Antigravity istemcisini yerel ağ geçidi ve resmi Language Server protokolü ile simüle ederek minimum bir sohbet isteği gönderir.",
+        "line1": "“Şimdi kontrol et”, Antigravity istemcisini yerel ağ geçidi ve resmi Language Server protokolü ile simüle ederek minimum bir sohbet isteği gönderir.",
         "line2": "Bu işlem az miktarda token tüketir (genelde kısa bir konuşma). Gerçek tüketim modele ve hesap politikasına bağlıdır.",
-        "line3": "Bu işlem uyandırma görevi ayarlarını değiştirmez. Yalnızca hesap kullanılabilirliğini doğrular ve doğrulama kaydı oluşturur.",
+        "line3": "Bu işlem uyandırma görevi ayarlarını değiştirmez. Yalnızca hesap kullanılabilirliğini kontrol eder ve kontrol kaydı oluşturur.",
         "line4": "403 dönerse önce hesap doğrulaması tamamlanmalıdır. Sonuçta doğrulama adresi ve hızlı işlemler gösterilir."
       }
     }

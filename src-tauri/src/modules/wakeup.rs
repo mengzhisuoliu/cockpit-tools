@@ -487,7 +487,9 @@ fn gateway_start_bind_lock() -> &'static tokio::sync::Mutex<()> {
 }
 
 fn build_gateway_client(base_url: &str, timeout_secs: u64) -> Result<reqwest::Client, String> {
-    let mut builder = reqwest::Client::builder().timeout(std::time::Duration::from_secs(timeout_secs));
+    let mut builder =
+        reqwest::Client::builder().timeout(std::time::Duration::from_secs(timeout_secs));
+    builder = builder.no_proxy();
     if base_url.starts_with("https://127.0.0.1:") || base_url.starts_with("https://localhost:") {
         // 本地自签名网关证书（协议形态对齐客户端，校验在此放宽）
         builder = builder.danger_accept_invalid_certs(true);
@@ -495,6 +497,49 @@ fn build_gateway_client(base_url: &str, timeout_secs: u64) -> Result<reqwest::Cl
     builder
         .build()
         .map_err(|e| format!("创建网关 HTTP 客户端失败: {}", e))
+}
+
+fn classify_gateway_transport_error(err: &reqwest::Error) -> &'static str {
+    if err.is_timeout() {
+        return "timeout";
+    }
+
+    let lower = err.to_string().to_lowercase();
+    if lower.contains("tls")
+        || lower.contains("ssl")
+        || lower.contains("certificate")
+        || lower.contains("handshake")
+    {
+        return "tls";
+    }
+
+    if err.is_connect() {
+        return "connect";
+    }
+
+    "send"
+}
+
+fn is_local_gateway_transport_error_message(message: &str) -> bool {
+    let lower = message.to_lowercase();
+    if !(lower.contains("网关")
+        && lower.contains("请求失败")
+        && (lower.contains("url=https://127.0.0.1:")
+            || lower.contains("url=https://localhost:")
+            || lower.contains("url=http://127.0.0.1:")
+            || lower.contains("url=http://localhost:")))
+    {
+        return false;
+    }
+
+    lower.contains("[connect]")
+        || lower.contains("[timeout]")
+        || lower.contains("[tls]")
+        || lower.contains("connection refused")
+        || lower.contains("connection reset")
+        || lower.contains("timed out")
+        || lower.contains("dns error")
+        || lower.contains("error sending request")
 }
 
 async fn post_gateway_json(
@@ -510,7 +555,8 @@ async fn post_gateway_json(
         .send()
         .await
         .map_err(|e| {
-            let message = format!("网关 {} 请求失败: {} (url={})", op_name, e, url);
+            let kind = classify_gateway_transport_error(&e);
+            let message = format!("网关 {} 请求失败[{}]: {} (url={})", op_name, kind, e, url);
             crate::modules::logger::log_error(&format!("[Wakeup] {}", message));
             message
         })?;
@@ -621,7 +667,9 @@ async fn resolve_requested_model_for_official_ls(
                                                 ));
                                                 return Ok(json!({ "model": num }));
                                             }
-                                            if let Some(num) = parse_codeium_model_enum_name(model_constant) {
+                                            if let Some(num) =
+                                                parse_codeium_model_enum_name(model_constant)
+                                            {
                                                 crate::modules::logger::log_info(&format!(
                                                     "[Wakeup] requestedModel 解析: {} -> model({})（由 enum 名 {} 映射）",
                                                     trimmed, num, model_constant
@@ -659,8 +707,8 @@ async fn resolve_requested_model_for_official_ls(
                         }
                     } else {
                         let text = res.text().await.unwrap_or_default();
-                        let retryable =
-                            status == reqwest::StatusCode::TOO_MANY_REQUESTS || status.as_u16() >= 500;
+                        let retryable = status == reqwest::StatusCode::TOO_MANY_REQUESTS
+                            || status.as_u16() >= 500;
                         last_error = Some(format!("获取模型列表失败: {} - {}", status, text));
                         if retryable && attempt < DEFAULT_ATTEMPTS {
                             let delay = get_backoff_delay_ms(attempt + 1);
@@ -686,10 +734,7 @@ async fn resolve_requested_model_for_official_ls(
     }
 
     if let Some(err) = last_error {
-        crate::modules::logger::log_warn(&format!(
-            "[Wakeup] {}",
-            err
-        ));
+        crate::modules::logger::log_warn(&format!("[Wakeup] {}", err));
         return Err(err);
     } else {
         crate::modules::logger::log_warn(&format!(
@@ -733,16 +778,19 @@ fn parse_placeholder_model_index(raw: &str) -> Option<i64> {
 }
 
 fn normalize_local_gateway_base_url(base_url: String) -> String {
-    if let Some(rest) = base_url.strip_prefix("https://127.0.0.1:") {
-        return format!("https://localhost:{}", rest);
+    if let Some(rest) = base_url.strip_prefix("https://localhost:") {
+        return format!("https://127.0.0.1:{}", rest);
     }
-    if let Some(rest) = base_url.strip_prefix("http://127.0.0.1:") {
-        return format!("http://localhost:{}", rest);
+    if let Some(rest) = base_url.strip_prefix("http://localhost:") {
+        return format!("http://127.0.0.1:{}", rest);
     }
     base_url
 }
 
-fn build_client_like_cascade_config(requested_model: serde_json::Value, max_output_tokens: u32) -> serde_json::Value {
+fn build_client_like_cascade_config(
+    requested_model: serde_json::Value,
+    max_output_tokens: u32,
+) -> serde_json::Value {
     let max_tokens = if max_output_tokens > 0 {
         max_output_tokens
     } else {
@@ -774,10 +822,7 @@ fn summarize_gateway_trajectory_for_log(get_resp: &serde_json::Value) -> String 
         return format!("status={}, steps=0", status);
     };
 
-    let last_step_case = steps
-        .last()
-        .and_then(step_case_name)
-        .unwrap_or("-");
+    let last_step_case = steps.last().and_then(step_case_name).unwrap_or("-");
 
     let planner_keys = steps
         .iter()
@@ -829,7 +874,10 @@ fn step_case_name(step: &serde_json::Value) -> Option<&str> {
     None
 }
 
-fn step_case_value<'a>(step: &'a serde_json::Value, case_name: &str) -> Option<&'a serde_json::Value> {
+fn step_case_value<'a>(
+    step: &'a serde_json::Value,
+    case_name: &str,
+) -> Option<&'a serde_json::Value> {
     if step_case_name(step) == Some(case_name) {
         if let Some(v) = step.get("step").and_then(|v| v.get("value")) {
             return Some(v);
@@ -898,19 +946,24 @@ fn extract_wakeup_response_from_gateway_trajectory(
             .and_then(|v| v.as_str())
             .or_else(|| value.get("response").and_then(|v| v.as_str()))
             .or_else(|| {
-                value.get("response")
+                value
+                    .get("response")
                     .and_then(|v| v.get("text"))
                     .and_then(|v| v.as_str())
             })
             .or_else(|| {
-                value.get("response")
+                value
+                    .get("response")
                     .and_then(|v| v.get("candidates"))
                     .and_then(|v| v.as_array())
                     .and_then(|arr| arr.first())
                     .and_then(|v| v.get("content"))
                     .and_then(|v| v.get("parts"))
                     .and_then(|v| v.as_array())
-                    .and_then(|arr| arr.iter().find_map(|part| part.get("text").and_then(|v| v.as_str())))
+                    .and_then(|arr| {
+                        arr.iter()
+                            .find_map(|part| part.get("text").and_then(|v| v.as_str()))
+                    })
             })?;
         let reply = reply.trim();
         if reply.is_empty() {
@@ -975,13 +1028,17 @@ fn extract_gateway_error_from_trajectory(
             .or_else(|| error_obj.get("code"))
             .or_else(|| error_value.get("errorCode"))
             .or_else(|| error_value.get("code"))
-            .and_then(|v| v.as_i64().or_else(|| v.as_str().and_then(|s| s.parse::<i64>().ok())));
+            .and_then(|v| {
+                v.as_i64()
+                    .or_else(|| v.as_str().and_then(|s| s.parse::<i64>().ok()))
+            });
         let validation_url = extract_validation_url_from_error_details(
             error_obj
                 .get("details")
                 .or_else(|| error_value.get("details")),
         );
-        let error_message_json = serde_json::to_string(error_value).unwrap_or_else(|_| "{}".to_string());
+        let error_message_json =
+            serde_json::to_string(error_value).unwrap_or_else(|_| "{}".to_string());
         let step_json = serde_json::to_string(step).unwrap_or_else(|_| "{}".to_string());
 
         return Some(GatewayTrajectoryErrorDetail {
@@ -997,7 +1054,9 @@ fn extract_gateway_error_from_trajectory(
     None
 }
 
-fn extract_validation_url_from_error_details(details: Option<&serde_json::Value>) -> Option<String> {
+fn extract_validation_url_from_error_details(
+    details: Option<&serde_json::Value>,
+) -> Option<String> {
     let details = details?;
     let parsed = match details {
         serde_json::Value::String(text) => serde_json::from_str::<serde_json::Value>(text).ok()?,
@@ -1010,8 +1069,14 @@ fn extract_validation_url_from_error_details(details: Option<&serde_json::Value>
         .and_then(|v| v.as_array())?;
 
     for item in error_details {
-        let ty = item.get("@type").and_then(|v| v.as_str()).unwrap_or_default();
-        let reason = item.get("reason").and_then(|v| v.as_str()).unwrap_or_default();
+        let ty = item
+            .get("@type")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
+        let reason = item
+            .get("reason")
+            .and_then(|v| v.as_str())
+            .unwrap_or_default();
         let url = item
             .get("metadata")
             .and_then(|v| v.get("validation_url"))
@@ -1028,49 +1093,55 @@ fn extract_validation_url_from_error_details(details: Option<&serde_json::Value>
     None
 }
 
-async fn trigger_wakeup_via_client_gateway(
+async fn resolve_client_gateway_base_url() -> Result<(String, bool), String> {
+    if let Ok(value) = std::env::var("AG_WAKEUP_GATEWAY_BASE_URL") {
+        let trimmed = value.trim().trim_end_matches('/').to_string();
+        if !trimmed.is_empty() {
+            return Ok((normalize_local_gateway_base_url(trimmed), true));
+        }
+    }
+
+    Ok((
+        normalize_local_gateway_base_url(
+            modules::wakeup_gateway::ensure_local_gateway_started().await?,
+        ),
+        false,
+    ))
+}
+
+async fn trigger_wakeup_via_client_gateway_once(
     account_id: &str,
     model: &str,
     prompt: &str,
     max_output_tokens: u32,
+    base_url: &str,
 ) -> Result<WakeupResponse, String> {
-    crate::modules::logger::log_info(&format!(
-        "[Wakeup] 开始唤醒(网关): account_id={}, model={}, max_tokens={}, prompt={}",
-        account_id,
-        model,
-        max_output_tokens,
-        format_prompt_for_log(prompt)
-    ));
+    let client = build_gateway_client(base_url, 30)?;
+    post_gateway_json(
+        &client,
+        &format!(
+            "{}{}",
+            base_url,
+            modules::wakeup_gateway::INTERNAL_HEALTH_CHECK_PATH
+        ),
+        &json!({}),
+        "HealthCheck",
+    )
+    .await?;
 
-    let base_url = if let Ok(value) = std::env::var("AG_WAKEUP_GATEWAY_BASE_URL") {
-        let trimmed = value.trim().trim_end_matches('/').to_string();
-        if !trimmed.is_empty() {
-            normalize_local_gateway_base_url(trimmed)
-        } else {
-            normalize_local_gateway_base_url(modules::wakeup_gateway::ensure_local_gateway_started().await?)
-        }
-    } else {
-        normalize_local_gateway_base_url(modules::wakeup_gateway::ensure_local_gateway_started().await?)
-    };
-
-    crate::modules::logger::log_info(&format!(
-        "[Wakeup] 使用 client-like 网关通道（官方协议）: base_url={}",
-        base_url
-    ));
-
-    let client = build_gateway_client(&base_url, 30)?;
     let service_base = format!("{}/exa.language_server_pb.LanguageServerService", base_url);
     let start_resp: serde_json::Value;
 
     {
         let _bind_guard = gateway_start_bind_lock().lock().await;
+        let prepare_url = format!(
+            "{}{}",
+            base_url,
+            modules::wakeup_gateway::INTERNAL_PREPARE_START_CONTEXT_PATH
+        );
 
         client
-            .post(format!(
-                "{}{}",
-                base_url,
-                modules::wakeup_gateway::INTERNAL_PREPARE_START_CONTEXT_PATH
-            ))
+            .post(&prepare_url)
             .header(reqwest::header::CONTENT_TYPE, "application/json")
             .json(&json!({
                 "accountId": account_id,
@@ -1079,9 +1150,22 @@ async fn trigger_wakeup_via_client_gateway(
             }))
             .send()
             .await
-            .map_err(|e| format!("网关 prepareStartContext 请求失败: {}", e))?
+            .map_err(|e| {
+                let kind = classify_gateway_transport_error(&e);
+                let message = format!(
+                    "网关 prepareStartContext 请求失败[{}]: {} (url={})",
+                    kind, e, prepare_url
+                );
+                crate::modules::logger::log_error(&format!("[Wakeup] {}", message));
+                message
+            })?
             .error_for_status()
-            .map_err(|e| format!("网关 prepareStartContext 返回错误: {}", e))?;
+            .map_err(|e| {
+                format!(
+                    "网关 prepareStartContext 返回错误: {} (url={})",
+                    e, prepare_url
+                )
+            })?;
 
         start_resp = post_gateway_json(
             &client,
@@ -1233,6 +1317,54 @@ async fn trigger_wakeup_via_client_gateway(
     wakeup_result
 }
 
+async fn trigger_wakeup_via_client_gateway(
+    account_id: &str,
+    model: &str,
+    prompt: &str,
+    max_output_tokens: u32,
+) -> Result<WakeupResponse, String> {
+    crate::modules::logger::log_info(&format!(
+        "[Wakeup] 开始唤醒(网关): account_id={}, model={}, max_tokens={}, prompt={}",
+        account_id,
+        model,
+        max_output_tokens,
+        format_prompt_for_log(prompt)
+    ));
+
+    for attempt in 1..=2 {
+        let (base_url, from_env) = resolve_client_gateway_base_url().await?;
+        crate::modules::logger::log_info(&format!(
+            "[Wakeup] 使用 client-like 网关通道（官方协议）: base_url={}, attempt={}",
+            base_url, attempt
+        ));
+
+        match trigger_wakeup_via_client_gateway_once(
+            account_id,
+            model,
+            prompt,
+            max_output_tokens,
+            &base_url,
+        )
+        .await
+        {
+            Ok(resp) => return Ok(resp),
+            Err(err) => {
+                if attempt == 1 && !from_env && is_local_gateway_transport_error_message(&err) {
+                    crate::modules::logger::log_warn(&format!(
+                        "[Wakeup] 检测到本地网关可恢复传输错误，尝试重建网关并重试一次: {}",
+                        err
+                    ));
+                    modules::wakeup_gateway::clear_local_gateway_base_url_cache().await;
+                    continue;
+                }
+                return Err(err);
+            }
+        }
+    }
+
+    Err("网关重试后仍失败".to_string())
+}
+
 /// 旧版直连 Cloud Code 唤醒（保留给兼容模式与网关内部调用）
 pub(crate) async fn trigger_wakeup_direct(
     account_id: &str,
@@ -1250,8 +1382,7 @@ pub(crate) async fn trigger_wakeup_direct(
     ));
     let mut token = modules::oauth::ensure_fresh_token(&account.token).await?;
 
-    let (project_id, _) =
-        modules::quota::fetch_project_id_for_token(&token, &account.email).await;
+    let (project_id, _) = modules::quota::fetch_project_id_for_token(&token, &account.email).await;
     let final_project_id = project_id
         .clone()
         .or_else(|| token.project_id.clone())
@@ -1545,10 +1676,7 @@ pub async fn fetch_available_models() -> Result<Vec<AvailableModel>, String> {
             if let Some(meta) = entries.get(&id) {
                 models.push(AvailableModel {
                     id: id.clone(),
-                    display_name: meta
-                        .display_name
-                        .clone()
-                        .unwrap_or_else(|| id.clone()),
+                    display_name: meta.display_name.clone().unwrap_or_else(|| id.clone()),
                     model_constant: meta.model_constant.clone(),
                     recommended: meta.recommended,
                 });

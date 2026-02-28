@@ -773,7 +773,8 @@
       },
       "actions": {
         "selectAllAccounts": "Выбрать все",
-        "clearSelectedAccounts": "Снять выделение"
+        "clearSelectedAccounts": "Снять выделение",
+        "runCheckNow": "Завершить проверку"
       },
       "deleteConfirm": "Подтвердить удаление?",
       "runHint": {

@@ -32,7 +32,8 @@ export function GitHubCopilotInstancesContent() {
     const usage = getGitHubCopilotUsage(account);
     const inlinePct = usage.inlineSuggestionsUsedPercent;
     const chatPct = usage.chatMessagesUsedPercent;
-    if (inlinePct == null && chatPct == null) {
+    const premiumPct = usage.premiumRequestsUsedPercent;
+    if (inlinePct == null && chatPct == null && premiumPct == null) {
       return <span className="account-quota-empty">{t('instances.quota.empty', '暂无配额缓存')}</span>;
     }
     return (
@@ -40,13 +41,19 @@ export function GitHubCopilotInstancesContent() {
         <span className="account-quota-item">
           <span className={`quota-dot ${resolveQuotaClass(inlinePct ?? 0)}`} />
           <span className={`quota-text ${resolveQuotaClass(inlinePct ?? 0)}`}>
-            {t('common.shared.instances.quota.inline', 'Inline Suggestions')} {inlinePct ?? '-'}%
+            Inline Suggestions {inlinePct ?? '-'}%
           </span>
         </span>
         <span className="account-quota-item">
           <span className={`quota-dot ${resolveQuotaClass(chatPct ?? 0)}`} />
           <span className={`quota-text ${resolveQuotaClass(chatPct ?? 0)}`}>
-            {t('common.shared.instances.quota.chat', 'Chat messages')} {chatPct ?? '-'}%
+            Chat messages {chatPct ?? '-'}%
+          </span>
+        </span>
+        <span className="account-quota-item">
+          <span className={`quota-dot ${resolveQuotaClass(premiumPct ?? 0)}`} />
+          <span className={`quota-text ${resolveQuotaClass(premiumPct ?? 0)}`}>
+            Premium requests {premiumPct ?? '-'}%
           </span>
         </span>
       </div>

@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Tout sélectionner",
-        "clearSelectedAccounts": "Effacer la sélection"
+        "clearSelectedAccounts": "Effacer la sélection",
+        "runCheckNow": "Terminer la vérification"
       },
       "deleteConfirm": "Confirmer la suppression ?",
       "runHint": {
         "title": "Notes de vérification",
-        "line1": "« Vérifier maintenant » envoie une requête de chat minimale en simulant le client Antigravity via une passerelle locale et le protocole officiel Language Server.",
+        "line1": "« Détecter maintenant » envoie une requête de chat minimale en simulant le client Antigravity via une passerelle locale et le protocole officiel Language Server.",
         "line2": "Cette opération consomme une petite quantité de jetons (généralement un court dialogue). La consommation réelle dépend du modèle et de la politique du compte.",
-        "line3": "Cette action ne modifie pas la configuration des tâches de réveil. Elle vérifie seulement la disponibilité du compte et enregistre l’historique de vérification.",
+        "line3": "Cette action ne modifie pas la configuration des tâches de réveil. Elle détecte seulement la disponibilité du compte et enregistre l’historique de détection.",
         "line4": "Si un 403 est renvoyé, vous devez d’abord terminer la vérification du compte. Le résultat inclura l’URL de vérification et des actions rapides."
       }
     }

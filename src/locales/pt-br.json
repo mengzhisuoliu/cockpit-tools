@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Selecionar tudo",
-        "clearSelectedAccounts": "Limpar seleção"
+        "clearSelectedAccounts": "Limpar seleção",
+        "runCheckNow": "Concluir verificação"
       },
       "deleteConfirm": "Confirmar exclusão?",
       "runHint": {
         "title": "Notas de verificação",
-        "line1": "“Verificar agora” envia uma solicitação mínima de chat simulando o cliente Antigravity por meio de gateway local e do protocolo oficial Language Server.",
+        "line1": "“Detectar agora” envia uma solicitação mínima de chat simulando o cliente Antigravity por meio de gateway local e do protocolo oficial Language Server.",
         "line2": "Esse processo consome uma pequena quantidade de tokens (normalmente um diálogo curto). O consumo real depende do modelo e da política da conta.",
-        "line3": "Essa ação não altera a configuração das tarefas de despertar. Ela apenas verifica a disponibilidade da conta e grava o histórico de verificação.",
+        "line3": "Essa ação não altera a configuração das tarefas de despertar. Ela apenas detecta a disponibilidade da conta e grava o histórico de detecção.",
         "line4": "Se retornar 403, você precisa concluir primeiro a verificação da conta. O resultado incluirá URL de verificação e ações rápidas."
       }
     }

@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Chọn tất cả",
-        "clearSelectedAccounts": "Bỏ chọn"
+        "clearSelectedAccounts": "Bỏ chọn",
+        "runCheckNow": "Hoàn tất xác minh"
       },
       "deleteConfirm": "Xác nhận xóa?",
       "runHint": {
         "title": "Ghi chú xác minh",
-        "line1": "“Xác minh ngay” sẽ gửi một yêu cầu chat tối thiểu bằng cách mô phỏng client Antigravity qua cổng nội bộ và giao thức Language Server chính thức.",
+        "line1": "“Kiểm tra ngay” sẽ gửi một yêu cầu chat tối thiểu bằng cách mô phỏng client Antigravity qua cổng nội bộ và giao thức Language Server chính thức.",
         "line2": "Quy trình này tiêu tốn một lượng nhỏ token (thường là một đoạn hội thoại ngắn). Mức tiêu thụ thực tế phụ thuộc vào model và chính sách tài khoản.",
-        "line3": "Thao tác này không thay đổi cấu hình tác vụ đánh thức. Nó chỉ kiểm tra khả dụng của tài khoản và ghi lịch sử xác minh.",
+        "line3": "Thao tác này không thay đổi cấu hình tác vụ đánh thức. Nó chỉ kiểm tra khả dụng của tài khoản và ghi lịch sử kiểm tra.",
         "line4": "Nếu trả về 403, bạn cần hoàn tất xác minh tài khoản trước. Kết quả sẽ cung cấp URL xác minh và thao tác nhanh."
       }
     }

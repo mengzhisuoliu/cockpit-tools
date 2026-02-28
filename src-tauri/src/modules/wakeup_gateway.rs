@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use base64::{engine::general_purpose, Engine as _};
+use chrono::{DateTime, Utc};
 use rcgen::generate_simple_self_signed;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 use tokio::io::{AsyncBufReadExt, AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt, BufReader};
 use tokio::net::TcpListener;
 use tokio::process::{Child, Command};
-use tokio::sync::{oneshot, Notify, OnceCell, Mutex as TokioMutex};
+use tokio::sync::{oneshot, Mutex as TokioMutex, Notify};
 use tokio::time::{timeout, Duration};
 use tokio_rustls::TlsAcceptor;
 
@@ -22,6 +22,7 @@ const GET_CASCADE_TRAJECTORY_PATH: &str =
 const DELETE_CASCADE_TRAJECTORY_PATH: &str =
     "/exa.language_server_pb.LanguageServerService/DeleteCascadeTrajectory";
 pub const INTERNAL_PREPARE_START_CONTEXT_PATH: &str = "/__ag_internal__/wakeup/prepareStartContext";
+pub const INTERNAL_HEALTH_CHECK_PATH: &str = "/__ag_internal__/wakeup/health";
 
 const REQUEST_READ_TIMEOUT: Duration = Duration::from_secs(10);
 const MAX_HTTP_REQUEST_BYTES: usize = 512 * 1024;
@@ -32,8 +33,10 @@ const OFFICIAL_LS_POLL_INTERVAL: Duration = Duration::from_millis(250);
 const OFFICIAL_LS_CLOUD_CODE_DAILY: &str = "https://daily-cloudcode-pa.googleapis.com";
 const OFFICIAL_LS_CLOUD_CODE_PROD: &str = "https://cloudcode-pa.googleapis.com";
 const OFFICIAL_LS_APP_DATA_DIR_PREFIX: &str = "antigravity-cockpit-tools-wakeup-ls";
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
-static LOCAL_GATEWAY_BASE_URL: OnceCell<String> = OnceCell::const_new();
+static LOCAL_GATEWAY_BASE_URL: OnceLock<TokioMutex<Option<String>>> = OnceLock::new();
 
 #[derive(Debug, Clone)]
 struct PreparedStartContext {
@@ -89,7 +92,12 @@ impl ConversationState {
         }
     }
 
-    fn mark_send_started(&mut self, prompt_text: String, model: Option<String>, max_output_tokens: Option<u32>) {
+    fn mark_send_started(
+        &mut self,
+        prompt_text: String,
+        model: Option<String>,
+        max_output_tokens: Option<u32>,
+    ) {
         if self.model.is_none() {
             self.model = model;
         }
@@ -190,8 +198,8 @@ fn parse_json_object_body(body: &[u8], name: &str) -> Result<Value, (u16, String
         return Ok(json!({}));
     }
 
-    let payload: Value = serde_json::from_slice(body)
-        .map_err(|e| (400, format!("{} 请求体无效: {}", name, e)))?;
+    let payload: Value =
+        serde_json::from_slice(body).map_err(|e| (400, format!("{} 请求体无效: {}", name, e)))?;
     if !payload.is_object() {
         return Err((400, format!("{} 请求体必须为 JSON object", name)));
     }
@@ -218,7 +226,9 @@ fn get_official_ls_session(cascade_id: &str) -> Result<Arc<OfficialLsCascadeSess
         .ok_or_else(|| format!("会话不存在: {}", cascade_id))
 }
 
-fn remove_official_ls_session(cascade_id: &str) -> Result<Option<Arc<OfficialLsCascadeSession>>, String> {
+fn remove_official_ls_session(
+    cascade_id: &str,
+) -> Result<Option<Arc<OfficialLsCascadeSession>>, String> {
     let mut guard = official_ls_sessions()
         .lock()
         .map_err(|_| "官方 LS 会话映射锁失败".to_string())?;
@@ -239,7 +249,7 @@ async fn start_official_ls_cascade_session(
     let (_account, token) = ensure_wakeup_account_token(&prepared.account_id).await?;
     let mut ls = start_official_ls_process(&prepared.account_id, &token).await?;
     let client = build_official_ls_local_client(30)?;
-    let base_url = format!("https://localhost:{}", ls.started.https_port);
+    let base_url = format!("https://127.0.0.1:{}", ls.started.https_port);
     let start_resp = match post_json_to_official_ls(
         &client,
         &base_url,
@@ -290,7 +300,9 @@ async fn proxy_official_ls_session_json_request(
 }
 
 fn trim_non_empty(value: Option<String>) -> Option<String> {
-    value.map(|v| v.trim().to_string()).filter(|v| !v.is_empty())
+    value
+        .map(|v| v.trim().to_string())
+        .filter(|v| !v.is_empty())
 }
 
 fn json_response(status_code: u16, status_text: &str, body: &Value) -> Vec<u8> {
@@ -322,7 +334,9 @@ fn options_response() -> Vec<u8> {
 }
 
 fn find_header_end(buf: &[u8]) -> Option<usize> {
-    buf.windows(4).position(|w| w == b"\r\n\r\n").map(|idx| idx + 4)
+    buf.windows(4)
+        .position(|w| w == b"\r\n\r\n")
+        .map(|idx| idx + 4)
 }
 
 fn parse_content_length(header_bytes: &[u8]) -> Result<usize, String> {
@@ -396,10 +410,7 @@ fn parse_http_request(raw: &[u8]) -> Result<ParsedRequest, String> {
     };
     let header_text = String::from_utf8_lossy(&raw[..header_end]);
     let mut lines = header_text.lines();
-    let request_line = lines
-        .next()
-        .ok_or_else(|| "请求行为空".to_string())?
-        .trim();
+    let request_line = lines.next().ok_or_else(|| "请求行为空".to_string())?.trim();
 
     let mut parts = request_line.split_whitespace();
     let method = parts
@@ -420,10 +431,7 @@ fn parse_http_request(raw: &[u8]) -> Result<ParsedRequest, String> {
         let mut parts = line.splitn(2, ':');
         let Some(name) = parts.next() else { continue };
         let Some(value) = parts.next() else { continue };
-        headers.insert(
-            name.trim().to_ascii_lowercase(),
-            value.trim().to_string(),
-        );
+        headers.insert(name.trim().to_ascii_lowercase(), value.trim().to_string());
     }
 
     Ok(ParsedRequest {
@@ -447,7 +455,11 @@ fn normalize_path(target: &str) -> String {
 }
 
 fn rpc_method_name_from_path(path: &str) -> &str {
-    let last = path.trim_end_matches('/').rsplit('/').next().unwrap_or(path);
+    let last = path
+        .trim_end_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or(path);
     last.split(':').next().unwrap_or(last)
 }
 
@@ -495,8 +507,7 @@ struct OfficialLsCascadeSession {
     process: TokioMutex<Option<OfficialLsProcessHandle>>,
 }
 
-fn official_ls_sessions(
-) -> &'static Mutex<HashMap<String, Arc<OfficialLsCascadeSession>>> {
+fn official_ls_sessions() -> &'static Mutex<HashMap<String, Arc<OfficialLsCascadeSession>>> {
     static SESSIONS: OnceLock<Mutex<HashMap<String, Arc<OfficialLsCascadeSession>>>> =
         OnceLock::new();
     SESSIONS.get_or_init(|| Mutex::new(HashMap::new()))
@@ -528,7 +539,8 @@ fn resolve_configured_antigravity_root(path_str: &str) -> Option<std::path::Path
     }
 
     let original_path = std::path::PathBuf::from(raw);
-    let resolved_path = std::fs::canonicalize(&original_path).unwrap_or_else(|_| original_path.clone());
+    let resolved_path =
+        std::fs::canonicalize(&original_path).unwrap_or_else(|_| original_path.clone());
 
     #[cfg(target_os = "macos")]
     {
@@ -675,7 +687,8 @@ fn official_antigravity_info_plist_path() -> &'static str {
 
 fn official_antigravity_extension_path() -> String {
     let user_config = crate::modules::config::get_user_config();
-    if let Some(root) = resolve_configured_antigravity_root(user_config.antigravity_app_path.trim()) {
+    if let Some(root) = resolve_configured_antigravity_root(user_config.antigravity_app_path.trim())
+    {
         let ext_path = antigravity_extension_dir(&root);
         if ext_path.exists() {
             return ext_path.to_string_lossy().to_string();
@@ -683,7 +696,8 @@ fn official_antigravity_extension_path() -> String {
         return root.to_string_lossy().to_string();
     }
 
-    let default_path = "/Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity";
+    let default_path =
+        "/Applications/Antigravity.app/Contents/Resources/app/extensions/antigravity";
     if std::path::Path::new(default_path).exists() {
         return default_path.to_string();
     }
@@ -826,7 +840,8 @@ fn parse_official_ls_started_request(body: &[u8]) -> Result<OfficialLsStartedInf
     }
 
     Ok(OfficialLsStartedInfo {
-        https_port: https_port.ok_or_else(|| "LanguageServerStarted 缺少 https_port".to_string())?,
+        https_port: https_port
+            .ok_or_else(|| "LanguageServerStarted 缺少 https_port".to_string())?,
         http_port: http_port.unwrap_or(0),
         lsp_port: lsp_port.unwrap_or(0),
     })
@@ -947,6 +962,7 @@ fn encode_chunked_final() -> Vec<u8> {
 fn build_official_ls_local_client(timeout_secs: u64) -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(timeout_secs))
+        .no_proxy()
         .danger_accept_invalid_certs(true)
         .build()
         .map_err(|e| format!("创建官方 LS 本地客户端失败: {}", e))
@@ -972,7 +988,10 @@ async fn post_json_to_official_ls(
     if !resp.status().is_success() {
         let status = resp.status();
         let text = resp.text().await.unwrap_or_default();
-        return Err(format!("官方 LS 返回错误: {} - {} ({})", status, text, path));
+        return Err(format!(
+            "官方 LS 返回错误: {} - {} ({})",
+            status, text, path
+        ));
     }
 
     resp.json::<Value>()
@@ -1113,20 +1132,25 @@ fn json_value_to_u32(value: &Value) -> Option<u32> {
     }
 }
 
-fn parse_model_and_max_tokens_from_cascade_config(cascade_config: &Option<Value>) -> (Option<String>, Option<u32>) {
+fn parse_model_and_max_tokens_from_cascade_config(
+    cascade_config: &Option<Value>,
+) -> (Option<String>, Option<u32>) {
     let Some(cfg) = cascade_config.as_ref() else {
         return (None, None);
     };
 
     let planner = cfg.get("plannerConfig");
     let requested = planner.and_then(|v| v.get("requestedModel"));
-    let model = requested
-        .and_then(|requested| {
-            requested
-                .get("alias")
-                .and_then(json_value_to_non_empty_string)
-                .or_else(|| requested.get("model").and_then(json_value_to_non_empty_string))
-        });
+    let model = requested.and_then(|requested| {
+        requested
+            .get("alias")
+            .and_then(json_value_to_non_empty_string)
+            .or_else(|| {
+                requested
+                    .get("model")
+                    .and_then(json_value_to_non_empty_string)
+            })
+    });
 
     let max_output_tokens = planner
         .and_then(|planner| planner.get("maxOutputTokens"))
@@ -1213,7 +1237,10 @@ fn build_planner_response_running_step(convo: &ConversationState) -> Value {
     })
 }
 
-fn build_planner_response_done_step(convo: &ConversationState, resp: &crate::modules::wakeup::WakeupResponse) -> Value {
+fn build_planner_response_done_step(
+    convo: &ConversationState,
+    resp: &crate::modules::wakeup::WakeupResponse,
+) -> Value {
     let at = convo.processing_finished_at.unwrap_or(convo.updated_at);
     let mut value = json!({
         "modifiedResponse": resp.reply,
@@ -1442,36 +1469,28 @@ async fn route_official_ls_extension_request(
 
     // Minimal unary implementations to keep the official LS alive for wakeup usage.
     if path_matches_rpc_method(&path, "IsAgentManagerEnabled") {
-        let body = [crate::utils::protobuf::encode_varint((1 << 3) as u64), vec![1u8]].concat();
-        return OfficialLsExtensionAction::Close(extension_unary_response(
-            &content_type,
-            &body,
-        ));
+        let body = [
+            crate::utils::protobuf::encode_varint((1 << 3) as u64),
+            vec![1u8],
+        ]
+        .concat();
+        return OfficialLsExtensionAction::Close(extension_unary_response(&content_type, &body));
     }
 
     // 官方扩展会周期性探测 Chrome DevTools MCP URL；对唤醒场景返回空字符串即可。
     if path_matches_rpc_method(&path, "GetChromeDevtoolsMcpUrl") {
         let body = crate::utils::protobuf::encode_string_field(1, "");
-        return OfficialLsExtensionAction::Close(extension_unary_response(
-            &content_type,
-            &body,
-        ));
+        return OfficialLsExtensionAction::Close(extension_unary_response(&content_type, &body));
     }
 
     // 唤醒场景不提供终端 shell 能力，返回默认值（false/empty）。
     if path_matches_rpc_method(&path, "CheckTerminalShellSupport") {
-        return OfficialLsExtensionAction::Close(extension_unary_response(
-            &content_type,
-            &[],
-        ));
+        return OfficialLsExtensionAction::Close(extension_unary_response(&content_type, &[]));
     }
 
     // 唤醒场景不使用浏览器 onboarding，返回默认端口 0。
     if path_matches_rpc_method(&path, "GetBrowserOnboardingPort") {
-        return OfficialLsExtensionAction::Close(extension_unary_response(
-            &content_type,
-            &[],
-        ));
+        return OfficialLsExtensionAction::Close(extension_unary_response(&content_type, &[]));
     }
 
     let empty_ok_paths = [
@@ -1486,14 +1505,10 @@ async fn route_official_ls_extension_request(
         "/BroadcastConversationDeletion",
     ];
 
-    if empty_ok_paths
-        .iter()
-        .any(|suffix| path.ends_with(suffix) || path_matches_rpc_method(&path, suffix.trim_start_matches('/')))
-    {
-        return OfficialLsExtensionAction::Close(extension_unary_response(
-            &content_type,
-            &[],
-        ));
+    if empty_ok_paths.iter().any(|suffix| {
+        path.ends_with(suffix) || path_matches_rpc_method(&path, suffix.trim_start_matches('/'))
+    }) {
+        return OfficialLsExtensionAction::Close(extension_unary_response(&content_type, &[]));
     }
 
     crate::modules::logger::log_warn(&format!(
@@ -1640,6 +1655,10 @@ async fn start_official_ls_process(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true);
+    #[cfg(target_os = "windows")]
+    {
+        cmd.creation_flags(CREATE_NO_WINDOW);
+    }
 
     let mut child = cmd
         .spawn()
@@ -1651,7 +1670,10 @@ async fn start_official_ls_process(
             account_id
         ));
         let stdout_task = spawn_ls_log_task(stdout, "stdout");
-        let stderr_task = child.stderr.take().map(|stderr| spawn_ls_log_task(stderr, "stderr"));
+        let stderr_task = child
+            .stderr
+            .take()
+            .map(|stderr| spawn_ls_log_task(stderr, "stderr"));
 
         if let Some(mut stdin) = child.stdin.take() {
             let metadata = build_official_ls_metadata_bytes();
@@ -1662,10 +1684,13 @@ async fn start_official_ls_process(
             let _ = stdin.shutdown().await;
         }
 
-        let started = timeout(OFFICIAL_LS_START_TIMEOUT, &mut extension_server.started_receiver)
-            .await
-            .map_err(|_| "等待官方 LS LanguageServerStarted 超时".to_string())?
-            .map_err(|_| "官方 LS LanguageServerStarted 通知通道已关闭".to_string())?;
+        let started = timeout(
+            OFFICIAL_LS_START_TIMEOUT,
+            &mut extension_server.started_receiver,
+        )
+        .await
+        .map_err(|_| "等待官方 LS LanguageServerStarted 超时".to_string())?
+        .map_err(|_| "官方 LS LanguageServerStarted 通知通道已关闭".to_string())?;
 
         crate::modules::logger::log_info(&format!(
             "[WakeupGateway] 官方 LS 启动完成: https_port={}, http_port={}, lsp_port={}",
@@ -1688,7 +1713,13 @@ async fn start_official_ls_process(
 
 async fn ensure_wakeup_account_token(
     account_id: &str,
-) -> Result<(crate::models::account::Account, crate::models::token::TokenData), String> {
+) -> Result<
+    (
+        crate::models::account::Account,
+        crate::models::token::TokenData,
+    ),
+    String,
+> {
     let mut account = crate::modules::account::load_account(account_id)?;
     let token = crate::modules::oauth::ensure_fresh_token(&account.token).await?;
     if token.access_token != account.token.access_token
@@ -1879,9 +1910,13 @@ async fn trigger_wakeup_via_official_language_server(
 
         result.ok_or_else(|| {
             if last_status.is_empty() {
-                "官方 LS 未返回唤醒结果（轨迹中未出现 plannerResponse.modifiedResponse）".to_string()
+                "官方 LS 未返回唤醒结果（轨迹中未出现 plannerResponse.modifiedResponse）"
+                    .to_string()
             } else {
-                format!("官方 LS 未在超时时间内返回唤醒结果，最后状态={}", last_status)
+                format!(
+                    "官方 LS 未在超时时间内返回唤醒结果，最后状态={}",
+                    last_status
+                )
             }
         })
     }
@@ -1913,6 +1948,10 @@ async fn handle_prepare_start_context(body: &[u8]) -> Result<Value, (u16, String
     guard.push_back(ctx);
 
     Ok(json!({}))
+}
+
+async fn handle_health_check() -> Result<Value, (u16, String)> {
+    Ok(json!({ "ok": true }))
 }
 
 async fn handle_start_cascade(body: &[u8]) -> Result<Value, (u16, String)> {
@@ -1955,14 +1994,13 @@ async fn handle_start_cascade(body: &[u8]) -> Result<Value, (u16, String)> {
 async fn handle_send_user_cascade_message(body: &[u8]) -> Result<Value, (u16, String)> {
     let payload = parse_json_object_body(body, "SendUserCascadeMessage")?;
     let cascade_id = extract_required_cascade_id(&payload, "SendUserCascadeMessage")?;
-    let session = get_official_ls_session(&cascade_id)
-        .map_err(|e| {
-            if e.starts_with("会话不存在:") {
-                (404, e)
-            } else {
-                (500, e)
-            }
-        })?;
+    let session = get_official_ls_session(&cascade_id).map_err(|e| {
+        if e.starts_with("会话不存在:") {
+            (404, e)
+        } else {
+            (500, e)
+        }
+    })?;
 
     proxy_official_ls_session_json_request(&session, SEND_USER_CASCADE_MESSAGE_PATH, &payload)
         .await
@@ -1972,14 +2010,13 @@ async fn handle_send_user_cascade_message(body: &[u8]) -> Result<Value, (u16, St
 async fn handle_get_cascade_trajectory(body: &[u8]) -> Result<Value, (u16, String)> {
     let payload = parse_json_object_body(body, "GetCascadeTrajectory")?;
     let cascade_id = extract_required_cascade_id(&payload, "GetCascadeTrajectory")?;
-    let session = get_official_ls_session(&cascade_id)
-        .map_err(|e| {
-            if e.starts_with("会话不存在:") {
-                (404, e)
-            } else {
-                (500, e)
-            }
-        })?;
+    let session = get_official_ls_session(&cascade_id).map_err(|e| {
+        if e.starts_with("会话不存在:") {
+            (404, e)
+        } else {
+            (500, e)
+        }
+    })?;
 
     proxy_official_ls_session_json_request(&session, GET_CASCADE_TRAJECTORY_PATH, &payload)
         .await
@@ -1993,12 +2030,9 @@ async fn handle_delete_cascade_trajectory(body: &[u8]) -> Result<Value, (u16, St
         .map_err(|e| (500, e))?
         .ok_or_else(|| (404, format!("会话不存在: {}", cascade_id)))?;
 
-    let proxy_result = proxy_official_ls_session_json_request(
-        &session,
-        DELETE_CASCADE_TRAJECTORY_PATH,
-        &payload,
-    )
-    .await;
+    let proxy_result =
+        proxy_official_ls_session_json_request(&session, DELETE_CASCADE_TRAJECTORY_PATH, &payload)
+            .await;
 
     crate::modules::logger::log_info(&format!(
         "[WakeupGateway] 清理官方 LS 会话: cascade_id={}, account_id={}",
@@ -2023,6 +2057,7 @@ async fn route_request(parsed: ParsedRequest) -> Vec<u8> {
     }
 
     let result = match path.as_str() {
+        INTERNAL_HEALTH_CHECK_PATH => handle_health_check().await,
         INTERNAL_PREPARE_START_CONTEXT_PATH => handle_prepare_start_context(&parsed.body).await,
         START_CASCADE_PATH => handle_start_cascade(&parsed.body).await,
         SEND_USER_CASCADE_MESSAGE_PATH => handle_send_user_cascade_message(&parsed.body).await,
@@ -2063,8 +2098,9 @@ where
 }
 
 fn build_tls_acceptor() -> Result<TlsAcceptor, String> {
-    let certified = generate_simple_self_signed(vec!["localhost".to_string(), "127.0.0.1".to_string()])
-        .map_err(|e| format!("生成本地 TLS 证书失败: {}", e))?;
+    let certified =
+        generate_simple_self_signed(vec!["localhost".to_string(), "127.0.0.1".to_string()])
+            .map_err(|e| format!("生成本地 TLS 证书失败: {}", e))?;
 
     let cert_der: Vec<u8> = certified.cert.der().to_vec();
     let key_der: Vec<u8> = certified.key_pair.serialize_der();
@@ -2112,25 +2148,41 @@ async fn run_gateway_server(listener: TcpListener, tls_acceptor: TlsAcceptor) {
 }
 
 pub async fn ensure_local_gateway_started() -> Result<String, String> {
-    let base_url = LOCAL_GATEWAY_BASE_URL
-        .get_or_try_init(|| async {
-            let listener = TcpListener::bind("127.0.0.1:0")
-                .await
-                .map_err(|e| format!("启动本地唤醒网关失败（绑定端口）: {}", e))?;
-            let tls_acceptor = build_tls_acceptor()?;
-            let port = listener
-                .local_addr()
-                .map_err(|e| format!("读取本地唤醒网关端口失败: {}", e))?
-                .port();
-            let base_url = format!("https://localhost:{}", port);
-            crate::modules::logger::log_info(&format!(
-                "[WakeupGateway] 本地网关已启动: {}",
-                base_url
-            ));
-            tokio::spawn(run_gateway_server(listener, tls_acceptor));
-            Ok::<String, String>(base_url)
-        })
-        .await?;
+    let store = LOCAL_GATEWAY_BASE_URL.get_or_init(|| TokioMutex::new(None));
+    {
+        let guard = store.lock().await;
+        if let Some(base_url) = guard.as_ref() {
+            return Ok(base_url.clone());
+        }
+    }
 
-    Ok(base_url.clone())
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .await
+        .map_err(|e| format!("启动本地唤醒网关失败（绑定端口）: {}", e))?;
+    let tls_acceptor = build_tls_acceptor()?;
+    let port = listener
+        .local_addr()
+        .map_err(|e| format!("读取本地唤醒网关端口失败: {}", e))?
+        .port();
+    let base_url = format!("https://127.0.0.1:{}", port);
+    crate::modules::logger::log_info(&format!("[WakeupGateway] 本地网关已启动: {}", base_url));
+    tokio::spawn(run_gateway_server(listener, tls_acceptor));
+
+    let mut guard = store.lock().await;
+    if let Some(existing) = guard.as_ref() {
+        return Ok(existing.clone());
+    }
+    *guard = Some(base_url.clone());
+    Ok(base_url)
+}
+
+pub async fn clear_local_gateway_base_url_cache() {
+    let store = LOCAL_GATEWAY_BASE_URL.get_or_init(|| TokioMutex::new(None));
+    let mut guard = store.lock().await;
+    if let Some(current) = guard.take() {
+        crate::modules::logger::log_warn(&format!(
+            "[WakeupGateway] 清理本地网关地址缓存: {}",
+            current
+        ));
+    }
 }

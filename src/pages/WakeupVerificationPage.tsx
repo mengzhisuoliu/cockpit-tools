@@ -787,7 +787,7 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
             disabled={running || accounts.length === 0}
           >
             <ShieldCheck size={16} />
-            {t('wakeup.errorUi.completeVerification')}
+            {t('wakeup.verification.actions.runCheckNow', '立即检测')}
           </button>
         </div>
       </div>
@@ -888,7 +888,7 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
         <div className="modal-overlay" onClick={() => !running && setShowConfigModal(false)}>
           <div className="modal wakeup-modal verification-config-modal" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>{t('wakeup.errorUi.completeVerification')}</h2>
+              <h2>{t('wakeup.verification.actions.runCheckNow', '立即检测')}</h2>
               <button className="modal-close" onClick={() => setShowConfigModal(false)} disabled={running}>
                 <X />
               </button>

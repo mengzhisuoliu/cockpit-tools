@@ -773,14 +773,15 @@
       },
       "actions": {
         "selectAllAccounts": "Alle auswählen",
-        "clearSelectedAccounts": "Auswahl aufheben"
+        "clearSelectedAccounts": "Auswahl aufheben",
+        "runCheckNow": "Bestätigung abschließen"
       },
       "deleteConfirm": "Möchten Sie das wirklich löschen?",
       "runHint": {
         "title": "Hinweise zur Verifizierung",
-        "line1": "„Jetzt verifizieren“ sendet eine minimale Chat-Anfrage, indem der Antigravity-Client über ein lokales Gateway und das offizielle Language-Server-Protokoll simuliert wird.",
+        "line1": "„Jetzt prüfen“ sendet eine minimale Chat-Anfrage, indem der Antigravity-Client über ein lokales Gateway und das offizielle Language-Server-Protokoll simuliert wird.",
         "line2": "Dabei werden wenige Token verbraucht (in der Regel ein kurzer Dialog). Der tatsächliche Verbrauch hängt von Modell und Kontorichtlinie ab.",
-        "line3": "Diese Aktion ändert keine Wakeup-Task-Einstellungen. Sie prüft nur die Kontoverfügbarkeit und schreibt einen Verifizierungsdatensatz.",
+        "line3": "Diese Aktion ändert keine Wakeup-Task-Einstellungen. Sie prüft nur die Kontoverfügbarkeit und schreibt einen Prüfdatensatz.",
         "line4": "Wenn 403 zurückgegeben wird, muss zuerst die Kontoverifizierung abgeschlossen werden. Das Ergebnis enthält Verifizierungs-URL und Schnellaktionen."
       }
     }
