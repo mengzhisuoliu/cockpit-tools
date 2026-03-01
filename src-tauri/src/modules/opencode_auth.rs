@@ -96,8 +96,7 @@ fn build_openai_payload(account: &CodexAccount) -> Result<serde_json::Value, Str
         "expires": expires,
     });
 
-    let fallback_account_id = extract_account_id_from_tokens(account);
-    if let Some(account_id) = account.account_id.clone().or(fallback_account_id) {
+    if let Some(account_id) = account.account_id.clone() {
         payload["accountId"] = json!(account_id);
     }
 
@@ -107,10 +106,6 @@ fn build_openai_payload(account: &CodexAccount) -> Result<serde_json::Value, Str
 fn decode_token_exp_ms(access_token: &str) -> Option<i64> {
     let payload = codex_account::decode_jwt_payload(access_token).ok()?;
     payload.exp.map(|exp| exp * 1000)
-}
-
-fn extract_account_id_from_tokens(account: &CodexAccount) -> Option<String> {
-    codex_account::extract_chatgpt_account_id_from_access_token(&account.tokens.access_token)
 }
 
 /// 使用 Codex 账号的 token 替换 OpenCode auth.json 中的 openai 记录

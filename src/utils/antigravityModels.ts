@@ -96,14 +96,6 @@ const resolveCanonicalModel = (identity: ModelIdentity): CanonicalModel | undefi
   return undefined;
 };
 
-const toHardcodedFallback = (): AntigravityModelOption[] =>
-  CANONICAL_MODELS.map((item) => ({
-    id: item.id,
-    displayName: item.displayName,
-    modelConstant: item.modelConstant,
-    recommended: true,
-  }));
-
 export const getAntigravityModelDisplayName = (value: string): string => {
   const found = resolveCanonicalModel({ id: value, modelConstant: value, displayName: value });
   return found?.displayName || value;
@@ -117,7 +109,7 @@ export const filterAntigravityModelOptions = (
   },
 ): AntigravityModelOption[] => {
   if (!Array.isArray(models) || models.length === 0) {
-    return toHardcodedFallback();
+    return [];
   }
 
   const result: AntigravityModelOption[] = [];
@@ -140,10 +132,7 @@ export const filterAntigravityModelOptions = (
     });
   });
 
-  if (result.length > 0) {
-    return result;
-  }
-  return toHardcodedFallback();
+  return result;
 };
 
 export const collectAntigravityQuotaModelKeys = (accounts: Account[]): string[] => {
@@ -161,7 +150,7 @@ export const collectAntigravityQuotaModelKeys = (accounts: Account[]): string[] 
 };
 
 export const buildAntigravityFallbackModelOptions = (_accounts: Account[]): AntigravityModelOption[] =>
-  toHardcodedFallback();
+  [];
 
 export const sortAntigravityQuotaModels = (models: ModelQuota[]): ModelQuota[] => {
   if (!Array.isArray(models) || models.length === 0) {

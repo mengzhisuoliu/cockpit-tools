@@ -1219,36 +1219,6 @@ pub(crate) fn build_payload_from_snapshot(
     })
 }
 
-pub fn payload_from_account(account: &KiroAccount) -> KiroOAuthCompletePayload {
-    KiroOAuthCompletePayload {
-        email: account.email.clone(),
-        user_id: account.user_id.clone(),
-        login_provider: account.login_provider.clone(),
-        access_token: account.access_token.clone(),
-        refresh_token: account.refresh_token.clone(),
-        token_type: account.token_type.clone(),
-        expires_at: account.expires_at,
-        idc_region: account.idc_region.clone(),
-        issuer_url: account.issuer_url.clone(),
-        client_id: account.client_id.clone(),
-        scopes: account.scopes.clone(),
-        login_hint: account.login_hint.clone(),
-        plan_name: account.plan_name.clone(),
-        plan_tier: account.plan_tier.clone(),
-        credits_total: account.credits_total,
-        credits_used: account.credits_used,
-        bonus_total: account.bonus_total,
-        bonus_used: account.bonus_used,
-        usage_reset_at: account.usage_reset_at,
-        bonus_expire_days: account.bonus_expire_days,
-        kiro_auth_token_raw: account.kiro_auth_token_raw.clone(),
-        kiro_profile_raw: account.kiro_profile_raw.clone(),
-        kiro_usage_raw: account.kiro_usage_raw.clone(),
-        status: account.status.clone(),
-        status_reason: account.status_reason.clone(),
-    }
-}
-
 pub fn build_payload_from_local_files() -> Result<KiroOAuthCompletePayload, String> {
     let auth_token = kiro_account::read_local_auth_token_json()?.ok_or_else(|| {
         "未在本机找到 Kiro 登录信息（~/.aws/sso/cache/kiro-auth-token.json）".to_string()
@@ -1780,16 +1750,13 @@ pub async fn refresh_payload_for_account(
                 return Ok(enrich_payload_with_runtime_usage(payload).await);
             }
             Err(err) => {
-                logger::log_warn(&format!(
-                    "[Kiro Refresh] refreshToken 接口失败，回退为现有账号快照: {}",
-                    err
-                ));
+                logger::log_warn(&format!("[Kiro Refresh] refreshToken 接口失败: {}", err));
+                return Err(format!("刷新 Kiro 登录态失败: {}", err));
             }
         }
     }
 
-    // 最后回退：返回当前账号已有快照，避免刷新操作直接失败。
-    Ok(enrich_payload_with_runtime_usage(payload_from_account(account)).await)
+    Err("账号缺少 refresh_token，无法刷新 Kiro 登录态".to_string())
 }
 
 pub async fn start_login() -> Result<KiroOAuthStartResponse, String> {

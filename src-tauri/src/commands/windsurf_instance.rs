@@ -346,20 +346,8 @@ pub async fn windsurf_open_instance_window(instance_id: String) -> Result<(), St
     if instance_id == DEFAULT_INSTANCE_ID {
         let default_settings: DefaultInstanceSettings =
             modules::windsurf_instance::load_default_settings()?;
-        if let Err(err) =
-            modules::windsurf_instance::focus_windsurf_instance(default_settings.last_pid, None)
-        {
-            modules::logger::log_warn(&format!(
-                "定位 Windsurf 默认实例窗口失败，回退为启动实例: {}",
-                err
-            ));
-            let extra_args = modules::process::parse_extra_args(&default_settings.extra_args);
-            let pid = modules::windsurf_instance::start_windsurf_default_with_args_with_new_window(
-                &extra_args,
-                false,
-            )?;
-            let _ = modules::windsurf_instance::update_default_pid(Some(pid))?;
-        }
+        modules::windsurf_instance::focus_windsurf_instance(default_settings.last_pid, None)
+            .map_err(|err| format!("定位 Windsurf 默认实例窗口失败: {}", err))?;
         return Ok(());
     }
 
@@ -370,22 +358,16 @@ pub async fn windsurf_open_instance_window(instance_id: String) -> Result<(), St
         .find(|item| item.id == instance_id)
         .ok_or("实例不存在")?;
 
-    if let Err(err) = modules::windsurf_instance::focus_windsurf_instance(
+    modules::windsurf_instance::focus_windsurf_instance(
         instance.last_pid,
         Some(&instance.user_data_dir),
-    ) {
-        modules::logger::log_warn(&format!(
-            "定位 Windsurf 实例窗口失败，回退为启动实例: instance_id={}, err={}",
+    )
+    .map_err(|err| {
+        format!(
+            "定位 Windsurf 实例窗口失败: instance_id={}, err={}",
             instance.id, err
-        ));
-        let extra_args = modules::process::parse_extra_args(&instance.extra_args);
-        let pid = modules::windsurf_instance::start_windsurf_with_args_with_new_window(
-            &instance.user_data_dir,
-            &extra_args,
-            false,
-        )?;
-        let _ = modules::windsurf_instance::update_instance_after_start(&instance.id, pid)?;
-    }
+        )
+    })?;
     Ok(())
 }
 

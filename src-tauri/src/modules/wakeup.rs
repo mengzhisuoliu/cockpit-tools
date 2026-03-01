@@ -87,10 +87,6 @@ fn generate_request_id() -> String {
     format!("req_{}_{}", timestamp, random_suffix(6))
 }
 
-fn generate_fallback_project_id() -> String {
-    format!("projects/random-{}/locations/global", random_suffix(8))
-}
-
 fn build_request_body(
     project_id: &str,
     model: &str,
@@ -1386,7 +1382,7 @@ pub(crate) async fn trigger_wakeup_direct(
     let final_project_id = project_id
         .clone()
         .or_else(|| token.project_id.clone())
-        .unwrap_or_else(generate_fallback_project_id);
+        .ok_or_else(|| "project_id 缺失，无法执行唤醒请求".to_string())?;
     crate::modules::logger::log_info(&format!("[Wakeup] 项目ID: {}", final_project_id));
 
     if token.project_id.is_none() && project_id.is_some() {
@@ -1496,35 +1492,6 @@ struct AvailableModelMeta {
     recommended: Option<bool>,
 }
 
-const HARDCODED_WAKEUP_MODELS: [(&str, &str, &str); 6] = [
-    (
-        "gemini-3.1-pro-high",
-        "Gemini 3.1 Pro (High)",
-        "MODEL_PLACEHOLDER_M37",
-    ),
-    (
-        "gemini-3.1-pro-low",
-        "Gemini 3.1 Pro (Low)",
-        "MODEL_PLACEHOLDER_M36",
-    ),
-    ("gemini-3-flash", "Gemini 3 Flash", "MODEL_PLACEHOLDER_M18"),
-    (
-        "claude-sonnet-4-6",
-        "Claude Sonnet 4.6 (Thinking)",
-        "MODEL_PLACEHOLDER_M35",
-    ),
-    (
-        "claude-opus-4-6-thinking",
-        "Claude Opus 4.6 (Thinking)",
-        "MODEL_PLACEHOLDER_M26",
-    ),
-    (
-        "gpt-oss-120b-medium",
-        "GPT-OSS 120B (Medium)",
-        "MODEL_OPENAI_GPT_OSS_120B_MEDIUM",
-    ),
-];
-
 fn extract_available_models_map(
     response: &AvailableModelsResponse,
 ) -> Option<&HashMap<String, AvailableModelMeta>> {
@@ -1570,18 +1537,6 @@ fn extract_ordered_model_ids(response: &AvailableModelsResponse) -> Vec<String> 
     }
 
     ids
-}
-
-fn hardcoded_wakeup_models() -> Vec<AvailableModel> {
-    HARDCODED_WAKEUP_MODELS
-        .iter()
-        .map(|(id, display_name, model_constant)| AvailableModel {
-            id: (*id).to_string(),
-            display_name: (*display_name).to_string(),
-            model_constant: Some((*model_constant).to_string()),
-            recommended: Some(true),
-        })
-        .collect()
 }
 
 /// 获取可用模型列表（用于唤醒配置）
@@ -1685,10 +1640,7 @@ pub async fn fetch_available_models() -> Result<Vec<AvailableModel>, String> {
     }
 
     if models.is_empty() {
-        crate::modules::logger::log_warn(
-            "[Wakeup] fetchAvailableModels 未返回可用 agentModelSorts 映射，回退固定模型列表",
-        );
-        return Ok(hardcoded_wakeup_models());
+        return Err("模型列表为空：官方接口未返回可用模型".to_string());
     }
 
     Ok(models)

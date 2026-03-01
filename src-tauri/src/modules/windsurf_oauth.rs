@@ -994,13 +994,7 @@ pub async fn build_payload_from_token(token: &str) -> Result<WindsurfOAuthComple
         return build_payload_from_firebase_token(trimmed, None).await;
     }
 
-    // 回退：优先按 API Key 解析，不成功再尝试 Firebase token。
-    match build_payload_from_api_key(trimmed, None, None).await {
-        Ok(payload) => Ok(payload),
-        Err(api_err) => build_payload_from_firebase_token(trimmed, None)
-            .await
-            .map_err(|firebase_err| format!("Token 解析失败: {}; {}", api_err, firebase_err)),
-    }
+    Err("Token 格式不支持：请使用 Windsurf API Key 或 Firebase JWT".to_string())
 }
 
 const FIREBASE_API_KEY: &str = "AIzaSyDsOl-1XpT5err0Tcnx8FFod1H8gVGIycY";

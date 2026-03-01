@@ -305,10 +305,7 @@ fn find_matching_account_id(
     index: &AccountIndex,
     email: &str,
     token: &TokenData,
-    allow_legacy_email_fallback: bool,
 ) -> Result<Option<String>, String> {
-    let mut email_matches: Vec<String> = Vec::new();
-
     for summary in &index.accounts {
         let existing = match load_account(&summary.id) {
             Ok(account) => account,
@@ -324,18 +321,6 @@ fn find_matching_account_id(
         if is_strict_account_identity_match(&existing, email, token) {
             return Ok(Some(existing.id));
         }
-
-        if existing.email == email {
-            email_matches.push(existing.id);
-        }
-    }
-
-    if allow_legacy_email_fallback && email_matches.len() == 1 {
-        modules::logger::log_warn(&format!(
-            "账号匹配走兼容路径（单 email 回退）: email={}",
-            email
-        ));
-        return Ok(email_matches.into_iter().next());
     }
 
     Ok(None)
@@ -352,7 +337,7 @@ pub fn add_account(
         .map_err(|e| format!("获取锁失败: {}", e))?;
     let mut index = load_account_index()?;
 
-    if find_matching_account_id(&index, &email, &token, false)?.is_some() {
+    if find_matching_account_id(&index, &email, &token)?.is_some() {
         return Err(format!("账号已存在: {}", email));
     }
 
@@ -421,7 +406,7 @@ pub fn upsert_account(
         .map_err(|e| format!("获取锁失败: {}", e))?;
     let mut index = load_account_index()?;
 
-    let existing_account_id = find_matching_account_id(&index, &email, &token, true)?;
+    let existing_account_id = find_matching_account_id(&index, &email, &token)?;
 
     if let Some(account_id) = existing_account_id {
         match load_account(&account_id) {

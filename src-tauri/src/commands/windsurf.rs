@@ -245,7 +245,7 @@ pub async fn inject_windsurf_to_vscode(
                 if e.starts_with("APP_PATH_NOT_FOUND:") || e.contains("APP_PATH_NOT_FOUND:") {
                     let _ = app.emit(
                         "app:path_missing",
-                        serde_json::json!({ "app": "windsurf", "retry": { "kind": "default" } }),
+                        serde_json::json!({ "app": "windsurf" }),
                     );
                 }
                 Some(e)

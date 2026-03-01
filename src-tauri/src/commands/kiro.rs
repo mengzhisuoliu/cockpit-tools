@@ -201,7 +201,7 @@ pub async fn inject_kiro_to_vscode(app: AppHandle, account_id: String) -> Result
                 if err.starts_with("APP_PATH_NOT_FOUND:") {
                     let _ = app.emit(
                         "app:path_missing",
-                        serde_json::json!({ "app": "kiro", "retry": { "kind": "default" } }),
+                        serde_json::json!({ "app": "kiro" }),
                     );
                 }
                 Some(err)

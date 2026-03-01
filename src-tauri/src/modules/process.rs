@@ -25,6 +25,18 @@ const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 #[cfg(target_os = "windows")]
 const WINDOWS_PROCESS_PROBE_TIMEOUT: Duration = Duration::from_secs(5);
 
+fn strict_process_detect_enabled() -> bool {
+    std::env::var("AG_STRICT_PROCESS_DETECT")
+        .ok()
+        .map(|value| {
+            matches!(
+                value.trim().to_ascii_lowercase().as_str(),
+                "1" | "true" | "yes" | "on"
+            )
+        })
+        .unwrap_or(false)
+}
+
 #[cfg(target_os = "windows")]
 fn build_powershell_command(args: &[&str]) -> Command {
     use std::os::windows::process::CommandExt;
@@ -635,6 +647,13 @@ exit 0
             stdout.chars().take(400).collect::<String>(),
             stderr.chars().take(400).collect::<String>()
         ));
+        if strict_process_detect_enabled() {
+            crate::modules::logger::log_warn(&format!(
+                "[Path Detect] {} strict mode enabled, skip -File fallback",
+                app_label
+            ));
+            return None;
+        }
         let retry = match powershell_output_file(&script) {
             Ok(value) => value,
             Err(err) => {
@@ -1749,11 +1768,11 @@ fn collect_antigravity_process_entries_from_powershell() -> Vec<(u32, Option<Str
         Err(err) => {
             if err.kind() == std::io::ErrorKind::TimedOut {
                 crate::modules::logger::log_warn(
-                    "[AG Probe] PowerShell 进程探测超时（5s），回退到 sysinfo 进程扫描",
+                    "[AG Probe] PowerShell 进程探测超时（5s）",
                 );
             } else {
                 crate::modules::logger::log_warn(&format!(
-                    "[AG Probe] PowerShell 进程探测失败，回退到 sysinfo: {}",
+                    "[AG Probe] PowerShell 进程探测失败: {}",
                     err
                 ));
             }
@@ -1854,7 +1873,7 @@ pub fn collect_antigravity_process_entries() -> Vec<(u32, Option<String>)> {
     #[cfg(target_os = "windows")]
     {
         let entries = collect_antigravity_process_entries_from_powershell();
-        if !entries.is_empty() {
+        if !entries.is_empty() || strict_process_detect_enabled() {
             return entries;
         }
     }
@@ -1997,14 +2016,18 @@ fn get_default_antigravity_user_data_dir() -> Option<String> {
 }
 
 fn resolve_antigravity_target_and_fallback(user_data_dir: Option<&str>) -> Option<(String, bool)> {
-    build_user_data_dir_match_target(user_data_dir, get_default_antigravity_user_data_dir(), true)
+    build_user_data_dir_match_target(
+        user_data_dir,
+        get_default_antigravity_user_data_dir(),
+        !strict_process_detect_enabled(),
+    )
 }
 
 fn resolve_vscode_target_and_fallback(user_data_dir: Option<&str>) -> Option<(String, bool)> {
     build_user_data_dir_match_target(
         user_data_dir,
         get_default_vscode_user_data_dir_for_os(),
-        true,
+        !strict_process_detect_enabled(),
     )
 }
 

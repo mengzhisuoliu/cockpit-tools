@@ -143,8 +143,6 @@ fn find_existing_account_id(
     let expected_org_id = normalize_optional_ref(organization_id);
     let mut first_email_match: Option<String> = None;
     let mut email_match_count = 0usize;
-    let mut account_id_match_without_org: Option<String> = None;
-    let mut legacy_email_only_candidate: Option<String> = None;
 
     for summary in &index.accounts {
         if !summary.email.eq_ignore_ascii_case(email) {
@@ -167,26 +165,10 @@ fn find_existing_account_id(
         if is_exact_match {
             return Some(summary.id.clone());
         }
-
-        if expected_account_id.is_some()
-            && current_account_id == expected_account_id
-            && current_org_id.is_none()
-            && account_id_match_without_org.is_none()
-        {
-            account_id_match_without_org = Some(summary.id.clone());
-        }
-
-        if (expected_account_id.is_some() || expected_org_id.is_some())
-            && current_account_id.is_none()
-            && current_org_id.is_none()
-            && legacy_email_only_candidate.is_none()
-        {
-            legacy_email_only_candidate = Some(summary.id.clone());
-        }
     }
 
     if expected_account_id.is_some() || expected_org_id.is_some() {
-        return account_id_match_without_org.or(legacy_email_only_candidate);
+        return None;
     }
 
     if email_match_count == 1 {
@@ -321,7 +303,7 @@ fn upsert_account_with_hints(
     let generated_id =
         build_account_storage_id(&email, account_id.as_deref(), organization_id.as_deref());
 
-    // 优先按 email + account_id + organization_id 匹配已有账号；兼容旧数据时回退到 email-only 记录
+    // 优先按 email + account_id + organization_id 严格匹配已有账号
     let existing_id = find_existing_account_id(
         &index,
         &email,

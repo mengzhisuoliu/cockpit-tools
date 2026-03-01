@@ -223,7 +223,7 @@ pub async fn switch_account(app: AppHandle, account_id: String) -> Result<models
             if e.starts_with("APP_PATH_NOT_FOUND:") {
                 let _ = app.emit(
                     "app:path_missing",
-                    serde_json::json!({ "app": "antigravity", "retry": { "kind": "default" } }),
+                    serde_json::json!({ "app": "antigravity" }),
                 );
             }
             Some(e)

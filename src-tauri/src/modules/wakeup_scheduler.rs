@@ -43,7 +43,6 @@ pub struct ScheduleConfig {
     pub time_window_enabled: Option<bool>,
     pub time_window_start: Option<String>,
     pub time_window_end: Option<String>,
-    pub fallback_times: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -75,7 +74,6 @@ struct ScheduleConfigNormalized {
     time_window_enabled: bool,
     time_window_start: Option<String>,
     time_window_end: Option<String>,
-    fallback_times: Vec<String>,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -91,7 +89,6 @@ struct SchedulerState {
     tasks: Vec<WakeupTask>,
     running_tasks: HashSet<String>,
     reset_states: HashMap<String, ResetState>,
-    last_fallback_run_at: HashMap<String, i64>,
     /// 记录每个任务的实际执行时间，不会被前端 sync_state 覆盖
     last_executed_at: HashMap<String, i64>,
 }
@@ -126,11 +123,6 @@ fn normalize_schedule(raw: ScheduleConfig) -> ScheduleConfigNormalized {
         .unwrap_or_else(|| "07:00".to_string());
     let interval_end_time = raw.interval_end_time.unwrap_or_else(|| "22:00".to_string());
     let max_output_tokens = raw.max_output_tokens.unwrap_or(0).max(0);
-    let fallback_times = raw
-        .fallback_times
-        .filter(|times| !times.is_empty())
-        .unwrap_or_else(|| vec!["07:00".to_string()]);
-
     ScheduleConfigNormalized {
         repeat_mode: raw.repeat_mode,
         daily_times,
@@ -148,7 +140,6 @@ fn normalize_schedule(raw: ScheduleConfig) -> ScheduleConfigNormalized {
         time_window_enabled: raw.time_window_enabled.unwrap_or(false),
         time_window_start: raw.time_window_start,
         time_window_end: raw.time_window_end,
-        fallback_times,
     }
 }
 
@@ -492,7 +483,6 @@ async fn run_scheduler_once(app: &AppHandle) {
 }
 
 async fn handle_quota_reset_task(app: &AppHandle, task: &WakeupTask, now: DateTime<Local>) {
-    let mut should_run_fallback = false;
     if task.schedule.time_window_enabled
         && !is_in_time_window(
             task.schedule.time_window_start.as_ref(),
@@ -500,18 +490,6 @@ async fn handle_quota_reset_task(app: &AppHandle, task: &WakeupTask, now: DateTi
             now,
         )
     {
-        let current_minutes = (now.hour() as i32) * 60 + now.minute() as i32;
-        for time in &task.schedule.fallback_times {
-            if let Some(minutes) = parse_time_to_minutes(time) {
-                if (current_minutes - minutes).abs() <= 1 {
-                    should_run_fallback = true;
-                    break;
-                }
-            }
-        }
-        if should_run_fallback {
-            run_task(app, task, "scheduled").await;
-        }
         return;
     }
 
@@ -679,9 +657,6 @@ async fn run_task_with_models(
                 item.last_run_at = Some(executed_at);
             }
         });
-        guard
-            .last_fallback_run_at
-            .insert(task.id.clone(), executed_at);
         // 记录本地执行时间，防止被前端同步覆盖导致重复执行
         guard.last_executed_at.insert(task.id.clone(), executed_at);
     }

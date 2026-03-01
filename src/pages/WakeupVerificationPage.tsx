@@ -9,7 +9,6 @@ import { OverviewTabsHeader } from '../components/OverviewTabsHeader';
 import { useAccountStore } from '../stores/useAccountStore';
 import { Page } from '../types/navigation';
 import {
-  buildAntigravityFallbackModelOptions,
   collectAntigravityQuotaModelKeys,
   filterAntigravityModelOptions,
   getAntigravityModelDisplayName,
@@ -328,7 +327,6 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
 
   const fetchModels = async (accountList: typeof accounts = accounts) => {
     const allowedModelKeys = collectAntigravityQuotaModelKeys(accountList);
-    const fallbackModels = buildAntigravityFallbackModelOptions(accountList);
     try {
       const models = await invoke<AvailableModel[]>('fetch_available_models');
       const filtered = filterAntigravityModelOptions(models || [], {
@@ -337,19 +335,14 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
       });
       if (filtered.length > 0) {
         setAvailableModels(filtered);
-      } else if (fallbackModels.length > 0) {
-        setAvailableModels(fallbackModels);
-      } else {
-        setAvailableModels([]);
-      }
-    } catch (error) {
-      console.error('获取模型列表失败:', error);
-      if (fallbackModels.length > 0) {
-        setAvailableModels(fallbackModels);
       } else {
         setNotice({ text: t('wakeup.notice.modelsFetchFailed'), tone: 'warning' });
         setAvailableModels([]);
       }
+    } catch (error) {
+      console.error('获取模型列表失败:', error);
+      setNotice({ text: t('wakeup.notice.modelsFetchFailed'), tone: 'warning' });
+      setAvailableModels([]);
     }
   };
 
@@ -605,7 +598,7 @@ export function WakeupVerificationPage({ onNavigate }: WakeupVerificationPagePro
       if (isAntigravityPathMissingError(message)) {
         window.dispatchEvent(
           new CustomEvent('app-path-missing', {
-            detail: { app: 'antigravity', retry: { kind: 'default' } },
+            detail: { app: 'antigravity' },
           }),
         );
         setNotice({ text: t('appPath.modal.desc', { app: 'Antigravity' }), tone: 'warning' });

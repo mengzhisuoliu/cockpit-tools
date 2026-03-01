@@ -6,9 +6,7 @@ import { Plus, Pencil, Trash2, Power, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAccountStore } from '../stores/useAccountStore';
 import { Page } from '../types/navigation';
-import { Account } from '../types/account';
 import {
-  buildAntigravityFallbackModelOptions,
   collectAntigravityQuotaModelKeys,
   filterAntigravityModelOptions,
   getAntigravityModelDisplayName,
@@ -435,9 +433,6 @@ const filterAvailableModels = (
     includeNonRecommended: false,
   });
 
-const buildFallbackModels = (accounts: Account[]): AvailableModel[] =>
-  buildAntigravityFallbackModelOptions(accounts);
-
 const getTriggerMode = (task: WakeupTask): TriggerMode => {
   if (task.schedule.wakeOnReset) return 'quota_reset';
   if (task.schedule.crontab) return 'crontab';
@@ -598,25 +593,19 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
         return;
       }
       setModelsLoading(true);
-      const fallbackModels = buildFallbackModels(accounts);
       try {
         const models = await invoke<AvailableModel[]>('fetch_available_models');
         const filtered = filterAvailableModels(models || [], quotaModelKeys);
         if (filtered.length > 0) {
           setAvailableModels(filtered);
-        } else if (fallbackModels.length > 0) {
-          setAvailableModels(fallbackModels);
-        } else {
-          setAvailableModels([]);
-        }
-      } catch (error) {
-        console.error('获取模型列表失败:', error);
-        if (fallbackModels.length > 0) {
-          setAvailableModels(fallbackModels);
         } else {
           setNotice({ text: t('wakeup.notice.modelsFetchFailed'), tone: 'warning' });
           setAvailableModels([]);
         }
+      } catch (error) {
+        console.error('获取模型列表失败:', error);
+        setNotice({ text: t('wakeup.notice.modelsFetchFailed'), tone: 'warning' });
+        setAvailableModels([]);
       } finally {
         setModelsLoading(false);
       }
@@ -750,7 +739,7 @@ export function WakeupTasksPage({ onNavigate }: WakeupPageProps) {
       if (isAntigravityPathMissingError(message)) {
         window.dispatchEvent(
           new CustomEvent('app-path-missing', {
-            detail: { app: 'antigravity', retry: { kind: 'default' } },
+            detail: { app: 'antigravity' },
           }),
         );
         setNotice({ text: t('appPath.modal.desc', { app: 'Antigravity' }), tone: 'warning' });

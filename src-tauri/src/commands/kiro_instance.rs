@@ -352,20 +352,8 @@ pub async fn kiro_open_instance_window(instance_id: String) -> Result<(), String
     if instance_id == DEFAULT_INSTANCE_ID {
         let default_settings: DefaultInstanceSettings =
             modules::kiro_instance::load_default_settings()?;
-        if let Err(err) =
-            modules::kiro_instance::focus_kiro_instance(default_settings.last_pid, None)
-        {
-            modules::logger::log_warn(&format!(
-                "定位 Kiro 默认实例窗口失败，回退为启动实例: {}",
-                err
-            ));
-            let extra_args = modules::process::parse_extra_args(&default_settings.extra_args);
-            let pid = modules::kiro_instance::start_kiro_default_with_args_with_new_window(
-                &extra_args,
-                false,
-            )?;
-            let _ = modules::kiro_instance::update_default_pid(Some(pid))?;
-        }
+        modules::kiro_instance::focus_kiro_instance(default_settings.last_pid, None)
+            .map_err(|err| format!("定位 Kiro 默认实例窗口失败: {}", err))?;
         return Ok(());
     }
 
@@ -376,22 +364,16 @@ pub async fn kiro_open_instance_window(instance_id: String) -> Result<(), String
         .find(|item| item.id == instance_id)
         .ok_or("实例不存在")?;
 
-    if let Err(err) = modules::kiro_instance::focus_kiro_instance(
+    modules::kiro_instance::focus_kiro_instance(
         instance.last_pid,
         Some(&instance.user_data_dir),
-    ) {
-        modules::logger::log_warn(&format!(
-            "定位 Kiro 实例窗口失败，回退为启动实例: instance_id={}, err={}",
+    )
+    .map_err(|err| {
+        format!(
+            "定位 Kiro 实例窗口失败: instance_id={}, err={}",
             instance.id, err
-        ));
-        let extra_args = modules::process::parse_extra_args(&instance.extra_args);
-        let pid = modules::kiro_instance::start_kiro_with_args_with_new_window(
-            &instance.user_data_dir,
-            &extra_args,
-            false,
-        )?;
-        let _ = modules::kiro_instance::update_instance_after_start(&instance.id, pid)?;
-    }
+        )
+    })?;
 
     Ok(())
 }

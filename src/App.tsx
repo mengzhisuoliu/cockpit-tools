@@ -88,7 +88,6 @@ interface GeneralConfig extends GeneralConfigTheme {
 
 type AppPathMissingDetail = {
   app: 'antigravity' | 'codex' | 'vscode' | 'windsurf' | 'kiro';
-  retry?: { kind: 'default' | 'instance'; instanceId?: string };
 };
 
 const WAKEUP_ENABLED_KEY = 'agtools.wakeup.enabled';
@@ -749,35 +748,9 @@ function App() {
     setAppPathSetting(true);
     try {
       const app = appPathMissing.app;
-      const retry = appPathMissing.retry;
       await invoke('set_app_path', { app, path });
       setAppPathMissing(null);
       setAppPathSetting(false);
-      if (retry?.kind === 'instance' && retry.instanceId) {
-        if (app === 'codex') {
-          await invoke('codex_start_instance', { instanceId: retry.instanceId });
-        } else if (app === 'vscode') {
-          await invoke('github_copilot_start_instance', { instanceId: retry.instanceId });
-        } else if (app === 'windsurf') {
-          await invoke('windsurf_start_instance', { instanceId: retry.instanceId });
-        } else if (app === 'kiro') {
-          await invoke('kiro_start_instance', { instanceId: retry.instanceId });
-        } else {
-          await invoke('start_instance', { instanceId: retry.instanceId });
-        }
-      } else {
-        if (app === 'codex') {
-          await invoke('codex_start_instance', { instanceId: '__default__' });
-        } else if (app === 'vscode') {
-          await invoke('github_copilot_start_instance', { instanceId: '__default__' });
-        } else if (app === 'windsurf') {
-          await invoke('windsurf_start_instance', { instanceId: '__default__' });
-        } else if (app === 'kiro') {
-          await invoke('kiro_start_instance', { instanceId: '__default__' });
-        } else {
-          await invoke('start_instance', { instanceId: '__default__' });
-        }
-      }
     } catch (error) {
       console.error('设置应用路径失败:', error);
       setAppPathSetting(false);

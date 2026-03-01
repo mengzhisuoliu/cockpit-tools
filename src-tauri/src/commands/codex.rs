@@ -89,7 +89,7 @@ pub async fn switch_codex_account(
                     if e.starts_with("APP_PATH_NOT_FOUND:") {
                         let _ = app.emit(
                             "app:path_missing",
-                            serde_json::json!({ "app": "codex", "retry": { "kind": "default" } }),
+                            serde_json::json!({ "app": "codex" }),
                         );
                     }
                 }
