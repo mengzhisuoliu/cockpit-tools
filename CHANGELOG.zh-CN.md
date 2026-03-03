@@ -10,7 +10,7 @@
 ## [0.9.11] - 2026-03-03
 
 ### 修复
-- **修复 Windows 在中文路径下切号/启动链路崩溃**：Windows 扩展路径归一逻辑改为 Unicode 安全前缀处理，避免在 `D:\小歪瓜\...` 等非 ASCII 路径上触发 `byte index is not a char boundary` panic。
+- **修复 Windows 在中文路径下切号/启动链路崩溃**：Windows 扩展路径归一逻辑改为 Unicode 安全前缀处理，避免在非 ASCII 路径上触发 `byte index is not a char boundary` panic。
 
 ### 变更
 - **账号验证“立即检测”默认模型优先选择 Flash**：模型默认选择改为优先匹配显示名称中包含 `flash`（不区分大小写）的第一项；未命中时回退到列表第一项。
