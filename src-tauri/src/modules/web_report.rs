@@ -1347,6 +1347,7 @@ fn format_unix_timestamp(value: Option<i64>) -> String {
 }
 
 fn render_markdown(generated_at: &str, rows: &[ReportRow]) -> String {
+    let now = chrono::Utc::now();
     let mut output = String::new();
     output.push_str("# Cockpit Tools Usage Report\n\n");
     output.push_str(&format!(
@@ -1355,19 +1356,21 @@ fn render_markdown(generated_at: &str, rows: &[ReportRow]) -> String {
     ));
     output.push_str(&format!("- Rows: {}\n\n", rows.len()));
     output.push_str(
-        "| Service | Account | Metric | Used | Remaining | Reset Cycle | Status | Note |\n",
+        "| Service | Account | Metric | Used | Remaining | Reset Cycle | Reset Friendly | Status | Note |\n",
     );
-    output.push_str("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
+    output.push_str("| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
 
     for row in rows {
+        let reset_friendly = format_reset_friendly(&row.reset_cycle, now);
         output.push_str(&format!(
-            "| {} | {} | {} | {} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {} | {} | {} | {} | {} | {} |\n",
             markdown_cell(&row.service),
             markdown_cell(&row.account),
             markdown_cell(&row.metric),
             markdown_cell(&row.used),
             markdown_cell(&row.remaining),
             markdown_cell(&row.reset_cycle),
+            markdown_cell(&reset_friendly),
             markdown_cell(&row.status),
             markdown_cell(&row.note),
         ));
@@ -1384,11 +1387,13 @@ fn markdown_cell(value: &str) -> String {
 }
 
 fn render_yaml(generated_at: &str, rows: &[ReportRow]) -> String {
+    let now = chrono::Utc::now();
     let mut output = String::new();
     output.push_str(&format!("generated_at: {}\n", yaml_quote(generated_at)));
     output.push_str(&format!("row_count: {}\n", rows.len()));
     output.push_str("rows:\n");
     for row in rows {
+        let reset_friendly = format_reset_friendly(&row.reset_cycle, now);
         output.push_str("  - service: ");
         output.push_str(&yaml_quote(&row.service));
         output.push('\n');
@@ -1407,6 +1412,9 @@ fn render_yaml(generated_at: &str, rows: &[ReportRow]) -> String {
         output.push_str("    reset_cycle: ");
         output.push_str(&yaml_quote(&row.reset_cycle));
         output.push('\n');
+        output.push_str("    reset_friendly: ");
+        output.push_str(&yaml_quote(&reset_friendly));
+        output.push('\n');
         output.push_str("    status: ");
         output.push_str(&yaml_quote(&row.status));
         output.push('\n');
@@ -1418,6 +1426,7 @@ fn render_yaml(generated_at: &str, rows: &[ReportRow]) -> String {
 }
 
 fn render_html(generated_at: &str, rows: &[ReportRow]) -> String {
+    let now = chrono::Utc::now();
     let mut output = String::new();
     output.push_str(
         "<!DOCTYPE html><html><head><meta charset=\"utf-8\"/><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\"/>",
@@ -1433,11 +1442,12 @@ fn render_html(generated_at: &str, rows: &[ReportRow]) -> String {
         html_escape(generated_at)
     ));
     output.push_str(&format!("<p>Rows: {}</p>", rows.len()));
-    output.push_str("<table><thead><tr><th>Service</th><th>Account</th><th>Metric</th><th>Used</th><th>Remaining</th><th>Reset Cycle</th><th>Status</th><th>Note</th></tr></thead><tbody>");
+    output.push_str("<table><thead><tr><th>Service</th><th>Account</th><th>Metric</th><th>Used</th><th>Remaining</th><th>Reset Cycle</th><th>Reset Friendly</th><th>Status</th><th>Note</th></tr></thead><tbody>");
 
     let mut previous_group_key = String::new();
     let mut group_index: usize = 0;
     for row in rows {
+        let reset_friendly = format_reset_friendly(&row.reset_cycle, now);
         let current_group_key = format!("{}|{}", row.service, row.account);
         if !previous_group_key.is_empty() && current_group_key != previous_group_key {
             group_index += 1;
@@ -1465,6 +1475,10 @@ fn render_html(generated_at: &str, rows: &[ReportRow]) -> String {
         output.push_str(&format!(
             "<td class=\"mono\">{}</td>",
             html_escape(&row.reset_cycle)
+        ));
+        output.push_str(&format!(
+            "<td class=\"mono\">{}</td>",
+            html_escape(&reset_friendly)
         ));
         output.push_str(&format!(
             "<td class=\"{}\">{}</td>",
@@ -1514,6 +1528,68 @@ fn format_minutes_natural(total_minutes: i64) -> String {
         "0m".to_string()
     } else {
         parts.join("")
+    }
+}
+
+fn format_reset_friendly(reset_cycle: &str, now: chrono::DateTime<chrono::Utc>) -> String {
+    let Some(target) = parse_reset_cycle_to_utc(reset_cycle) else {
+        return "-".to_string();
+    };
+
+    let delta = target.signed_duration_since(now).num_seconds();
+    let countdown = format_countdown_compact(delta);
+    let display_time = target
+        .with_timezone(&chrono::Local)
+        .format("%m/%d %H:%M")
+        .to_string();
+    format!("{} ({})", countdown, display_time)
+}
+
+fn parse_reset_cycle_to_utc(reset_cycle: &str) -> Option<chrono::DateTime<chrono::Utc>> {
+    let trimmed = reset_cycle.trim();
+    if trimmed.is_empty() || trimmed == "-" {
+        return None;
+    }
+
+    if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(trimmed) {
+        return Some(dt.with_timezone(&chrono::Utc));
+    }
+
+    if let Ok(naive) = chrono::NaiveDateTime::parse_from_str(trimmed, "%Y-%m-%d %H:%M:%S") {
+        return Some(chrono::DateTime::<chrono::Utc>::from_naive_utc_and_offset(
+            naive,
+            chrono::Utc,
+        ));
+    }
+
+    if let Ok(raw) = trimmed.parse::<i64>() {
+        let ts = if raw > 10_000_000_000 { raw / 1000 } else { raw };
+        if ts > 0 {
+            if let Some(dt) = chrono::DateTime::<chrono::Utc>::from_timestamp(ts, 0) {
+                return Some(dt);
+            }
+        }
+    }
+
+    None
+}
+
+fn format_countdown_compact(seconds: i64) -> String {
+    if seconds <= 0 {
+        return "expired".to_string();
+    }
+
+    let total_minutes = (seconds + 59) / 60;
+    let days = total_minutes / (24 * 60);
+    let hours = (total_minutes % (24 * 60)) / 60;
+    let minutes = total_minutes % 60;
+
+    if days > 0 {
+        format!("{}d{}h", days, hours)
+    } else if hours > 0 {
+        format!("{}h{}m", hours, minutes)
+    } else {
+        format!("{}m", minutes.max(1))
     }
 }
 
