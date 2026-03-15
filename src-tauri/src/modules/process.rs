@@ -5914,10 +5914,10 @@ pub fn start_codex_default() -> Result<u32, String> {
         });
         let app_root = app_root.ok_or_else(|| app_path_missing_error("codex"))?;
 
-        // 使用 open -a 启动，避免 macOS Responsible Process 归因
-        let open_pid =
-            spawn_open_app(&app_root, &[]).map_err(|e| format!("启动 Codex 失败: {}", e))?;
-        crate::modules::logger::log_info("Codex 启动命令已发送（open -a）");
+        // 使用 open -n -a 启动默认实例，避免复用已运行的其他 Codex 实例
+        let open_pid = spawn_open_app_with_options(&app_root, &[], true)
+            .map_err(|e| format!("启动 Codex 失败: {}", e))?;
+        crate::modules::logger::log_info("Codex 启动命令已发送（open -n -a）");
         // 轮询获取真实 PID
         let probe_started = Instant::now();
         let timeout = Duration::from_secs(6);

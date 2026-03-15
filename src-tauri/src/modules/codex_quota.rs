@@ -25,6 +25,14 @@ fn extract_detail_code_from_body(body: &str) -> Option<String> {
         return Some(code.to_string());
     }
 
+    if let Some(code) = value
+        .get("error")
+        .and_then(|error| error.get("code"))
+        .and_then(|code| code.as_str())
+    {
+        return Some(code.to_string());
+    }
+
     if let Some(code) = value.get("code").and_then(|code| code.as_str()) {
         return Some(code.to_string());
     }
@@ -38,6 +46,13 @@ fn extract_error_code_from_message(message: &str) -> Option<String> {
     let code_start = start + marker.len();
     let end = message[code_start..].find(']')?;
     Some(message[code_start..code_start + end].to_string())
+}
+
+fn should_force_refresh_token(message: &str) -> bool {
+    let lower = message.to_ascii_lowercase();
+    lower.contains("token_invalidated")
+        || lower.contains("your authentication token has been invalidated")
+        || lower.contains("401 unauthorized")
 }
 
 fn write_quota_error(account: &mut CodexAccount, message: String) {
@@ -114,6 +129,26 @@ fn normalize_reset_time(window: &WindowInfo) -> Option<i64> {
 pub struct FetchQuotaResult {
     pub quota: CodexQuota,
     pub plan_type: Option<String>,
+}
+
+async fn refresh_account_tokens(account: &mut CodexAccount, reason: &str) -> Result<(), String> {
+    let refresh_token = account
+        .tokens
+        .refresh_token
+        .clone()
+        .ok_or_else(|| format!("{}，且账号缺少 refresh_token", reason))?;
+
+    logger::log_info(&format!(
+        "Codex 账号 {} 触发强制 Token 刷新: {}",
+        account.email, reason
+    ));
+
+    let new_tokens = crate::modules::codex_oauth::refresh_access_token(&refresh_token)
+        .await
+        .map_err(|e| format!("{}，刷新 Token 失败: {}", reason, e))?;
+
+    account.tokens = new_tokens;
+    Ok(())
 }
 
 /// 查询单个账号的配额
@@ -276,45 +311,71 @@ pub async fn refresh_account_quota(account_id: &str) -> Result<CodexQuota, Strin
 
     // 检查 token 是否过期，如果过期则刷新
     if crate::modules::codex_oauth::is_token_expired(&account.tokens.access_token) {
-        logger::log_info(&format!("账号 {} 的 Token 已过期，尝试刷新", account.email));
+        match refresh_account_tokens(&mut account, "Token 已过期").await {
+            Ok(()) => {
+                logger::log_info(&format!("账号 {} 的 Token 刷新成功", account.email));
 
-        if let Some(ref refresh_token) = account.tokens.refresh_token {
-            match crate::modules::codex_oauth::refresh_access_token(refresh_token).await {
-                Ok(new_tokens) => {
-                    logger::log_info(&format!("账号 {} 的 Token 刷新成功", account.email));
-                    account.tokens = new_tokens;
-
-                    // 从新的 id_token 重新解析 plan_type
-                    if let Ok((_, _, new_plan_type, _, _)) =
-                        codex_account::extract_user_info(&account.tokens.id_token)
-                    {
-                        sync_plan_type_from_token(&mut account, new_plan_type);
-                    }
-
-                    codex_account::save_account(&account)?;
+                // 从新的 id_token 重新解析 plan_type
+                if let Ok((_, _, new_plan_type, _, _)) =
+                    codex_account::extract_user_info(&account.tokens.id_token)
+                {
+                    sync_plan_type_from_token(&mut account, new_plan_type);
                 }
-                Err(e) => {
-                    logger::log_error(&format!("账号 {} Token 刷新失败: {}", account.email, e));
-                    let message = format!("Token 已过期且刷新失败: {}", e);
-                    write_quota_error(&mut account, message.clone());
-                    if let Err(save_err) = codex_account::save_account(&account) {
-                        logger::log_warn(&format!("写入 Codex 配额错误失败: {}", save_err));
-                    }
-                    return Err(message);
+
+                codex_account::save_account(&account)?;
+            }
+            Err(e) => {
+                logger::log_error(&format!("账号 {} Token 刷新失败: {}", account.email, e));
+                let message = e;
+                write_quota_error(&mut account, message.clone());
+                if let Err(save_err) = codex_account::save_account(&account) {
+                    logger::log_warn(&format!("写入 Codex 配额错误失败: {}", save_err));
                 }
+                return Err(message);
             }
-        } else {
-            let message = "Token 已过期且无 refresh_token".to_string();
-            write_quota_error(&mut account, message.clone());
-            if let Err(save_err) = codex_account::save_account(&account) {
-                logger::log_warn(&format!("写入 Codex 配额错误失败: {}", save_err));
-            }
-            return Err(message);
         }
     }
 
     let result = match fetch_quota(&account).await {
         Ok(result) => result,
+        Err(e) if should_force_refresh_token(&e) => {
+            logger::log_warn(&format!(
+                "Codex 配额请求检测到失效 Token，准备强制刷新后重试: account={}, error={}",
+                account.email, e
+            ));
+
+            match refresh_account_tokens(&mut account, "配额接口返回 Token 失效").await {
+                Ok(()) => {
+                    if let Ok((_, _, new_plan_type, _, _)) =
+                        codex_account::extract_user_info(&account.tokens.id_token)
+                    {
+                        sync_plan_type_from_token(&mut account, new_plan_type);
+                    }
+                    codex_account::save_account(&account)?;
+
+                    match fetch_quota(&account).await {
+                        Ok(result) => result,
+                        Err(retry_err) => {
+                            write_quota_error(&mut account, retry_err.clone());
+                            if let Err(save_err) = codex_account::save_account(&account) {
+                                logger::log_warn(&format!(
+                                    "写入 Codex 配额错误失败: {}",
+                                    save_err
+                                ));
+                            }
+                            return Err(retry_err);
+                        }
+                    }
+                }
+                Err(refresh_err) => {
+                    write_quota_error(&mut account, refresh_err.clone());
+                    if let Err(save_err) = codex_account::save_account(&account) {
+                        logger::log_warn(&format!("写入 Codex 配额错误失败: {}", save_err));
+                    }
+                    return Err(refresh_err);
+                }
+            }
+        }
         Err(e) => {
             write_quota_error(&mut account, e.clone());
             if let Err(save_err) = codex_account::save_account(&account) {

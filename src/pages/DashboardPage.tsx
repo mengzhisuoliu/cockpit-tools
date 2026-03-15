@@ -107,6 +107,8 @@ const QODER_CURRENT_ACCOUNT_ID_KEY = 'agtools.qoder.current_account_id';
 const TRAE_CURRENT_ACCOUNT_ID_KEY = 'agtools.trae.current_account_id';
 const WORKBUDDY_CURRENT_ACCOUNT_ID_KEY = 'agtools.workbuddy.current_account_id';
 const DASHBOARD_DEFERRED_PREFETCH_DELAY_MS = 1200;
+const DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE = 3;
+const DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS = 250;
 let dashboardStartupPrefetched = false;
 
 function toFiniteNumber(value: number | null | undefined): number | null {
@@ -252,6 +254,7 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   React.useEffect(() => {
     let disposed = false;
     let deferredTimer: number | null = null;
+    let deferredBatchTimer: number | null = null;
 
     const loadDisplayGroups = () => {
       getDisplayGroups()
@@ -269,24 +272,46 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     void Promise.allSettled([fetchAgAccounts(), fetchAgCurrent()]);
     loadDisplayGroups();
 
+    const deferredTasks: Array<() => Promise<unknown>> = [
+      fetchCodexAccounts,
+      fetchCodexCurrent,
+      fetchGitHubCopilotAccounts,
+      fetchWindsurfAccounts,
+      fetchKiroAccounts,
+      fetchCursorAccounts,
+      fetchGeminiAccounts,
+      fetchCodebuddyAccounts,
+      fetchCodebuddyCnAccounts,
+      fetchQoderAccounts,
+      fetchTraeAccounts,
+      fetchWorkbuddyAccounts(),
+    ];
+
     const loadDeferredPlatforms = () => {
       if (disposed) {
         return;
       }
-      void Promise.allSettled([
-        fetchCodexAccounts(),
-        fetchCodexCurrent(),
-        fetchGitHubCopilotAccounts(),
-        fetchWindsurfAccounts(),
-        fetchKiroAccounts(),
-        fetchCursorAccounts(),
-        fetchGeminiAccounts(),
-        fetchCodebuddyAccounts(),
-        fetchCodebuddyCnAccounts(),
-        fetchQoderAccounts(),
-        fetchTraeAccounts(),
-        fetchWorkbuddyAccounts(),
-      ]);
+
+      let nextTaskIndex = 0;
+      const runNextBatch = () => {
+        if (disposed || nextTaskIndex >= deferredTasks.length) {
+          return;
+        }
+
+        const batch = deferredTasks.slice(
+          nextTaskIndex,
+          nextTaskIndex + DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE,
+        );
+        nextTaskIndex += batch.length;
+
+        void Promise.allSettled(batch.map((task) => task()));
+
+        if (nextTaskIndex < deferredTasks.length) {
+          deferredBatchTimer = window.setTimeout(runNextBatch, DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS);
+        }
+      };
+
+      runNextBatch();
     };
 
     if (!dashboardStartupPrefetched) {
@@ -300,6 +325,9 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
       disposed = true;
       if (deferredTimer !== null) {
         window.clearTimeout(deferredTimer);
+      }
+      if (deferredBatchTimer !== null) {
+        window.clearTimeout(deferredBatchTimer);
       }
     };
   }, []);

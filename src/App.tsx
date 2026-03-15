@@ -981,15 +981,22 @@ function App() {
     }
 
     const checkUpdates = async () => {
+      const updateFlowStartedAt = performance.now();
       try {
         console.log('[App] Startup update check triggered; interval gating is ignored.');
+        console.log('[StartupPerf][UpdateCheck] startup update check started');
         writeUpdateLog('info', '启动触发自动更新检查流程（忽略检查周期）');
 
+        const settingsInvokeStartedAt = performance.now();
         const settings = await invoke<{
           auto_check?: boolean;
           check_interval_hours?: number;
           auto_install?: boolean;
         }>('get_update_settings');
+        const settingsInvokeElapsed = performance.now() - settingsInvokeStartedAt;
+        console.log(
+          `[StartupPerf][UpdateCheck] get_update_settings completed in ${settingsInvokeElapsed.toFixed(2)}ms`,
+        );
         const autoCheck = settings?.auto_check ?? true;
         const checkIntervalHours = Number(settings?.check_interval_hours ?? 0);
         const autoInstall = settings?.auto_install ?? false;
@@ -1010,6 +1017,7 @@ function App() {
           console.log('[App] Auto-install enabled, attempting silent update...');
           writeUpdateLog('info', '后台自动更新已开启，尝试静默检查并下载');
           try {
+            const silentCheckStartedAt = performance.now();
             const update = await retryWithBackoff(
               async () => runUpdaterCheck(),
               {
@@ -1027,6 +1035,9 @@ function App() {
                   );
                 },
               },
+            );
+            console.log(
+              `[StartupPerf][UpdateCheck] silent runUpdaterCheck completed in ${(performance.now() - silentCheckStartedAt).toFixed(2)}ms; hasUpdate=${Boolean(update)}`,
             );
             if (update) {
               console.log('[App] Update found, downloading silently with retry...');
@@ -1059,6 +1070,7 @@ function App() {
                 );
               });
 
+              const silentDownloadStartedAt = performance.now();
               const downloadedUpdate = await retryWithBackoff(
                 async (attempt) => {
                   let candidate: UpdaterUpdate | null = null;
@@ -1149,6 +1161,9 @@ function App() {
                   },
                 },
               );
+              console.log(
+                `[StartupPerf][UpdateCheck] silent update download completed in ${(performance.now() - silentDownloadStartedAt).toFixed(2)}ms; version=${downloadedUpdate.version}`,
+              );
 
               if (pendingSilentUpdateRef.current) {
                 await pendingSilentUpdateRef.current.close();
@@ -1209,6 +1224,7 @@ function App() {
           }
           writeUpdateLog('info', '后台自动更新关闭，先执行无弹窗检查，仅在发现新版本时展示弹窗');
           try {
+            const manualCheckStartedAt = performance.now();
             const update = await retryWithBackoff(
               async () => runUpdaterCheck(),
               {
@@ -1226,6 +1242,9 @@ function App() {
                   );
                 },
               },
+            );
+            console.log(
+              `[StartupPerf][UpdateCheck] manual runUpdaterCheck completed in ${(performance.now() - manualCheckStartedAt).toFixed(2)}ms; hasUpdate=${Boolean(update)}`,
             );
 
             if (update) {
@@ -1258,11 +1277,22 @@ function App() {
           }
         }
 
+        const updateLastCheckStartedAt = performance.now();
         await invoke('update_last_check_time');
+        console.log(
+          `[StartupPerf][UpdateCheck] update_last_check_time completed in ${(performance.now() - updateLastCheckStartedAt).toFixed(2)}ms`,
+        );
         writeUpdateLog('info', '已更新 last_check_time，结束本次更新检查流程');
         console.log('[App] Update check cycle completed.');
+        console.log(
+          `[StartupPerf][UpdateCheck] startup update check completed in ${(performance.now() - updateFlowStartedAt).toFixed(2)}ms`,
+        );
       } catch (error) {
         console.error('Failed to check update settings:', error);
+        console.error(
+          `[StartupPerf][UpdateCheck] startup update check failed after ${(performance.now() - updateFlowStartedAt).toFixed(2)}ms:`,
+          error,
+        );
         writeUpdateLog('error', `更新检查流程异常中断: error=${sanitizeUpdaterErrorMessage(error)}`);
       }
     };
@@ -1284,19 +1314,42 @@ function App() {
   // Version jump detection (post-update changelog)
   useEffect(() => {
     const detectVersionJump = async () => {
+      const versionJumpStartedAt = performance.now();
       try {
+        console.log('[StartupPerf][VersionJump] detection started');
+        const versionJumpInvokeStartedAt = performance.now();
         const jumpInfo = await invoke<{
           previous_version: string;
           current_version: string;
           release_notes: string;
           release_notes_zh: string;
         } | null>('check_version_jump');
+        console.log(
+          `[StartupPerf][VersionJump] check_version_jump completed in ${(performance.now() - versionJumpInvokeStartedAt).toFixed(2)}ms; hasJump=${Boolean(jumpInfo)}`,
+        );
         if (jumpInfo) {
           console.log('[App] Version jump detected:', jumpInfo.previous_version, '->', jumpInfo.current_version);
+          (
+            window as Window & {
+              __agtoolsVersionJumpModalRequestedAt?: number;
+            }
+          ).__agtoolsVersionJumpModalRequestedAt = performance.now();
           setVersionJumpInfo(jumpInfo);
+          requestAnimationFrame(() => {
+            console.log(
+              `[StartupPerf][VersionJump] first frame after setVersionJumpInfo in ${(performance.now() - versionJumpStartedAt).toFixed(2)}ms`,
+            );
+          });
         }
+        console.log(
+          `[StartupPerf][VersionJump] detection finished in ${(performance.now() - versionJumpStartedAt).toFixed(2)}ms`,
+        );
       } catch (error) {
         console.error('Failed to check version jump:', error);
+        console.error(
+          `[StartupPerf][VersionJump] detection failed after ${(performance.now() - versionJumpStartedAt).toFixed(2)}ms:`,
+          error,
+        );
       }
     };
 

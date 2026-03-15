@@ -312,6 +312,13 @@ fn normalize_optional_ref(value: Option<&str>) -> Option<String> {
     })
 }
 
+fn should_force_refresh_token(message: &str) -> bool {
+    let lower = message.to_ascii_lowercase();
+    lower.contains("token_invalidated")
+        || lower.contains("your authentication token has been invalidated")
+        || lower.contains("401 unauthorized")
+}
+
 pub fn extract_chatgpt_account_id_from_access_token(access_token: &str) -> Option<String> {
     let payload = decode_jwt_payload_value(access_token)?;
     let auth_data = payload.get("https://api.openai.com/auth")?;
@@ -499,7 +506,29 @@ pub fn list_accounts() -> Vec<CodexAccount> {
 pub async fn refresh_account_profile(account_id: &str) -> Result<CodexAccount, String> {
     let mut account = prepare_account_for_injection(account_id).await?;
     let (account_name, account_structure, account_id_from_remote) =
-        fetch_remote_account_profile(&account).await?;
+        match fetch_remote_account_profile(&account).await {
+            Ok(profile) => profile,
+            Err(err) if should_force_refresh_token(&err) => {
+                let refresh_token = account
+                    .tokens
+                    .refresh_token
+                    .clone()
+                    .ok_or(err.clone())?;
+
+                logger::log_warn(&format!(
+                    "Codex 账号资料请求检测到失效 Token，准备强制刷新后重试: account={}, error={}",
+                    account.email, err
+                ));
+
+                account.tokens = codex_oauth::refresh_access_token(&refresh_token)
+                    .await
+                    .map_err(|e| format!("账号资料接口返回 Token 失效，刷新 Token 失败: {}", e))?;
+                save_account(&account)?;
+
+                fetch_remote_account_profile(&account).await?
+            }
+            Err(err) => return Err(err),
+        };
 
     let mut changed = false;
 

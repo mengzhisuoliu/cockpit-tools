@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use serde::{Deserialize, Serialize};
 use tauri::Manager;
 
@@ -287,6 +289,7 @@ pub fn save_network_config(ws_enabled: bool, ws_port: u16) -> Result<bool, Strin
 /// 获取通用设置配置
 #[tauri::command]
 pub fn get_general_config() -> Result<GeneralConfig, String> {
+    let started = Instant::now();
     let user_config = config::get_user_config();
 
     let close_behavior_str = match user_config.close_behavior {
@@ -299,7 +302,7 @@ pub fn get_general_config() -> Result<GeneralConfig, String> {
         MinimizeWindowBehavior::TrayOnly => "tray_only",
     };
 
-    Ok(GeneralConfig {
+    let result = GeneralConfig {
         language: user_config.language,
         theme: user_config.theme,
         ui_scale: user_config.ui_scale,
@@ -355,7 +358,26 @@ pub fn get_general_config() -> Result<GeneralConfig, String> {
         qoder_quota_alert_threshold: user_config.qoder_quota_alert_threshold,
         trae_quota_alert_enabled: user_config.trae_quota_alert_enabled,
         trae_quota_alert_threshold: user_config.trae_quota_alert_threshold,
-    })
+    };
+
+    modules::logger::log_info(&format!(
+        "[StartupPerf][SystemCommand] get_general_config completed in {}ms: auto_refresh={}, codex={}, ghcp={}, windsurf={}, kiro={}, cursor={}, gemini={}, codebuddy={}, codebuddy_cn={}, qoder={}, trae={}, auto_switch={}",
+        started.elapsed().as_millis(),
+        result.auto_refresh_minutes,
+        result.codex_auto_refresh_minutes,
+        result.ghcp_auto_refresh_minutes,
+        result.windsurf_auto_refresh_minutes,
+        result.kiro_auto_refresh_minutes,
+        result.cursor_auto_refresh_minutes,
+        result.gemini_auto_refresh_minutes,
+        result.codebuddy_auto_refresh_minutes,
+        result.codebuddy_cn_auto_refresh_minutes,
+        result.qoder_auto_refresh_minutes,
+        result.trae_auto_refresh_minutes,
+        result.auto_switch_enabled
+    ));
+
+    Ok(result)
 }
 
 /// 保存通用设置配置

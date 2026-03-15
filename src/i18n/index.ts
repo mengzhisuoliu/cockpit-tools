@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import enResources from '../locales/en.json';
+import zhCnResources from '../locales/zh-CN.json';
 
 type LocaleModule = { default: Record<string, unknown> };
 
@@ -33,8 +34,6 @@ export const supportedLanguages = [
 ];
 
 const localeLoaders: Record<string, () => Promise<LocaleModule>> = {
-  en: () => import('../locales/en.json'),
-  'zh-cn': () => import('../locales/zh-CN.json'),
   'zh-tw': () => import('../locales/zh-tw.json'),
   ja: () => import('../locales/ja.json'),
   es: () => import('../locales/es.json'),
@@ -53,6 +52,7 @@ const localeLoaders: Record<string, () => Promise<LocaleModule>> = {
 
 const loadedLanguages = new Set<string>();
 let initPromise: Promise<void> | null = null;
+let i18nBootstrapped = false;
 
 export function normalizeLanguage(lang: string): string {
   const trimmed = lang.trim();
@@ -83,11 +83,60 @@ async function ensureLanguageResources(lang: string): Promise<string> {
     return resolved;
   }
 
-  const loader = localeLoaders[resolved] ?? localeLoaders.en;
+  const loader = localeLoaders[resolved];
+  if (!loader) {
+    loadedLanguages.add(resolved);
+    return resolved;
+  }
   const module = await loader();
   i18n.addResourceBundle(resolved, 'translation', module.default, true, true);
   loadedLanguages.add(resolved);
   return resolved;
+}
+
+function getSavedLanguage(): string {
+  try {
+    return resolveSupportedLanguage(localStorage.getItem('app-language') || 'en');
+  } catch {
+    return 'en';
+  }
+}
+
+function getBootstrapLanguage(savedLanguage: string): string {
+  if (savedLanguage === 'zh-cn') {
+    return 'zh-cn';
+  }
+  return 'en';
+}
+
+function bootstrapI18n(savedLanguage: string): string {
+  if (i18nBootstrapped) {
+    return getBootstrapLanguage(savedLanguage);
+  }
+
+  const bootstrapLanguage = getBootstrapLanguage(savedLanguage);
+  i18n
+    .use(initReactI18next)
+    .init({
+      resources: {
+        en: { translation: enResources },
+        'zh-cn': { translation: zhCnResources },
+      },
+      lng: bootstrapLanguage,
+      fallbackLng: 'en',
+      supportedLngs: supportedLanguages,
+      lowerCaseLng: true,
+      load: 'currentOnly',
+      initImmediate: false,
+      interpolation: {
+        escapeValue: false, // React 已经处理了 XSS
+      },
+    });
+
+  loadedLanguages.add('en');
+  loadedLanguages.add('zh-cn');
+  i18nBootstrapped = true;
+  return bootstrapLanguage;
 }
 
 export async function initI18n(): Promise<void> {
@@ -95,39 +144,20 @@ export async function initI18n(): Promise<void> {
     return initPromise;
   }
 
+  const savedLanguage = getSavedLanguage();
+  const bootstrapLanguage = bootstrapI18n(savedLanguage);
+
   initPromise = (async () => {
-    const savedLanguage = resolveSupportedLanguage(
-      localStorage.getItem('app-language') || 'en',
-    );
-
-    await i18n
-      .use(initReactI18next)
-      .init({
-        resources: {
-          en: { translation: enResources },
-        },
-        lng: 'en',
-        fallbackLng: 'en',
-        supportedLngs: supportedLanguages,
-        lowerCaseLng: true,
-        load: 'currentOnly',
-        interpolation: {
-          escapeValue: false, // React 已经处理了 XSS
-        },
-      });
-
-    loadedLanguages.add('en');
-    if (savedLanguage !== 'en') {
+    if (savedLanguage !== bootstrapLanguage) {
       await ensureLanguageResources(savedLanguage);
     }
-    await i18n.changeLanguage(savedLanguage);
+    if (i18n.language !== savedLanguage) {
+      await i18n.changeLanguage(savedLanguage);
+    }
   })();
 
   return initPromise;
 }
-
-void initI18n();
-
 /**
  * 切换语言
  */

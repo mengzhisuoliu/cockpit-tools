@@ -48,6 +48,8 @@ interface GeneralConfig {
   gemini_quota_alert_threshold?: number;
 }
 
+const STARTUP_AUTO_REFRESH_SETUP_DELAY_MS = 2500;
+
 export function useAutoRefresh() {
   const refreshAllQuotas = useAccountStore((state) => state.refreshAllQuotas);
   const syncCurrentFromClient = useAccountStore((state) => state.syncCurrentFromClient);
@@ -147,12 +149,17 @@ export function useAutoRefresh() {
   }, []);
 
   const setupAutoRefresh = useCallback(async () => {
+    const setupStartedAt = performance.now();
+    console.log('[StartupPerf][AutoRefresh] setupAutoRefresh start');
+
     if (destroyedRef.current) {
+      console.log('[StartupPerf][AutoRefresh] setupAutoRefresh aborted: destroyed flag set');
       return;
     }
 
     if (setupRunningRef.current) {
       setupPendingRef.current = true;
+      console.log('[StartupPerf][AutoRefresh] setupAutoRefresh skipped: previous run still active');
       return;
     }
 
@@ -163,8 +170,13 @@ export function useAutoRefresh() {
         setupPendingRef.current = false;
 
         try {
+          const configInvokeStartedAt = performance.now();
           const config = await invoke<GeneralConfig>('get_general_config');
+          console.log(
+            `[StartupPerf][AutoRefresh] get_general_config completed in ${(performance.now() - configInvokeStartedAt).toFixed(2)}ms`,
+          );
           if (destroyedRef.current) {
+            console.log('[StartupPerf][AutoRefresh] setupAutoRefresh aborted after config load: destroyed flag set');
             return;
           }
 
@@ -191,6 +203,7 @@ export function useAutoRefresh() {
                 // 如果有活跃的重置任务，且刷新间隔为禁用(-1)或大于2分钟，则强制修正为2分钟
                 if (hasActiveResetTask && (config.auto_refresh_minutes === -1 || config.auto_refresh_minutes > 2)) {
                   console.log(`[AutoRefresh] 检测到活跃的配额重置任务，自动修正刷新间隔: ${config.auto_refresh_minutes} -> 2`);
+                  const saveConfigStartedAt = performance.now();
                   await invoke('save_general_config', {
                     language: config.language,
                     theme: config.theme,
@@ -226,6 +239,9 @@ export function useAutoRefresh() {
                     geminiQuotaAlertEnabled: config.gemini_quota_alert_enabled ?? false,
                     geminiQuotaAlertThreshold: config.gemini_quota_alert_threshold ?? 20,
                   });
+                  console.log(
+                    `[StartupPerf][AutoRefresh] save_general_config completed in ${(performance.now() - saveConfigStartedAt).toFixed(2)}ms`,
+                  );
                   config.auto_refresh_minutes = 2;
                 }
               } catch (e) {
@@ -235,6 +251,7 @@ export function useAutoRefresh() {
           }
 
           if (destroyedRef.current) {
+            console.log('[StartupPerf][AutoRefresh] setupAutoRefresh aborted before interval setup: destroyed flag set');
             return;
           }
 
@@ -519,12 +536,39 @@ export function useAutoRefresh() {
           } else {
             console.log('[AutoRefresh] 自动切号未启用，跳过 60 秒当前账号刷新');
           }
+
+          const enabledPlatforms = [
+            config.auto_refresh_minutes > 0 ? `antigravity=${config.auto_refresh_minutes}` : null,
+            config.codex_auto_refresh_minutes > 0 ? `codex=${config.codex_auto_refresh_minutes}` : null,
+            config.ghcp_auto_refresh_minutes > 0 ? `ghcp=${config.ghcp_auto_refresh_minutes}` : null,
+            config.windsurf_auto_refresh_minutes > 0 ? `windsurf=${config.windsurf_auto_refresh_minutes}` : null,
+            config.kiro_auto_refresh_minutes > 0 ? `kiro=${config.kiro_auto_refresh_minutes}` : null,
+            config.cursor_auto_refresh_minutes > 0 ? `cursor=${config.cursor_auto_refresh_minutes}` : null,
+            config.gemini_auto_refresh_minutes > 0 ? `gemini=${config.gemini_auto_refresh_minutes}` : null,
+            config.codebuddy_auto_refresh_minutes > 0 ? `codebuddy=${config.codebuddy_auto_refresh_minutes}` : null,
+            config.codebuddy_cn_auto_refresh_minutes > 0
+              ? `codebuddy_cn=${config.codebuddy_cn_auto_refresh_minutes}`
+              : null,
+            config.qoder_auto_refresh_minutes > 0 ? `qoder=${config.qoder_auto_refresh_minutes}` : null,
+            config.trae_auto_refresh_minutes > 0 ? `trae=${config.trae_auto_refresh_minutes}` : null,
+            config.auto_switch_enabled ? 'auto_switch=60s' : null,
+          ].filter(Boolean).join(', ');
+          console.log(
+            `[StartupPerf][AutoRefresh] setupAutoRefresh completed in ${(performance.now() - setupStartedAt).toFixed(2)}ms; enabled=${enabledPlatforms || 'none'}`,
+          );
         } catch (err) {
           console.error('[AutoRefresh] 加载配置失败:', err);
+          console.error(
+            `[StartupPerf][AutoRefresh] setupAutoRefresh failed after ${(performance.now() - setupStartedAt).toFixed(2)}ms:`,
+            err,
+          );
         }
       } while (setupPendingRef.current && !destroyedRef.current);
     } finally {
       setupRunningRef.current = false;
+      console.log(
+        `[StartupPerf][AutoRefresh] setupAutoRefresh exit after ${(performance.now() - setupStartedAt).toFixed(2)}ms`,
+      );
     }
   }, [
     clearAllIntervals,
@@ -546,9 +590,19 @@ export function useAutoRefresh() {
 
   useEffect(() => {
     destroyedRef.current = false;
-    void setupAutoRefresh();
+    let startupTimer = window.setTimeout(() => {
+      startupTimer = 0;
+      console.log(
+        `[StartupPerf][AutoRefresh] deferred startup setup triggered after ${STARTUP_AUTO_REFRESH_SETUP_DELAY_MS}ms`,
+      );
+      void setupAutoRefresh();
+    }, STARTUP_AUTO_REFRESH_SETUP_DELAY_MS);
 
     const handleConfigUpdate = () => {
+      if (startupTimer) {
+        window.clearTimeout(startupTimer);
+        startupTimer = 0;
+      }
       console.log('[AutoRefresh] 检测到配置变更，重新设置定时器');
       void setupAutoRefresh();
     };
@@ -558,6 +612,9 @@ export function useAutoRefresh() {
     return () => {
       destroyedRef.current = true;
       setupPendingRef.current = false;
+      if (startupTimer) {
+        window.clearTimeout(startupTimer);
+      }
       clearAllIntervals();
       window.removeEventListener('config-updated', handleConfigUpdate);
     };

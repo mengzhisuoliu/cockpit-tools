@@ -7,6 +7,16 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.14.5] - 2026-03-15
+
+### Changed
+- **Startup work after upgrade is now lighter and more staggered**: boot now renders immediately with built-in `en`/`zh-CN` resources instead of blocking first paint on async language loading, auto-refresh timer setup is deferred, dashboard platform prefetch is batched, and frontend vendor/update chunks are split more aggressively to reduce first-launch stalls after larger upgrades.
+
+### Fixed
+- **Codex account refresh now recovers from backend-invalidated auth tokens**: quota refresh and account-profile checks now detect `401 token_invalidated`, force one refresh-token exchange, persist the rotated tokens, and retry the official ChatGPT usage/account-check endpoints instead of surfacing a false “sign in again” failure while the same account can still be used in the official client.
+- **Codex default instance launch on macOS no longer reuses another running isolated instance**: when a non-default Codex instance is already open, starting the default instance now forces a fresh LaunchServices app instance so the default profile opens instead of just focusing the existing isolated window.
+
+---
 ## [0.14.4] - 2026-03-14
 
 ### Fixed

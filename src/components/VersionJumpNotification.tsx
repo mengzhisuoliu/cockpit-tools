@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { X, Sparkles, PartyPopper } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './UpdateNotification.css';
@@ -21,6 +21,22 @@ export const VersionJumpNotification: React.FC<VersionJumpNotificationProps> = (
 }) => {
   const { t, i18n } = useTranslation();
 
+  useEffect(() => {
+    const perfWindow = window as Window & {
+      __agtoolsVersionJumpModalRequestedAt?: number;
+    };
+    const requestedAt = perfWindow.__agtoolsVersionJumpModalRequestedAt;
+    if (typeof requestedAt === 'number') {
+      console.log(
+        `[StartupPerf][VersionJumpModal] mounted ${(performance.now() - requestedAt).toFixed(2)}ms after setVersionJumpInfo`,
+      );
+      delete perfWindow.__agtoolsVersionJumpModalRequestedAt;
+      return;
+    }
+
+    console.log('[StartupPerf][VersionJumpModal] mounted without request timestamp');
+  }, []);
+
   const releaseNotes = useMemo(() => {
     const isZh = i18n.language.startsWith('zh');
     return isZh && info.release_notes_zh
@@ -29,6 +45,7 @@ export const VersionJumpNotification: React.FC<VersionJumpNotificationProps> = (
   }, [info, i18n.language]);
 
   const formattedNotes = useMemo(() => {
+    const formatStartedAt = performance.now();
     if (!releaseNotes) return null;
 
     const lines = releaseNotes.split('\n');
@@ -60,6 +77,9 @@ export const VersionJumpNotification: React.FC<VersionJumpNotificationProps> = (
       }
     }
 
+    console.log(
+      `[StartupPerf][VersionJumpModal] formatted ${elements.length} release note nodes in ${(performance.now() - formatStartedAt).toFixed(2)}ms`,
+    );
     return elements.length > 0 ? (
       <ul className="release-notes-list">{elements}</ul>
     ) : null;

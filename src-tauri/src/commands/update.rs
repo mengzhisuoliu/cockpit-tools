@@ -1,6 +1,7 @@
 use crate::modules::linux_updater::{self, UpdateRuntimeInfo};
 use crate::modules::logger;
 use crate::modules::update_checker::{self, UpdateSettings, VersionJumpInfo};
+use std::time::Instant;
 
 /// Check if we should check for updates (based on interval settings)
 #[tauri::command]
@@ -12,13 +13,42 @@ pub fn should_check_updates() -> Result<bool, String> {
 /// Update the last check time
 #[tauri::command]
 pub fn update_last_check_time() -> Result<(), String> {
-    update_checker::update_last_check_time()
+    let started = Instant::now();
+    let result = update_checker::update_last_check_time();
+    match &result {
+        Ok(_) => logger::log_info(&format!(
+            "[StartupPerf][UpdaterCommand] update_last_check_time completed in {}ms",
+            started.elapsed().as_millis()
+        )),
+        Err(err) => logger::log_error(&format!(
+            "[StartupPerf][UpdaterCommand] update_last_check_time failed in {}ms: {}",
+            started.elapsed().as_millis(),
+            err
+        )),
+    }
+    result
 }
 
 /// Get update settings
 #[tauri::command]
 pub fn get_update_settings() -> Result<UpdateSettings, String> {
-    update_checker::load_update_settings()
+    let started = Instant::now();
+    let result = update_checker::load_update_settings();
+    match &result {
+        Ok(settings) => logger::log_info(&format!(
+            "[StartupPerf][UpdaterCommand] get_update_settings completed in {}ms: auto_check={}, auto_install={}, last_check_time={}",
+            started.elapsed().as_millis(),
+            settings.auto_check,
+            settings.auto_install,
+            settings.last_check_time
+        )),
+        Err(err) => logger::log_error(&format!(
+            "[StartupPerf][UpdaterCommand] get_update_settings failed in {}ms: {}",
+            started.elapsed().as_millis(),
+            err
+        )),
+    }
+    result
 }
 
 /// Save update settings
@@ -40,7 +70,26 @@ pub fn save_pending_update_notes(
 /// Check if a version jump occurred (for post-update changelog display)
 #[tauri::command]
 pub fn check_version_jump() -> Result<Option<VersionJumpInfo>, String> {
-    update_checker::check_version_jump()
+    let started = Instant::now();
+    let result = update_checker::check_version_jump();
+    match &result {
+        Ok(Some(info)) => logger::log_info(&format!(
+            "[StartupPerf][UpdaterCommand] check_version_jump hit in {}ms: {} -> {}",
+            started.elapsed().as_millis(),
+            info.previous_version,
+            info.current_version
+        )),
+        Ok(None) => logger::log_info(&format!(
+            "[StartupPerf][UpdaterCommand] check_version_jump completed in {}ms: no jump",
+            started.elapsed().as_millis()
+        )),
+        Err(err) => logger::log_error(&format!(
+            "[StartupPerf][UpdaterCommand] check_version_jump failed in {}ms: {}",
+            started.elapsed().as_millis(),
+            err
+        )),
+    }
+    result
 }
 
 /// Write updater lifecycle logs from frontend into app.log
