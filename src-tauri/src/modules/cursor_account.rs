@@ -13,6 +13,7 @@ use crate::modules::{account, logger};
 const ACCOUNTS_INDEX_FILE: &str = "cursor_accounts.json";
 const ACCOUNTS_DIR: &str = "cursor_accounts";
 const CURSOR_QUOTA_ALERT_COOLDOWN_SECONDS: i64 = 10 * 60;
+const CURSOR_ACCESS_TOKEN_REFRESH_THRESHOLD_SECONDS: i64 = 5 * 60;
 
 lazy_static::lazy_static! {
     static ref CURSOR_ACCOUNT_INDEX_LOCK: Mutex<()> = Mutex::new(());
@@ -53,7 +54,7 @@ fn is_banned_reason(value: Option<&str>) -> bool {
         || reason.contains("禁用")
 }
 
-fn is_banned_account(account: &CursorAccount) -> bool {
+pub(crate) fn is_banned_account(account: &CursorAccount) -> bool {
     is_banned_status(account.status.as_deref())
         || is_banned_reason(account.status_reason.as_deref())
 }
@@ -278,7 +279,7 @@ fn normalize_auth_identity(value: Option<&str>) -> Option<String> {
     normalize_non_empty(value)
 }
 
-fn extract_auth_id_from_access_token(access_token: &str) -> Option<String> {
+fn decode_access_token_payload(access_token: &str) -> Option<serde_json::Value> {
     let parts: Vec<&str> = access_token.split('.').collect();
     if parts.len() < 2 {
         return None;
@@ -294,8 +295,24 @@ fn extract_auth_id_from_access_token(access_token: &str) -> Option<String> {
     let decoded = base64::engine::general_purpose::STANDARD
         .decode(padded)
         .ok()?;
-    let value: serde_json::Value = serde_json::from_slice(&decoded).ok()?;
+    serde_json::from_slice(&decoded).ok()
+}
+
+fn extract_auth_id_from_access_token(access_token: &str) -> Option<String> {
+    let value = decode_access_token_payload(access_token)?;
     normalize_non_empty(value.get("sub").and_then(|raw| raw.as_str()))
+}
+
+fn extract_access_token_exp(access_token: &str) -> Option<i64> {
+    let value = decode_access_token_payload(access_token)?;
+    value.get("exp").and_then(|raw| raw.as_i64())
+}
+
+fn access_token_needs_refresh(access_token: &str) -> bool {
+    let Some(exp) = extract_access_token_exp(access_token) else {
+        return true;
+    };
+    exp <= now_ts() + CURSOR_ACCESS_TOKEN_REFRESH_THRESHOLD_SECONDS
 }
 
 fn extract_auth_id_from_raw_value(raw: Option<&Value>) -> Option<String> {
@@ -806,6 +823,7 @@ pub fn upsert_account(payload: CursorImportPayload) -> Result<CursorAccount, Str
         cursor_usage_raw: payload.cursor_usage_raw.clone(),
         status: payload.status.clone(),
         status_reason: payload.status_reason.clone(),
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -1249,6 +1267,9 @@ const CURSOR_USAGE_SUMMARY_URL: &str = "https://cursor.com/api/usage-summary";
 const CURSOR_GET_USER_META_URL: &str = "https://api2.cursor.sh/aiserver.v1.AuthService/GetUserMeta";
 const CURSOR_FULL_STRIPE_PROFILE_URL: &str = "https://api2.cursor.sh/auth/full_stripe_profile";
 const CURSOR_STRIPE_PROFILE_URL: &str = "https://api2.cursor.sh/auth/stripe_profile";
+// 与官方 Cursor 客户端保持一致：使用 api2.cursor.sh/oauth/token 和内置 client_id 交换新 token。
+const CURSOR_OAUTH_TOKEN_URL: &str = "https://api2.cursor.sh/oauth/token";
+const CURSOR_AUTH_CLIENT_ID: &str = "KbZUR41cY7W6zRSdpSUJ7I7mLYBKOCmB";
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -1269,6 +1290,16 @@ struct CursorStripeProfileResponse {
     is_enterprise: Option<bool>,
 }
 
+#[derive(Debug, Default, Deserialize)]
+struct CursorRefreshTokenResponse {
+    #[serde(alias = "accessToken")]
+    access_token: Option<String>,
+    #[serde(alias = "refreshToken")]
+    refresh_token: Option<String>,
+    #[serde(default, alias = "shouldLogout")]
+    should_logout: bool,
+}
+
 fn build_cursor_http_client() -> Result<reqwest::Client, String> {
     reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(15))
@@ -1277,20 +1308,7 @@ fn build_cursor_http_client() -> Result<reqwest::Client, String> {
 }
 
 fn extract_workos_user_id(jwt: &str) -> Option<String> {
-    let parts: Vec<&str> = jwt.split('.').collect();
-    if parts.len() < 2 {
-        return None;
-    }
-    let payload_b64 = parts[1].replace('-', "+").replace('_', "/");
-    let padded = match payload_b64.len() % 4 {
-        2 => format!("{}==", payload_b64),
-        3 => format!("{}=", payload_b64),
-        _ => payload_b64,
-    };
-    let decoded = base64::engine::general_purpose::STANDARD
-        .decode(padded)
-        .ok()?;
-    let value: serde_json::Value = serde_json::from_slice(&decoded).ok()?;
+    let value = decode_access_token_payload(jwt)?;
     let sub = value.get("sub")?.as_str()?;
     let user_id = sub.rsplit('|').next().unwrap_or(sub);
     if user_id.starts_with("user_") {
@@ -1324,6 +1342,72 @@ fn resolve_membership_from_stripe_profile(profile: &CursorStripeProfileResponse)
     }
 
     membership.or(individual)
+}
+
+async fn exchange_refresh_token_with_client(
+    client: &reqwest::Client,
+    refresh_token: &str,
+) -> Result<CursorRefreshTokenResponse, String> {
+    let response = client
+        .post(CURSOR_OAUTH_TOKEN_URL)
+        .header("Content-Type", "application/json")
+        .json(&serde_json::json!({
+            "grant_type": "refresh_token",
+            "client_id": CURSOR_AUTH_CLIENT_ID,
+            "refresh_token": refresh_token,
+        }))
+        .send()
+        .await
+        .map_err(|e| format!("请求 Cursor token 刷新接口失败: {}", e))?;
+
+    let status = response.status().as_u16();
+    let body = response
+        .text()
+        .await
+        .map_err(|e| format!("读取 Cursor token 刷新响应失败: {}", e))?;
+
+    if status == 401 || status == 403 {
+        return Err("Cursor refresh token 已过期或无效，请重新导入账号".to_string());
+    }
+    if status != 200 {
+        let detail = body.trim();
+        return Err(if detail.is_empty() {
+            format!("Cursor token 刷新接口返回异常状态码: {}", status)
+        } else {
+            format!(
+                "Cursor token 刷新接口返回异常状态码: {}, body: {}",
+                status, detail
+            )
+        });
+    }
+
+    serde_json::from_str::<CursorRefreshTokenResponse>(&body)
+        .map_err(|e| format!("解析 Cursor token 刷新响应失败: {}", e))
+}
+
+async fn refresh_account_access_token_with_client(
+    client: &reqwest::Client,
+    account: &mut CursorAccount,
+) -> Result<bool, String> {
+    let Some(refresh_token) = normalize_non_empty(account.refresh_token.as_deref()) else {
+        return Ok(false);
+    };
+
+    let response = exchange_refresh_token_with_client(client, refresh_token.as_str()).await?;
+    if response.should_logout {
+        return Err("Cursor refresh token 已失效，请重新导入账号".to_string());
+    }
+
+    let new_access_token = normalize_non_empty(response.access_token.as_deref())
+        .ok_or_else(|| "Cursor token 刷新响应缺少 access_token".to_string())?;
+    let new_refresh_token =
+        normalize_non_empty(response.refresh_token.as_deref()).or(Some(refresh_token));
+
+    account.access_token = new_access_token.clone();
+    account.refresh_token = new_refresh_token.clone();
+    upsert_cursor_auth_raw_string(account, "accessToken", Some(new_access_token));
+    upsert_cursor_auth_raw_string(account, "refreshToken", new_refresh_token);
+    Ok(true)
 }
 
 async fn fetch_user_meta_with_client(
@@ -1466,7 +1550,7 @@ async fn fetch_usage_summary_with_client(
 }
 
 // ---------------------------------------------------------------------------
-// Refresh (re-reads local state.vscdb + fetches usage from API)
+// Refresh (updates our own account storage + fetches usage from official APIs)
 // ---------------------------------------------------------------------------
 
 async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, String> {
@@ -1478,6 +1562,24 @@ async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, S
 
     let client = build_cursor_http_client()?;
     let mut account = existing.clone();
+
+    if access_token_needs_refresh(&account.access_token) {
+        match refresh_account_access_token_with_client(&client, &mut account).await {
+            Ok(true) => {
+                logger::log_info(&format!(
+                    "[Cursor Refresh] access token 刷新成功: id={}",
+                    account.id
+                ));
+            }
+            Ok(false) => {}
+            Err(err) => {
+                logger::log_warn(&format!(
+                    "[Cursor Refresh] access token 刷新失败，继续使用现有 token: id={}, error={}",
+                    account.id, err
+                ));
+            }
+        }
+    }
 
     match fetch_user_meta_with_client(&client, &account.access_token).await {
         Ok(meta) => {
@@ -1507,20 +1609,6 @@ async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, S
                 "[Cursor Refresh] 用户信息拉取失败: id={}, error={}",
                 account.id, err
             ));
-        }
-    }
-
-    let local_payload = read_local_cursor_auth()?;
-    if let Some(payload) = local_payload {
-        if normalize_email_identity(Some(payload.email.as_str()))
-            == normalize_email_identity(Some(account.email.as_str()))
-        {
-            let tags = account.tags.clone();
-            let created_at = account.created_at;
-            let payload_auth_id = resolve_payload_auth_id(&payload);
-            apply_payload(&mut account, payload, payload_auth_id);
-            account.tags = tags;
-            account.created_at = created_at;
         }
     }
 
@@ -1571,6 +1659,7 @@ async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, S
         }
     }
 
+    let mut usage_refreshed = false;
     match fetch_usage_summary_with_client(&client, &account.access_token).await {
         Ok(usage) => {
             if let Some(mt) = usage.get("membershipType").and_then(|v| v.as_str()) {
@@ -1579,6 +1668,7 @@ async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, S
                 }
             }
             account.cursor_usage_raw = Some(usage);
+            usage_refreshed = true;
             logger::log_info(&format!(
                 "[Cursor Refresh] API 配额拉取成功: id={}",
                 account.id
@@ -1592,7 +1682,11 @@ async fn refresh_account_async_once(account_id: &str) -> Result<CursorAccount, S
         }
     }
 
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    if usage_refreshed {
+        account.usage_updated_at = Some(refreshed_at);
+    }
+    account.last_used = refreshed_at;
     let updated = account.clone();
     upsert_account_record(account)?;
     logger::log_info(&format!(
@@ -1715,7 +1809,7 @@ fn read_usage_percent(account: &CursorAccount) -> CursorUsagePercent {
     }
 }
 
-fn extract_quota_metrics(account: &CursorAccount) -> Vec<(String, i32)> {
+pub(crate) fn extract_quota_metrics(account: &CursorAccount) -> Vec<(String, i32)> {
     let usage = read_usage_percent(account);
     let mut metrics = Vec::new();
 
@@ -1744,7 +1838,49 @@ fn normalize_quota_alert_threshold(value: i32) -> i32 {
     value.clamp(0, 100)
 }
 
-fn resolve_current_account_id(accounts: &[CursorAccount]) -> Option<String> {
+pub(crate) fn resolve_current_account_id(accounts: &[CursorAccount]) -> Option<String> {
+    if let Ok(Some(local_payload)) = read_local_cursor_auth() {
+        let incoming_auth_id = resolve_payload_auth_id(&local_payload);
+        let incoming_email = normalize_email_identity(Some(local_payload.email.as_str()));
+        let incoming_token = normalize_token_identity(Some(local_payload.access_token.as_str()));
+
+        if let Some(account_id) = accounts
+            .iter()
+            .find(|account| {
+                let existing_auth_id = resolve_account_auth_id(account);
+                if let (Some(existing), Some(incoming)) =
+                    (existing_auth_id.as_ref(), incoming_auth_id.as_ref())
+                {
+                    return existing == incoming;
+                }
+                if existing_auth_id.is_some() || incoming_auth_id.is_some() {
+                    return false;
+                }
+
+                let existing_email = normalize_email_identity(Some(account.email.as_str()));
+                let existing_token = normalize_token_identity(Some(account.access_token.as_str()));
+                if let (Some(existing), Some(incoming)) =
+                    (existing_email.as_ref(), incoming_email.as_ref())
+                {
+                    if existing == incoming {
+                        return true;
+                    }
+                }
+                if let (Some(existing), Some(incoming)) =
+                    (existing_token.as_ref(), incoming_token.as_ref())
+                {
+                    if existing == incoming {
+                        return true;
+                    }
+                }
+                false
+            })
+            .map(|account| account.id.clone())
+        {
+            return Some(account_id);
+        }
+    }
+
     if let Ok(settings) = crate::modules::cursor_instance::load_default_settings() {
         if let Some(bind_id) = settings.bind_account_id {
             let trimmed = bind_id.trim();

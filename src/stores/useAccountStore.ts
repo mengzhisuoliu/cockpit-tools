@@ -120,6 +120,7 @@ export const useAccountStore = create<AccountState>((set, get) => ({
         
         fetchCurrentPromise = (async () => {
             try {
+                await accountService.syncCurrentFromClient();
                 const account = await accountService.getCurrentAccount();
                 set({ currentAccount: account });
                 persistCurrentAccountCache(account);
@@ -190,6 +191,8 @@ export const useAccountStore = create<AccountState>((set, get) => ({
                 await get().fetchAccounts();
             }
             throw e;
+        } finally {
+            await get().fetchCurrentAccount();
         }
     },
 
@@ -221,7 +224,13 @@ export const useAccountStore = create<AccountState>((set, get) => ({
     syncCurrentFromClient: async () => {
         const result = await accountService.syncCurrentFromClient();
         if (result) {
-            await get().fetchCurrentAccount();
+            try {
+                const account = await accountService.getCurrentAccount();
+                set({ currentAccount: account });
+                persistCurrentAccountCache(account);
+            } catch (e) {
+                console.error('Failed to refresh current account after client sync:', e);
+            }
         }
     },
 

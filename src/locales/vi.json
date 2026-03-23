@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "còn {{left}}",
+        "availableAiCredits": "Tín dụng AI khả dụng",
         "periodEndOnly": "Kết thúc chu kỳ: {{end}}",
         "periodRange": "Chu kỳ: {{start}} - {{end}}",
         "planEndsIn": "Chu kỳ đặt lại sau {{days}} ngày",
@@ -256,7 +257,10 @@
       "edit": "Chỉnh sửa",
       "openRootDir": "Mở thư mục",
       "selectPath": "Chọn đường dẫn",
-      "openWindow": "Mở cửa sổ"
+      "openWindow": "Mở cửa sổ",
+      "showFloatingCard": "Hiện thẻ nổi",
+      "showFloatingCardDisabled": "Hãy liên kết tài khoản trước khi hiển thị thẻ nổi",
+      "showFloatingCardMissing": "Tài khoản đã liên kết không còn tồn tại nên không thể hiển thị thẻ nổi"
     },
     "bulkConfirm": {
       "startAll": "Bắt đầu tất cả các phiên bản đang dừng?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Điều khiển hiển thị biểu tượng Dock độc lập, không phụ thuộc vào hành vi thu nhỏ cửa sổ",
       "hideDockIconOff": "Không (Hiện biểu tượng Dock)",
       "hideDockIconOn": "Có (Ẩn biểu tượng Dock)",
+      "floatingCardStartup": "Hiển thị thẻ nổi khi khởi động",
+      "floatingCardStartupDesc": "Tự động hiển thị thẻ tài khoản nổi sau khi ứng dụng khởi động",
+      "floatingCardAlwaysOnTop": "Giữ thẻ nổi luôn ở trên cùng theo mặc định",
+      "floatingCardAlwaysOnTopDesc": "Các cửa sổ thẻ nổi mới mở sẽ luôn nằm trên cùng",
+      "floatingCardShowNow": "Hiển thị thẻ nổi ngay",
+      "floatingCardShowNowDesc": "Sau khi đóng, bạn có thể mở lại tại đây hoặc từ menu khay hệ thống",
+      "floatingCardShowNowAction": "Hiển thị thẻ nổi",
       "dataDir": "Thư mục dữ liệu",
       "dataDirDesc": "Vị trí lưu trữ tài khoản và cấu hình.",
       "fpDir": "Thư mục lưu trữ Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Áp dụng lại",
       "exportTitle": "Xuất JSON tài khoản Zed"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Chuyển nền tảng",
+    "currentAccount": "Hiện tại",
+    "recommendedAccount": "Tài khoản đề xuất",
+    "accountPreview": "Xem trước tài khoản",
+    "plan": "Gói",
+    "cycle": "Chu kỳ",
+    "status": "Trạng thái",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Đề xuất"
+    },
+    "actions": {
+      "pin": "Ghim",
+      "unpin": "Bỏ ghim",
+      "close": "Đóng",
+      "previousAccount": "Tài khoản trước",
+      "nextAccount": "Tài khoản tiếp theo",
+      "viewRecommended": "Xem tài khoản đề xuất",
+      "backToCurrent": "Quay lại",
+      "switchToThisAccount": "Chuyển",
+      "openDetails": "Mở chi tiết",
+      "openCockpitTools": "Mở Cockpit Tools"
+    },
+    "empty": {
+      "title": "Không có tài khoản",
+      "loading": "Đang tải thông tin tài khoản cho nền tảng hiện tại",
+      "desc": "Hiện chưa có tài khoản nào để hiển thị trên nền tảng này"
+    },
+    "errors": {
+      "refreshFailed": "Làm mới thất bại: {{error}}",
+      "switchFailed": "Chuyển đổi thất bại: {{error}}",
+      "pinFailed": "Không thể cập nhật trạng thái ghim: {{error}}",
+      "closeFailed": "Đóng thất bại: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Đã đóng thẻ nổi",
+      "body": "Mở lại từ menu khay hệ thống hoặc điều chỉnh trong \"Cài đặt > Chung\"."
+    },
+    "closeConfirm": {
+      "title": "Đóng thẻ nổi?",
+      "message": "Sau khi đóng, bạn vẫn có thể mở lại từ \"{{path}}\".",
+      "dontAskAgain": "Đừng hỏi lại"
+    },
+    "lockedPlatform": "Nền tảng đã bị khóa theo instance"
   }
 }

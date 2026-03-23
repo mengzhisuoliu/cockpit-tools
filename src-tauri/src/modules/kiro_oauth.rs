@@ -2559,6 +2559,7 @@ mod tests {
             kiro_usage_raw: None,
             status: None,
             status_reason: None,
+            usage_updated_at: None,
             created_at: 0,
             last_used: 0,
         };

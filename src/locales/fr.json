@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} restants",
+        "availableAiCredits": "Crédits IA disponibles",
         "periodEndOnly": "Fin du cycle : {{end}}",
         "periodRange": "Cycle : {{start}} - {{end}}",
         "planEndsIn": "Le cycle se réinitialise dans {{days}} jours",
@@ -256,7 +257,10 @@
       "edit": "Modifier",
       "openRootDir": "Ouvrir le dossier",
       "selectPath": "Choisir le chemin",
-      "openWindow": "Ouvrir la fenêtre"
+      "openWindow": "Ouvrir la fenêtre",
+      "showFloatingCard": "Afficher la carte flottante",
+      "showFloatingCardDisabled": "Liez d'abord un compte avant d'afficher la carte flottante",
+      "showFloatingCardMissing": "Le compte lié n'existe plus, la carte flottante ne peut donc pas être affichée"
     },
     "bulkConfirm": {
       "startAll": "Démarrer toutes les instances arrêtées ?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Contrôle l’affichage de l’icône du Dock indépendamment du comportement de minimisation de la fenêtre",
       "hideDockIconOff": "Non (Afficher l’icône du Dock)",
       "hideDockIconOn": "Oui (Masquer l’icône du Dock)",
+      "floatingCardStartup": "Afficher la carte flottante au démarrage",
+      "floatingCardStartupDesc": "Afficher automatiquement la carte de compte flottante après le lancement de l’application",
+      "floatingCardAlwaysOnTop": "Garder la carte flottante au premier plan par défaut",
+      "floatingCardAlwaysOnTopDesc": "Les nouvelles fenêtres de carte flottante restent au premier plan à l’ouverture",
+      "floatingCardShowNow": "Afficher la carte flottante maintenant",
+      "floatingCardShowNowDesc": "Après l’avoir fermée, vous pouvez la rouvrir ici ou via le menu de la barre d’état",
+      "floatingCardShowNowAction": "Afficher la carte flottante",
       "dataDir": "Répertoire de données",
       "dataDirDesc": "Emplacement de stockage des comptes et fichiers de configuration.",
       "fpDir": "Stockage Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Réappliquer",
       "exportTitle": "Exporter les comptes Zed en JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Changer de plateforme",
+    "currentAccount": "Actif",
+    "recommendedAccount": "Compte recommandé",
+    "accountPreview": "Aperçu du compte",
+    "plan": "Forfait",
+    "cycle": "Cycle",
+    "status": "Statut",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Recommandé"
+    },
+    "actions": {
+      "pin": "Épingler",
+      "unpin": "Désépingler",
+      "close": "Fermer",
+      "previousAccount": "Compte précédent",
+      "nextAccount": "Compte suivant",
+      "viewRecommended": "Voir le compte recommandé",
+      "backToCurrent": "Retour",
+      "switchToThisAccount": "Passer",
+      "openDetails": "Ouvrir les détails",
+      "openCockpitTools": "Ouvrir Cockpit Tools"
+    },
+    "empty": {
+      "title": "Aucun compte",
+      "loading": "Chargement des informations du compte pour la plateforme actuelle",
+      "desc": "Aucun compte n’est encore disponible sur cette plateforme"
+    },
+    "errors": {
+      "refreshFailed": "Échec de l’actualisation : {{error}}",
+      "switchFailed": "Échec du basculement : {{error}}",
+      "pinFailed": "Impossible de mettre à jour l’état d’épinglage : {{error}}",
+      "closeFailed": "Échec de la fermeture : {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Carte flottante fermée",
+      "body": "Rouvrez-la depuis le menu de la barre d’état ou ajustez-la dans « Paramètres > Général »."
+    },
+    "closeConfirm": {
+      "title": "Fermer la carte flottante ?",
+      "message": "Après la fermeture, vous pourrez la rouvrir depuis « {{path}} ».",
+      "dontAskAgain": "Ne plus demander"
+    },
+    "lockedPlatform": "Plateforme verrouillée par l'instance"
   }
 }

@@ -118,6 +118,21 @@ pub struct UserConfig {
     /// 是否隐藏 Dock 图标（macOS）
     #[serde(default = "default_hide_dock_icon")]
     pub hide_dock_icon: bool,
+    /// 是否在启动后自动显示悬浮卡片
+    #[serde(default = "default_floating_card_show_on_startup")]
+    pub floating_card_show_on_startup: bool,
+    /// 悬浮卡片是否默认置顶
+    #[serde(default = "default_floating_card_always_on_top")]
+    pub floating_card_always_on_top: bool,
+    /// 关闭悬浮卡片前是否显示确认弹框
+    #[serde(default = "default_floating_card_confirm_on_close")]
+    pub floating_card_confirm_on_close: bool,
+    /// 悬浮卡片保存的横向位置（物理像素）
+    #[serde(default)]
+    pub floating_card_position_x: Option<i32>,
+    /// 悬浮卡片保存的纵向位置（物理像素）
+    #[serde(default)]
+    pub floating_card_position_y: Option<i32>,
     /// OpenCode 启动路径（为空则使用默认路径）
     #[serde(default = "default_opencode_app_path")]
     pub opencode_app_path: String,
@@ -391,6 +406,15 @@ fn default_minimize_behavior() -> MinimizeWindowBehavior {
 fn default_hide_dock_icon() -> bool {
     false
 }
+fn default_floating_card_show_on_startup() -> bool {
+    true
+}
+fn default_floating_card_always_on_top() -> bool {
+    false
+}
+fn default_floating_card_confirm_on_close() -> bool {
+    true
+}
 fn default_opencode_app_path() -> String {
     String::new()
 }
@@ -580,6 +604,11 @@ impl Default for UserConfig {
             close_behavior: default_close_behavior(),
             minimize_behavior: default_minimize_behavior(),
             hide_dock_icon: default_hide_dock_icon(),
+            floating_card_show_on_startup: default_floating_card_show_on_startup(),
+            floating_card_always_on_top: default_floating_card_always_on_top(),
+            floating_card_confirm_on_close: default_floating_card_confirm_on_close(),
+            floating_card_position_x: None,
+            floating_card_position_y: None,
             opencode_app_path: default_opencode_app_path(),
             antigravity_app_path: default_antigravity_app_path(),
             codex_app_path: default_codex_app_path(),
@@ -788,6 +817,27 @@ pub fn load_user_config() -> Result<UserConfig, String> {
             obj.insert(
                 "hide_dock_icon".to_string(),
                 json!(inherited_hide_dock_icon),
+            );
+        }
+
+        if !obj.contains_key("floating_card_show_on_startup") {
+            obj.insert(
+                "floating_card_show_on_startup".to_string(),
+                json!(default_floating_card_show_on_startup()),
+            );
+        }
+
+        if !obj.contains_key("floating_card_always_on_top") {
+            obj.insert(
+                "floating_card_always_on_top".to_string(),
+                json!(default_floating_card_always_on_top()),
+            );
+        }
+
+        if !obj.contains_key("floating_card_confirm_on_close") {
+            obj.insert(
+                "floating_card_confirm_on_close".to_string(),
+                json!(default_floating_card_confirm_on_close()),
             );
         }
 

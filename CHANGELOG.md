@@ -7,6 +7,18 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.19.0] - 2026-03-23
+
+### Added
+- **Added a dedicated floating account card window with current/recommended account preview, quick switch, pinning, and instance-bound overlays**: the app can now show a compact floating card on startup or on demand from Settings/Tray, supports per-instance floating cards bound to managed instances, remembers window position, and provides close-confirm guidance plus direct navigation back to the main page.
+- **macOS tray interaction now includes a native Swift popover menu for account overviews and switching**: the menu-bar entry now opens a native provider switcher and account card panel backed by synced platform snapshots, with direct actions for switching accounts, opening details, and reopening the main window.
+
+### Changed
+- **Provider current-account resolution is now unified around real local bindings and runtime state instead of browser-only guesses**: Cursor, Gemini, Kiro, Windsurf, CodeBuddy, CodeBuddy CN, Qoder, Trae, WorkBuddy, and Zed now resolve their current account through backend store logic, and dashboard/account pages/tray/floating card all reuse the same current-account state instead of diverging through `localStorage`-only fallbacks.
+- **Platform account export now follows the accounts currently visible on the page after filtering**: bulk export on provider pages now exports the filtered account list shown in the current view, and when some visible accounts are selected it exports only those visible selections instead of including hidden selections from outside the current filter scope.
+- **Current-account refresh now propagates to runtime surfaces immediately after sync or switch**: Antigravity client sync now refreshes the tray after reading local client state, provider stores refresh current-account state after account fetch/switch, and shared account pages no longer hardcode the `Available AI Credits` label outside locale keys.
+
+---
 ## [0.18.3] - 2026-03-22
 
 ### Added

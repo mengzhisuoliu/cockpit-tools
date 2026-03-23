@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "pozostało {{left}}",
+        "availableAiCredits": "Dostępne kredyty AI",
         "periodEndOnly": "Koniec cyklu: {{end}}",
         "periodRange": "Cykl: {{start}} - {{end}}",
         "planEndsIn": "Cykl resetuje się za {{days}} dni",
@@ -256,7 +257,10 @@
       "edit": "Edytuj",
       "openRootDir": "Otwórz folder",
       "selectPath": "Wybierz ścieżkę",
-      "openWindow": "Otwórz okno"
+      "openWindow": "Otwórz okno",
+      "showFloatingCard": "Pokaż pływającą kartę",
+      "showFloatingCardDisabled": "Przed wyświetleniem pływającej karty najpierw przypisz konto",
+      "showFloatingCardMissing": "Powiązane konto już nie istnieje, więc nie można wyświetlić pływającej karty"
     },
     "bulkConfirm": {
       "startAll": "Uruchomić wszystkie zatrzymane instancje?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Niezależnie steruje widocznością ikony Docka, bez wpływu zachowania minimalizacji okna",
       "hideDockIconOff": "Nie (Pokaż ikonę Docka)",
       "hideDockIconOn": "Tak (Ukryj ikonę Docka)",
+      "floatingCardStartup": "Pokaż kartę pływającą przy starcie",
+      "floatingCardStartupDesc": "Automatycznie pokazuj pływającą kartę konta po uruchomieniu aplikacji",
+      "floatingCardAlwaysOnTop": "Domyślnie utrzymuj kartę pływającą na wierzchu",
+      "floatingCardAlwaysOnTopDesc": "Nowo otwarte okna karty pływającej pozostają na wierzchu",
+      "floatingCardShowNow": "Pokaż kartę pływającą teraz",
+      "floatingCardShowNowDesc": "Po zamknięciu możesz otworzyć ją ponownie tutaj lub z menu zasobnika",
+      "floatingCardShowNowAction": "Pokaż kartę pływającą",
       "dataDir": "Katalog danych",
       "dataDirDesc": "Lokalizacja przechowywania kont i plików konfiguracji.",
       "fpDir": "Magazyn Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Zastosuj ponownie",
       "exportTitle": "Eksportuj konta Zed do JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Przełącz platformę",
+    "currentAccount": "Bieżące",
+    "recommendedAccount": "Polecane konto",
+    "accountPreview": "Podgląd konta",
+    "plan": "Pakiet",
+    "cycle": "Cykl",
+    "status": "Stan",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Polecane"
+    },
+    "actions": {
+      "pin": "Przypnij",
+      "unpin": "Odepnij",
+      "close": "Zamknij",
+      "previousAccount": "Poprzednie konto",
+      "nextAccount": "Następne konto",
+      "viewRecommended": "Pokaż polecane konto",
+      "backToCurrent": "Wróć",
+      "switchToThisAccount": "Przełącz",
+      "openDetails": "Otwórz szczegóły",
+      "openCockpitTools": "Otwórz Cockpit Tools"
+    },
+    "empty": {
+      "title": "Brak kont",
+      "loading": "Ładowanie informacji o koncie dla bieżącej platformy",
+      "desc": "Na tej platformie nie ma jeszcze kont do wyświetlenia"
+    },
+    "errors": {
+      "refreshFailed": "Odświeżanie nie powiodło się: {{error}}",
+      "switchFailed": "Przełączenie nie powiodło się: {{error}}",
+      "pinFailed": "Nie udało się zaktualizować stanu przypięcia: {{error}}",
+      "closeFailed": "Nie udało się zamknąć: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Karta pływająca została zamknięta",
+      "body": "Otwórz ją ponownie z menu zasobnika lub dostosuj w „Ustawienia > Ogólne”."
+    },
+    "closeConfirm": {
+      "title": "Zamknąć pływającą kartę?",
+      "message": "Po zamknięciu możesz otworzyć ją ponownie z poziomu „{{path}}”.",
+      "dontAskAgain": "Nie pytaj ponownie"
+    },
+    "lockedPlatform": "Platforma zablokowana przez instancję"
   }
 }

@@ -33,6 +33,8 @@ pub struct Account {
     /// 最近一次配额错误信息
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quota_error: Option<QuotaErrorInfo>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub usage_updated_at: Option<i64>,
     pub created_at: i64,
     pub last_used: i64,
 }
@@ -58,6 +60,7 @@ impl Account {
             disabled_at: None,
             protected_models: HashSet::new(),
             quota_error: None,
+            usage_updated_at: None,
             created_at: now,
             last_used: now,
         }

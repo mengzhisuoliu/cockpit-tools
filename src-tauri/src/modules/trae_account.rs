@@ -871,6 +871,7 @@ pub fn upsert_account(payload: TraeImportPayload) -> Result<TraeAccount, String>
         trae_usertag_raw: normalize_non_empty(payload.trae_usertag_raw.as_deref()),
         status: normalize_non_empty(payload.status.as_deref()),
         status_reason: normalize_non_empty(payload.status_reason.as_deref()),
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -2055,6 +2056,35 @@ pub fn import_from_local() -> Result<Option<TraeAccount>, String> {
     Ok(Some(account))
 }
 
+pub(crate) fn resolve_current_account_id(accounts: &[TraeAccount]) -> Option<String> {
+    let payload = read_local_trae_auth().ok()??;
+    let normalized_user_id = normalize_non_empty(payload.user_id.as_deref());
+    let normalized_email = normalize_email(Some(payload.email.as_str()));
+
+    accounts
+        .iter()
+        .find(|account| {
+            if let (Some(existing), Some(incoming)) = (
+                normalize_non_empty(account.user_id.as_deref()),
+                normalized_user_id.clone(),
+            ) {
+                if existing == incoming {
+                    return true;
+                }
+            }
+
+            if let (Some(existing), Some(incoming)) = (
+                normalize_email(Some(account.email.as_str())),
+                normalized_email.clone(),
+            ) {
+                return existing == incoming;
+            }
+
+            false
+        })
+        .map(|account| account.id.clone())
+}
+
 pub fn inject_to_trae(account_id: &str) -> Result<(), String> {
     let storage_path = get_default_trae_storage_path()?;
     inject_to_trae_at_path(storage_path.as_path(), account_id)
@@ -2591,12 +2621,20 @@ async fn refresh_account_async_once(account_id: &str) -> Result<TraeAccount, Str
     )
     .await;
 
+    let mut usage_refreshed = false;
     match usage_response {
-        Ok(response) => apply_usage_response(&mut account, &response),
+        Ok(response) => {
+            apply_usage_response(&mut account, &response);
+            usage_refreshed = true;
+        }
         Err(err) => logger::log_warn(&format!("[Trae Refresh] ide_user_ent_usage 失败: {}", err)),
     }
 
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    if usage_refreshed {
+        account.usage_updated_at = Some(refreshed_at);
+    }
+    account.last_used = refreshed_at;
     let updated = account.clone();
     upsert_account_record(account)?;
     logger::log_info(&format!(

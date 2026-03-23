@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} rimanenti",
+        "availableAiCredits": "Crediti AI disponibili",
         "periodEndOnly": "Fine ciclo: {{end}}",
         "periodRange": "Ciclo: {{start}} - {{end}}",
         "planEndsIn": "Il ciclo si resetta tra {{days}} giorni",
@@ -256,7 +257,10 @@
       "edit": "Modifica",
       "openRootDir": "Apri cartella",
       "selectPath": "Seleziona percorso",
-      "openWindow": "Apri finestra"
+      "openWindow": "Apri finestra",
+      "showFloatingCard": "Mostra scheda flottante",
+      "showFloatingCardDisabled": "Collega un account prima di mostrare la scheda flottante",
+      "showFloatingCardMissing": "L'account collegato non esiste più, quindi la scheda flottante non può essere mostrata"
     },
     "bulkConfirm": {
       "startAll": "Avviare tutte le istanze fermate?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Controlla la visibilità dell’icona del Dock in modo indipendente dal comportamento di minimizzazione della finestra",
       "hideDockIconOff": "No (Mostra icona del Dock)",
       "hideDockIconOn": "Sì (Nascondi icona del Dock)",
+      "floatingCardStartup": "Mostra la scheda flottante all'avvio",
+      "floatingCardStartupDesc": "Mostra automaticamente la scheda account flottante dopo l'avvio dell'app",
+      "floatingCardAlwaysOnTop": "Mantieni la scheda flottante sempre in primo piano per impostazione predefinita",
+      "floatingCardAlwaysOnTopDesc": "Le nuove finestre della scheda flottante restano in primo piano quando vengono aperte",
+      "floatingCardShowNow": "Mostra ora la scheda flottante",
+      "floatingCardShowNowDesc": "Dopo averla chiusa, puoi riaprirla qui o dal menu della tray",
+      "floatingCardShowNowAction": "Mostra la scheda flottante",
       "dataDir": "Directory dati",
       "dataDirDesc": "Posizione di archiviazione per account e file di configurazione.",
       "fpDir": "Archiviazione Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Applica di nuovo",
       "exportTitle": "Esporta account Zed in JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Cambia piattaforma",
+    "currentAccount": "Attuale",
+    "recommendedAccount": "Account consigliato",
+    "accountPreview": "Anteprima account",
+    "plan": "Piano",
+    "cycle": "Ciclo",
+    "status": "Stato",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Consigliato"
+    },
+    "actions": {
+      "pin": "Fissa",
+      "unpin": "Rimuovi fissaggio",
+      "close": "Chiudi",
+      "previousAccount": "Account precedente",
+      "nextAccount": "Account successivo",
+      "viewRecommended": "Visualizza account consigliato",
+      "backToCurrent": "Indietro",
+      "switchToThisAccount": "Passa",
+      "openDetails": "Apri dettagli",
+      "openCockpitTools": "Apri Cockpit Tools"
+    },
+    "empty": {
+      "title": "Nessun account",
+      "loading": "Caricamento delle informazioni dell'account per la piattaforma corrente",
+      "desc": "Non ci sono ancora account da mostrare per questa piattaforma"
+    },
+    "errors": {
+      "refreshFailed": "Aggiornamento non riuscito: {{error}}",
+      "switchFailed": "Cambio non riuscito: {{error}}",
+      "pinFailed": "Impossibile aggiornare lo stato di fissaggio: {{error}}",
+      "closeFailed": "Chiusura non riuscita: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Scheda flottante chiusa",
+      "body": "Riaprila dal menu della tray oppure regolala in \"Impostazioni > Generale\"."
+    },
+    "closeConfirm": {
+      "title": "Chiudere la scheda flottante?",
+      "message": "Dopo la chiusura potrai riaprirla da \"{{path}}\".",
+      "dontAskAgain": "Non chiedere più"
+    },
+    "lockedPlatform": "Piattaforma bloccata dall'istanza"
   }
 }

@@ -19,7 +19,7 @@ pub const TRAY_ID: &str = "main-tray";
 const TRAY_PLATFORM_MAX_VISIBLE: usize = 6;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum PlatformId {
+pub(crate) enum PlatformId {
     Antigravity,
     Codex,
     Zed,
@@ -36,7 +36,7 @@ enum PlatformId {
 }
 
 impl PlatformId {
-    fn default_order() -> [Self; 13] {
+    pub(crate) fn default_order() -> [Self; 13] {
         [
             Self::Antigravity,
             Self::Codex,
@@ -54,7 +54,7 @@ impl PlatformId {
         ]
     }
 
-    fn from_str(value: &str) -> Option<Self> {
+    pub(crate) fn from_str(value: &str) -> Option<Self> {
         match value {
             crate::modules::tray_layout::PLATFORM_ANTIGRAVITY => Some(Self::Antigravity),
             crate::modules::tray_layout::PLATFORM_CODEX => Some(Self::Codex),
@@ -73,7 +73,7 @@ impl PlatformId {
         }
     }
 
-    fn as_str(self) -> &'static str {
+    pub(crate) fn as_str(self) -> &'static str {
         match self {
             Self::Antigravity => crate::modules::tray_layout::PLATFORM_ANTIGRAVITY,
             Self::Codex => crate::modules::tray_layout::PLATFORM_CODEX,
@@ -91,7 +91,7 @@ impl PlatformId {
         }
     }
 
-    fn title(self) -> &'static str {
+    pub(crate) fn title(self) -> &'static str {
         match self {
             Self::Antigravity => "Antigravity",
             Self::Codex => "Codex",
@@ -109,7 +109,7 @@ impl PlatformId {
         }
     }
 
-    fn nav_target(self) -> &'static str {
+    pub(crate) fn nav_target(self) -> &'static str {
         match self {
             Self::Antigravity => "overview",
             Self::Codex => "codex",
@@ -131,6 +131,7 @@ impl PlatformId {
 /// 菜单项 ID
 pub mod menu_ids {
     pub const SHOW_WINDOW: &str = "show_window";
+    pub const SHOW_FLOATING_CARD: &str = "show_floating_card";
     pub const REFRESH_QUOTA: &str = "refresh_quota";
     pub const SETTINGS: &str = "settings";
     pub const QUIT: &str = "quit";
@@ -173,23 +174,34 @@ pub fn create_tray_skeleton<R: Runtime>(
 ) -> Result<TrayIcon<R>, tauri::Error> {
     info!("[Tray] 创建骨架托盘...");
 
-    let config = crate::modules::config::get_user_config();
-    let lang = &config.language;
+    #[cfg(not(target_os = "macos"))]
+    let lang = crate::modules::config::get_user_config().language;
 
+    #[cfg(not(target_os = "macos"))]
     let show_window = MenuItem::with_id(
         app,
         menu_ids::SHOW_WINDOW,
-        get_text("show_window", lang),
+        get_text("show_window", &lang),
         true,
         None::<&str>,
     )?;
+    #[cfg(not(target_os = "macos"))]
     let refresh_quota = MenuItem::with_id(
         app,
         menu_ids::REFRESH_QUOTA,
-        get_text("refresh_quota", lang),
+        get_text("refresh_quota", &lang),
         true,
         None::<&str>,
     )?;
+    #[cfg(not(target_os = "macos"))]
+    let show_floating_card = MenuItem::with_id(
+        app,
+        menu_ids::SHOW_FLOATING_CARD,
+        get_text("show_floating_card", lang),
+        true,
+        None::<&str>,
+    )?;
+    #[cfg(not(target_os = "macos"))]
     let settings = MenuItem::with_id(
         app,
         menu_ids::SETTINGS,
@@ -197,6 +209,7 @@ pub fn create_tray_skeleton<R: Runtime>(
         true,
         None::<&str>,
     )?;
+    #[cfg(not(target_os = "macos"))]
     let quit = MenuItem::with_id(
         app,
         menu_ids::QUIT,
@@ -204,6 +217,7 @@ pub fn create_tray_skeleton<R: Runtime>(
         true,
         None::<&str>,
     )?;
+    #[cfg(not(target_os = "macos"))]
     let loading = MenuItem::with_id(
         app,
         "tray_loading",
@@ -212,24 +226,35 @@ pub fn create_tray_skeleton<R: Runtime>(
         None::<&str>,
     )?;
 
-    let menu = Menu::new(app)?;
-    menu.append(&show_window)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&loading)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&refresh_quota)?;
-    menu.append(&settings)?;
-    menu.append(&PredefinedMenuItem::separator(app)?)?;
-    menu.append(&quit)?;
+    #[cfg(not(target_os = "macos"))]
+    let menu = {
+        let menu = Menu::new(app)?;
+        menu.append(&show_window)?;
+        menu.append(&show_floating_card)?;
+        menu.append(&PredefinedMenuItem::separator(app)?)?;
+        menu.append(&loading)?;
+        menu.append(&PredefinedMenuItem::separator(app)?)?;
+        menu.append(&refresh_quota)?;
+        menu.append(&settings)?;
+        menu.append(&PredefinedMenuItem::separator(app)?)?;
+        menu.append(&quit)?;
+        menu
+    };
 
-    let tray = TrayIconBuilder::with_id(TRAY_ID)
+    let builder = TrayIconBuilder::with_id(TRAY_ID)
         .icon(app.default_window_icon().unwrap().clone())
-        .menu(&menu)
         .show_menu_on_left_click(false)
         .tooltip("Cockpit Tools")
         .on_menu_event(handle_menu_event)
-        .on_tray_icon_event(handle_tray_event)
-        .build(app)?;
+        .on_tray_icon_event(handle_tray_event);
+
+    #[cfg(not(target_os = "macos"))]
+    let builder = builder.menu(&menu);
+
+    let tray = builder.build(app)?;
+
+    #[cfg(target_os = "macos")]
+    let _ = tray.set_show_menu_on_left_click(false);
 
     info!("[Tray] 骨架托盘创建完成，等待后台加载完整菜单");
     Ok(tray)
@@ -251,6 +276,13 @@ fn build_tray_menu<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Menu<R>, tau
         app,
         menu_ids::REFRESH_QUOTA,
         get_text("refresh_quota", lang),
+        true,
+        None::<&str>,
+    )?;
+    let show_floating_card = MenuItem::with_id(
+        app,
+        menu_ids::SHOW_FLOATING_CARD,
+        get_text("show_floating_card", lang),
         true,
         None::<&str>,
     )?;
@@ -313,6 +345,7 @@ fn build_tray_menu<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<Menu<R>, tau
 
     let menu = Menu::with_id(app, "tray_menu")?;
     menu.append(&show_window)?;
+    menu.append(&show_floating_card)?;
     menu.append(&PredefinedMenuItem::separator(app)?)?;
 
     if let Some(item) = &no_platform_item {
@@ -1078,19 +1111,7 @@ fn normalize_gemini_plan_label(raw_plan: &str) -> &'static str {
 fn resolve_gemini_current_account(
     accounts: &[crate::models::gemini::GeminiAccount],
 ) -> Option<crate::models::gemini::GeminiAccount> {
-    if let Some(active_email) = crate::modules::gemini_account::get_local_active_email() {
-        if let Some(found) = accounts
-            .iter()
-            .find(|account| account.email.eq_ignore_ascii_case(&active_email))
-        {
-            return Some(found.clone());
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used.max(account.created_at))
-        .cloned()
+    crate::modules::gemini_account::resolve_current_account(accounts)
 }
 
 fn build_gemini_display_info(lang: &str) -> AccountDisplayInfo {
@@ -1389,61 +1410,22 @@ fn strip_codebuddy_status_prefix(raw: &str) -> String {
 fn resolve_codebuddy_current_account(
     accounts: &[crate::models::codebuddy::CodebuddyAccount],
 ) -> Option<crate::models::codebuddy::CodebuddyAccount> {
-    if let Ok(settings) = crate::modules::codebuddy_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::codebuddy_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn resolve_codebuddy_cn_current_account(
     accounts: &[crate::models::codebuddy::CodebuddyAccount],
 ) -> Option<crate::models::codebuddy::CodebuddyAccount> {
-    if let Ok(settings) = crate::modules::codebuddy_cn_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::codebuddy_cn_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn resolve_workbuddy_current_account(
     accounts: &[crate::models::workbuddy::WorkbuddyAccount],
 ) -> Option<crate::models::workbuddy::WorkbuddyAccount> {
-    if let Ok(settings) = crate::modules::workbuddy_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::workbuddy_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn json_as_f64(value: &serde_json::Value) -> Option<f64> {
@@ -1464,21 +1446,8 @@ fn json_as_f64(value: &serde_json::Value) -> Option<f64> {
 
 fn build_qoder_display_info(lang: &str) -> AccountDisplayInfo {
     let accounts = crate::modules::qoder_account::list_accounts();
-    let bound_id = crate::modules::qoder_instance::load_default_settings()
-        .ok()
-        .and_then(|settings| settings.bind_account_id);
-
-    let account = bound_id
-        .as_deref()
-        .and_then(|id| {
-            let trimmed = id.trim();
-            if trimmed.is_empty() {
-                None
-            } else {
-                accounts.iter().find(|item| item.id == trimmed).cloned()
-            }
-        })
-        .or_else(|| accounts.iter().max_by_key(|item| item.last_used).cloned());
+    let account = crate::modules::qoder_account::resolve_current_account_id(&accounts)
+        .and_then(|account_id| accounts.iter().find(|item| item.id == account_id).cloned());
 
     let Some(account) = account else {
         return AccountDisplayInfo {
@@ -2193,81 +2162,29 @@ fn resolve_github_copilot_current_account(
 fn resolve_windsurf_current_account(
     accounts: &[crate::models::windsurf::WindsurfAccount],
 ) -> Option<crate::models::windsurf::WindsurfAccount> {
-    if let Ok(settings) = crate::modules::windsurf_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::windsurf_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn resolve_kiro_current_account(
     accounts: &[crate::models::kiro::KiroAccount],
 ) -> Option<crate::models::kiro::KiroAccount> {
-    if let Ok(settings) = crate::modules::kiro_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::kiro_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn resolve_cursor_current_account(
     accounts: &[crate::models::cursor::CursorAccount],
 ) -> Option<crate::models::cursor::CursorAccount> {
-    if let Ok(settings) = crate::modules::cursor_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::cursor_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn resolve_trae_current_account(
     accounts: &[crate::models::trae::TraeAccount],
 ) -> Option<crate::models::trae::TraeAccount> {
-    if let Ok(settings) = crate::modules::trae_instance::load_default_settings() {
-        if let Some(bind_id) = settings.bind_account_id {
-            let bind_id = bind_id.trim();
-            if !bind_id.is_empty() {
-                if let Some(account) = accounts.iter().find(|account| account.id == bind_id) {
-                    return Some(account.clone());
-                }
-            }
-        }
-    }
-
-    accounts
-        .iter()
-        .max_by_key(|account| account.last_used)
-        .cloned()
+    crate::modules::trae_account::resolve_current_account_id(accounts)
+        .and_then(|account_id| accounts.iter().find(|account| account.id == account_id).cloned())
 }
 
 fn first_non_empty<'a>(values: &[Option<&'a str>]) -> Option<&'a str> {
@@ -3145,6 +3062,9 @@ fn handle_menu_event<R: Runtime>(app: &tauri::AppHandle<R>, event: tauri::menu::
         menu_ids::REFRESH_QUOTA => {
             let _ = app.emit("tray:refresh_quota", ());
         }
+        menu_ids::SHOW_FLOATING_CARD => {
+            let _ = crate::modules::floating_card_window::show_floating_card_window(app, true);
+        }
         menu_ids::SETTINGS => {
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
@@ -3196,14 +3116,31 @@ fn parse_platform_from_menu_id(id: &str) -> Option<PlatformId> {
 fn handle_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     match event {
         TrayIconEvent::Click {
-            button: MouseButton::Left,
-            button_state: MouseButtonState::Up,
+            button,
+            button_state,
+            rect,
             ..
         } => {
-            if let Some(window) = tray.app_handle().get_webview_window("main") {
-                let _ = window.show();
-                let _ = window.unminimize();
-                let _ = window.set_focus();
+            #[cfg(target_os = "macos")]
+            {
+                if button_state == MouseButtonState::Down
+                    && matches!(button, MouseButton::Left | MouseButton::Right)
+                {
+                    let app = tray.app_handle().clone();
+                    let app_for_menu = app.clone();
+                    let _ = app.run_on_main_thread(move || {
+                        crate::modules::macos_native_menu::toggle_tray_menu(&app_for_menu, rect);
+                    });
+                }
+            }
+
+            #[cfg(not(target_os = "macos"))]
+            if button == MouseButton::Left && button_state == MouseButtonState::Up {
+                if let Some(window) = tray.app_handle().get_webview_window("main") {
+                    let _ = window.show();
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
             }
         }
         TrayIconEvent::DoubleClick {
@@ -3222,6 +3159,13 @@ fn handle_tray_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
 
 /// 更新托盘菜单
 pub fn update_tray_menu<R: Runtime>(app: &tauri::AppHandle<R>) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = app;
+        logger::log_info("[Tray] macOS 原生菜单模式，跳过 Tauri 托盘菜单更新");
+    }
+
+    #[cfg(not(target_os = "macos"))]
     if let Some(tray) = app.tray_by_id(TRAY_ID) {
         let menu = build_tray_menu(app).map_err(|e| e.to_string())?;
         tray.set_menu(Some(menu)).map_err(|e| e.to_string())?;
@@ -3235,6 +3179,7 @@ fn get_text(key: &str, lang: &str) -> String {
     match (key, lang) {
         // 简体中文
         ("show_window", "zh-cn") => "显示主窗口".to_string(),
+        ("show_floating_card", "zh-cn") => "显示悬浮卡片".to_string(),
         ("refresh_quota", "zh-cn") => "🔄 刷新配额".to_string(),
         ("settings", "zh-cn") => "⚙️ 设置...".to_string(),
         ("quit", "zh-cn") => "❌ 退出".to_string(),
@@ -3268,6 +3213,7 @@ fn get_text(key: &str, lang: &str) -> String {
 
         // 繁体中文
         ("show_window", "zh-tw") => "顯示主視窗".to_string(),
+        ("show_floating_card", "zh-tw") => "顯示懸浮卡片".to_string(),
         ("refresh_quota", "zh-tw") => "🔄 重新整理配額".to_string(),
         ("settings", "zh-tw") => "⚙️ 設定...".to_string(),
         ("quit", "zh-tw") => "❌ 結束".to_string(),
@@ -3301,6 +3247,7 @@ fn get_text(key: &str, lang: &str) -> String {
 
         // 英文
         ("show_window", "en") => "Show Window".to_string(),
+        ("show_floating_card", "en") => "Show Floating Card".to_string(),
         ("refresh_quota", "en") => "🔄 Refresh Quota".to_string(),
         ("settings", "en") => "⚙️ Settings...".to_string(),
         ("quit", "en") => "❌ Quit".to_string(),
@@ -3334,6 +3281,7 @@ fn get_text(key: &str, lang: &str) -> String {
 
         // 日语
         ("show_window", "ja") => "ウィンドウを表示".to_string(),
+        ("show_floating_card", "ja") => "フローティングカードを表示".to_string(),
         ("refresh_quota", "ja") => "🔄 クォータを更新".to_string(),
         ("settings", "ja") => "⚙️ 設定...".to_string(),
         ("quit", "ja") => "❌ 終了".to_string(),
@@ -3369,6 +3317,7 @@ fn get_text(key: &str, lang: &str) -> String {
 
         // 俄语
         ("show_window", "ru") => "Показать окно".to_string(),
+        ("show_floating_card", "ru") => "Показать плавающую карточку".to_string(),
         ("refresh_quota", "ru") => "🔄 Обновить квоту".to_string(),
         ("settings", "ru") => "⚙️ Настройки...".to_string(),
         ("quit", "ru") => "❌ Выход".to_string(),
@@ -3402,6 +3351,7 @@ fn get_text(key: &str, lang: &str) -> String {
 
         // 默认英文
         ("show_window", _) => "Show Window".to_string(),
+        ("show_floating_card", _) => "Show Floating Card".to_string(),
         ("refresh_quota", _) => "🔄 Refresh Quota".to_string(),
         ("settings", _) => "⚙️ Settings...".to_string(),
         ("quit", _) => "❌ Quit".to_string(),

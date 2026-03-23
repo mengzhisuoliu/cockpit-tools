@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} verbleibend",
+        "availableAiCredits": "Verfügbare KI-Credits",
         "periodEndOnly": "Zyklusende: {{end}}",
         "periodRange": "Zyklus: {{start}} - {{end}}",
         "planEndsIn": "Zyklus wird in {{days}} Tagen zurückgesetzt",
@@ -256,7 +257,10 @@
       "edit": "Bearbeiten",
       "openRootDir": "Ordner öffnen",
       "selectPath": "Pfad auswählen",
-      "openWindow": "Fenster öffnen"
+      "openWindow": "Fenster öffnen",
+      "showFloatingCard": "Schwebekarte anzeigen",
+      "showFloatingCardDisabled": "Vor dem Anzeigen der Schwebekarte zuerst ein Konto binden",
+      "showFloatingCardMissing": "Das gebundene Konto existiert nicht mehr, daher kann die Schwebekarte nicht angezeigt werden"
     },
     "bulkConfirm": {
       "startAll": "Alle gestoppten Instanzen starten?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Steuert die Sichtbarkeit des Dock-Symbols unabhängig vom Minimierungsverhalten des Fensters",
       "hideDockIconOff": "Nein (Dock-Symbol anzeigen)",
       "hideDockIconOn": "Ja (Dock-Symbol ausblenden)",
+      "floatingCardStartup": "Schwebende Karte beim Start anzeigen",
+      "floatingCardStartupDesc": "Die schwebende Kontokarte nach dem Start der App automatisch anzeigen",
+      "floatingCardAlwaysOnTop": "Schwebende Karte standardmäßig im Vordergrund halten",
+      "floatingCardAlwaysOnTopDesc": "Neu geöffnete Fenster der schwebenden Karte bleiben im Vordergrund",
+      "floatingCardShowNow": "Schwebende Karte jetzt anzeigen",
+      "floatingCardShowNowDesc": "Nach dem Schließen können Sie sie hier oder über das Tray-Menü erneut öffnen",
+      "floatingCardShowNowAction": "Schwebende Karte anzeigen",
       "dataDir": "Datenverzeichnis",
       "dataDirDesc": "Speicherort für Konten und Konfigurationsdateien.",
       "fpDir": "Antigravity-Speicher",
@@ -2473,5 +2484,51 @@
       "reapply": "Erneut anwenden",
       "exportTitle": "Zed-Konten als JSON exportieren"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Plattform wechseln",
+    "currentAccount": "Aktuell",
+    "recommendedAccount": "Empfohlenes Konto",
+    "accountPreview": "Kontovorschau",
+    "plan": "Tarif",
+    "cycle": "Zyklus",
+    "status": "Zustand",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Empfohlen"
+    },
+    "actions": {
+      "pin": "Anheften",
+      "unpin": "Lösen",
+      "close": "Schließen",
+      "previousAccount": "Vorheriges Konto",
+      "nextAccount": "Nächstes Konto",
+      "viewRecommended": "Empfohlenes Konto anzeigen",
+      "backToCurrent": "Zurück",
+      "switchToThisAccount": "Wechseln",
+      "openDetails": "Details öffnen",
+      "openCockpitTools": "Cockpit Tools öffnen"
+    },
+    "empty": {
+      "title": "Keine Konten",
+      "loading": "Kontoinformationen für die aktuelle Plattform werden geladen",
+      "desc": "Für diese Plattform sind noch keine Konten verfügbar"
+    },
+    "errors": {
+      "refreshFailed": "Aktualisierung fehlgeschlagen: {{error}}",
+      "switchFailed": "Wechsel fehlgeschlagen: {{error}}",
+      "pinFailed": "Anheftungsstatus konnte nicht aktualisiert werden: {{error}}",
+      "closeFailed": "Schließen fehlgeschlagen: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Schwebende Karte geschlossen",
+      "body": "Öffnen Sie sie erneut über das Tray-Menü oder passen Sie sie unter „Einstellungen > Allgemein“ an."
+    },
+    "closeConfirm": {
+      "title": "Floating Card schließen?",
+      "message": "Nach dem Schließen kannst du sie über „{{path}}“ wieder öffnen.",
+      "dontAskAgain": "Nicht mehr fragen"
+    },
+    "lockedPlatform": "Plattform ist durch die Instanz gesperrt"
   }
 }

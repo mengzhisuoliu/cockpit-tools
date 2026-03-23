@@ -466,6 +466,7 @@ pub fn upsert_account(payload: GeminiOAuthCompletePayload) -> Result<GeminiAccou
         gemini_usage_raw: payload.gemini_usage_raw,
         status: payload.status,
         status_reason: payload.status_reason,
+        usage_updated_at: existing.as_ref().and_then(|item| item.usage_updated_at),
         created_at,
         last_used: now,
     };
@@ -1366,7 +1367,9 @@ async fn refresh_account_token_once(account_id: &str) -> Result<GeminiAccount, S
         .clone()
         .or_else(|| Some("oauth-personal".to_string()));
     account.gemini_usage_raw = Some(quota_data);
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    account.usage_updated_at = Some(refreshed_at);
+    account.last_used = refreshed_at;
     account.status = None;
     account.status_reason = None;
 
@@ -1447,7 +1450,7 @@ pub fn inject_to_gemini(account_id: &str) -> Result<(), String> {
     inject_to_gemini_home(account_id, None)
 }
 
-fn extract_account_model_remaining(account: &GeminiAccount) -> Vec<(String, i32)> {
+pub(crate) fn extract_account_model_remaining(account: &GeminiAccount) -> Vec<(String, i32)> {
     let mut model_remaining: HashMap<String, i32> = HashMap::new();
 
     let Some(raw_usage) = account.gemini_usage_raw.as_ref() else {
@@ -1488,7 +1491,7 @@ fn extract_account_model_remaining(account: &GeminiAccount) -> Vec<(String, i32)
     values
 }
 
-fn resolve_current_account(accounts: &[GeminiAccount]) -> Option<GeminiAccount> {
+pub(crate) fn resolve_current_account(accounts: &[GeminiAccount]) -> Option<GeminiAccount> {
     let active_email = get_local_active_email();
 
     if let Some(active_email) = active_email {

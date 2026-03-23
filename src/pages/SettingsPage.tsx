@@ -7,6 +7,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebview } from '@tauri-apps/api/webview';
 import { changeLanguage, getCurrentLanguage, normalizeLanguage } from '../i18n';
 import * as accountService from '../services/accountService';
+import { showFloatingCardWindow } from '../services/floatingCardService';
 import { usePlatformRuntimeSupport } from '../hooks/usePlatformRuntimeSupport';
 import { usePlatformLayoutStore } from '../stores/usePlatformLayoutStore';
 import { ALL_PLATFORM_IDS, PlatformId } from '../types/platform';
@@ -50,6 +51,8 @@ interface GeneralConfig {
   close_behavior: 'ask' | 'minimize' | 'quit';
   minimize_behavior?: 'dock_and_tray' | 'tray_only';
   hide_dock_icon?: boolean;
+  floating_card_show_on_startup?: boolean;
+  floating_card_always_on_top?: boolean;
   opencode_app_path: string;
   antigravity_app_path: string;
   codex_app_path: string;
@@ -195,6 +198,8 @@ export function SettingsPage() {
   const [closeBehavior, setCloseBehavior] = useState<'ask' | 'minimize' | 'quit'>('ask');
   const [minimizeBehavior, setMinimizeBehavior] = useState<'dock_and_tray' | 'tray_only'>('dock_and_tray');
   const [hideDockIcon, setHideDockIcon] = useState(false);
+  const [floatingCardShowOnStartup, setFloatingCardShowOnStartup] = useState(true);
+  const [floatingCardAlwaysOnTop, setFloatingCardAlwaysOnTop] = useState(false);
   const [opencodeAppPath, setOpencodeAppPath] = useState('');
   const [antigravityAppPath, setAntigravityAppPath] = useState('');
   const [codexAppPath, setCodexAppPath] = useState('');
@@ -472,6 +477,8 @@ export function SettingsPage() {
           closeBehavior,
           minimizeBehavior,
           hideDockIcon,
+          floatingCardShowOnStartup,
+          floatingCardAlwaysOnTop,
           opencodeAppPath,
           antigravityAppPath,
           codexAppPath,
@@ -562,7 +569,10 @@ export function SettingsPage() {
     cursorAutoRefresh,
     geminiAutoRefresh,
     closeBehavior,
+    minimizeBehavior,
     hideDockIcon,
+    floatingCardShowOnStartup,
+    floatingCardAlwaysOnTop,
     generalLoaded,
     language,
     theme,
@@ -781,6 +791,8 @@ export function SettingsPage() {
       setCloseBehavior(config.close_behavior || 'ask');
       setMinimizeBehavior(config.minimize_behavior || 'dock_and_tray');
       setHideDockIcon(Boolean(config.hide_dock_icon));
+      setFloatingCardShowOnStartup(config.floating_card_show_on_startup ?? true);
+      setFloatingCardAlwaysOnTop(config.floating_card_always_on_top ?? false);
       setOpencodeAppPath(config.opencode_app_path || '');
       setAntigravityAppPath(config.antigravity_app_path || '');
       setCodexAppPath(config.codex_app_path || '');
@@ -1231,6 +1243,52 @@ export function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('settings.general.floatingCardStartup', '启动时显示悬浮卡片')}</div>
+                  <div className="row-desc">{t('settings.general.floatingCardStartupDesc', '应用启动后默认展示悬浮账号卡片')}</div>
+                </div>
+                <div className="row-control">
+                  <select
+                    className="settings-select"
+                    value={floatingCardShowOnStartup ? 'true' : 'false'}
+                    onChange={(e) => setFloatingCardShowOnStartup(e.target.value === 'true')}
+                  >
+                    <option value="true">{t('common.enable', '启用')}</option>
+                    <option value="false">{t('common.disable', '停用')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('settings.general.floatingCardAlwaysOnTop', '悬浮卡片默认置顶')}</div>
+                  <div className="row-desc">{t('settings.general.floatingCardAlwaysOnTopDesc', '新打开的悬浮卡片窗口默认保持置顶')}</div>
+                </div>
+                <div className="row-control">
+                  <select
+                    className="settings-select"
+                    value={floatingCardAlwaysOnTop ? 'true' : 'false'}
+                    onChange={(e) => setFloatingCardAlwaysOnTop(e.target.value === 'true')}
+                  >
+                    <option value="false">{t('common.disable', '停用')}</option>
+                    <option value="true">{t('common.enable', '启用')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('settings.general.floatingCardShowNow', '立即显示悬浮卡片')}</div>
+                  <div className="row-desc">{t('settings.general.floatingCardShowNowDesc', '关闭后可在这里或托盘菜单中重新打开')}</div>
+                </div>
+                <div className="row-control">
+                  <button className="btn btn-secondary" onClick={() => void showFloatingCardWindow()}>
+                    {t('settings.general.floatingCardShowNowAction', '显示悬浮卡片')}
+                  </button>
+                </div>
+              </div>
 
               <div className="settings-row">
                 <div className="row-label">

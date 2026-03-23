@@ -54,7 +54,7 @@ fn is_banned_reason(value: Option<&str>) -> bool {
         || reason.contains("禁用")
 }
 
-fn is_banned_account(account: &KiroAccount) -> bool {
+pub(crate) fn is_banned_account(account: &KiroAccount) -> bool {
     is_banned_status(account.status.as_deref())
         || is_banned_reason(account.status_reason.as_deref())
 }
@@ -827,6 +827,7 @@ pub fn upsert_account(payload: KiroOAuthCompletePayload) -> Result<KiroAccount, 
         kiro_usage_raw: payload.kiro_usage_raw.clone(),
         status: payload.status.clone(),
         status_reason: payload.status_reason.clone(),
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -856,12 +857,17 @@ async fn refresh_account_token_once(account_id: &str) -> Result<KiroAccount, Str
     ));
 
     let payload = kiro_oauth::refresh_payload_for_account(&account).await?;
+    let usage_refreshed = payload.kiro_usage_raw.is_some();
     let tags = account.tags.clone();
     let created_at = account.created_at;
     apply_payload(&mut account, payload);
     account.tags = tags;
     account.created_at = created_at;
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    if usage_refreshed {
+        account.usage_updated_at = Some(refreshed_at);
+    }
+    account.last_used = refreshed_at;
 
     let updated = account.clone();
     upsert_account_record(account)?;
@@ -1210,7 +1216,7 @@ fn calc_remaining_percent(total: Option<f64>, used: Option<f64>) -> Option<i32> 
     Some(clamp_percent((remaining / total) * 100.0))
 }
 
-fn extract_quota_metrics(account: &KiroAccount) -> Vec<(String, i32)> {
+pub(crate) fn extract_quota_metrics(account: &KiroAccount) -> Vec<(String, i32)> {
     let mut metrics = Vec::new();
 
     if let Some(pct) = calc_remaining_percent(account.credits_total, account.credits_used) {
@@ -1231,7 +1237,41 @@ fn average_quota_percentage(metrics: &[(String, i32)]) -> f64 {
     sum as f64 / metrics.len() as f64
 }
 
-fn resolve_current_account_id(accounts: &[KiroAccount]) -> Option<String> {
+pub(crate) fn resolve_current_account_id(accounts: &[KiroAccount]) -> Option<String> {
+    if let Ok(local_payload) = crate::modules::kiro_oauth::build_payload_from_local_files() {
+        let incoming_profile_arn =
+            normalize_identity(payload_profile_arn(&local_payload).as_deref());
+        let incoming_user_id = normalize_identity(local_payload.user_id.as_deref());
+        let incoming_email = normalize_email_identity(Some(local_payload.email.as_str()));
+        let incoming_refresh_token =
+            normalize_token_identity(local_payload.refresh_token.as_deref());
+
+        if let Some(account_id) = accounts
+            .iter()
+            .find(|account| {
+                let existing_profile_arn =
+                    normalize_identity(account_profile_arn(account).as_deref());
+                let existing_user = normalize_identity(account.user_id.as_deref());
+                let existing_email = normalize_email_identity(Some(account.email.as_str()));
+                let existing_refresh_token =
+                    normalize_token_identity(account.refresh_token.as_deref());
+                account_matches_payload_identity(
+                    existing_profile_arn.as_ref(),
+                    existing_user.as_ref(),
+                    existing_email.as_ref(),
+                    existing_refresh_token.as_ref(),
+                    incoming_profile_arn.as_ref(),
+                    incoming_user_id.as_ref(),
+                    incoming_email.as_ref(),
+                    incoming_refresh_token.as_ref(),
+                )
+            })
+            .map(|account| account.id.clone())
+        {
+            return Some(account_id);
+        }
+    }
+
     if let Ok(settings) = crate::modules::kiro_instance::load_default_settings() {
         if let Some(bind_id) = settings.bind_account_id {
             let trimmed = bind_id.trim();

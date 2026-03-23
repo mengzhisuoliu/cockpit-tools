@@ -53,7 +53,6 @@ import {
 import { useExportJsonModal } from '../hooks/useExportJsonModal';
 import { parseFileCorruptedError } from '../components/FileCorruptedModal';
 
-const QODER_CURRENT_ACCOUNT_ID_KEY = 'agtools.qoder.current_account_id';
 const QODER_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.qoder.flow_notice_collapsed';
 const UNTAGGED_KEY = '__untagged__';
 
@@ -91,25 +90,6 @@ function readBooleanStorage(key: string, fallback: boolean) {
 function writeBooleanStorage(key: string, value: boolean) {
   try {
     localStorage.setItem(key, value ? '1' : '0');
-  } catch {
-    // ignore
-  }
-}
-
-function readStringStorage(key: string): string | null {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    return raw;
-  } catch {
-    return null;
-  }
-}
-
-function writeStringStorage(key: string, value: string | null) {
-  try {
-    if (!value) localStorage.removeItem(key);
-    else localStorage.setItem(key, value);
   } catch {
     // ignore
   }
@@ -239,9 +219,6 @@ export function QoderAccountsPage() {
   const [refreshingAll, setRefreshingAll] = useState(false);
   const [injecting, setInjecting] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [currentAccountId, setCurrentAccountId] = useState<string | null>(() =>
-    readStringStorage(QODER_CURRENT_ACCOUNT_ID_KEY),
-  );
   const [showTagModal, setShowTagModal] = useState<string | null>(null);
   const [showTagFilter, setShowTagFilter] = useState(false);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
@@ -350,23 +327,7 @@ export function QoderAccountsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (accounts.length === 0) {
-      if (currentAccountId) {
-        setCurrentAccountId(null);
-        writeStringStorage(QODER_CURRENT_ACCOUNT_ID_KEY, null);
-      }
-      return;
-    }
-    if (currentAccountId && accounts.some((item) => item.id === currentAccountId)) {
-      return;
-    }
-    const fallback = [...accounts].sort((a, b) => b.last_used - a.last_used)[0]?.id ?? null;
-    if (fallback !== currentAccountId) {
-      setCurrentAccountId(fallback);
-      writeStringStorage(QODER_CURRENT_ACCOUNT_ID_KEY, fallback);
-    }
-  }, [accounts, currentAccountId]);
+  const currentAccountId = store.currentAccountId;
 
   useEffect(() => {
     if (!showAddModal) {
@@ -550,6 +511,10 @@ export function QoderAccountsPage() {
   }, [filteredAccounts, groupByTag, tagFilter]);
 
   const filteredIds = useMemo(() => filteredAccounts.map((item) => item.id), [filteredAccounts]);
+  const visibleSelectedCount = useMemo(
+    () => filteredIds.filter((id) => selected.has(id)).length,
+    [filteredIds, selected],
+  );
   const allSelected = filteredIds.length > 0 && filteredIds.every((id) => selected.has(id));
 
   const toggleSelect = useCallback((id: string) => {
@@ -614,8 +579,6 @@ export function QoderAccountsPage() {
       setInjecting(accountId);
       try {
         await store.switchAccount(accountId);
-        setCurrentAccountId(accountId);
-        writeStringStorage(QODER_CURRENT_ACCOUNT_ID_KEY, accountId);
         setMessage({ text: t('accounts.switchSuccess', '切换成功') });
       } catch (error) {
         setMessage({
@@ -1064,7 +1027,9 @@ export function QoderAccountsPage() {
   );
 
   const handleExportSelected = useCallback(async () => {
-    const ids = selected.size > 0 ? Array.from(selected) : filteredIds;
+    const visibleIdSet = new Set(filteredIds);
+    const selectedVisibleIds = Array.from(selected).filter((id) => visibleIdSet.has(id));
+    const ids = selectedVisibleIds.length > 0 ? selectedVisibleIds : filteredIds;
     await handleExportByIds(ids, 'qoder_accounts');
   }, [filteredIds, handleExportByIds, selected]);
 
@@ -1752,8 +1717,8 @@ export function QoderAccountsPage() {
                 onClick={() => void handleExportSelected()}
                 disabled={exportModal.preparing || exportModal.saving || filteredAccounts.length === 0}
                 title={
-                  selected.size > 0
-                    ? `${t('accounts.actions.export', '导出')} (${selected.size})`
+                  visibleSelectedCount > 0
+                    ? `${t('accounts.actions.export', '导出')} (${visibleSelectedCount})`
                     : t('accounts.actions.export', '导出')
                 }
               >

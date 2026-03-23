@@ -5,9 +5,11 @@ import {
   getWorkbuddyUsage,
 } from '../types/workbuddy';
 import * as workbuddyService from '../services/workbuddyService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const WORKBUDDY_ACCOUNTS_CACHE_KEY = 'agtools.workbuddy.accounts.cache';
+const WORKBUDDY_CURRENT_ACCOUNT_ID_KEY = 'agtools.workbuddy.current_account_id';
 
 export const useWorkbuddyAccountStore = createProviderAccountStore<WorkbuddyAccount>(
   WORKBUDDY_ACCOUNTS_CACHE_KEY,
@@ -26,5 +28,9 @@ export const useWorkbuddyAccountStore = createProviderAccountStore<WorkbuddyAcco
     getDisplayEmail: getWorkbuddyAccountDisplayEmail,
     getPlanBadge: getWorkbuddyPlanBadge,
     getUsage: getWorkbuddyUsage,
+  },
+  {
+    currentAccountIdKey: WORKBUDDY_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('workbuddy'),
   },
 );

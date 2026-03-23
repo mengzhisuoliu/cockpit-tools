@@ -5,9 +5,11 @@ import {
   getCodebuddyUsage,
 } from '../types/codebuddy';
 import * as codebuddyService from '../services/codebuddyService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const CODEBUDDY_ACCOUNTS_CACHE_KEY = 'agtools.codebuddy.accounts.cache';
+const CODEBUDDY_CURRENT_ACCOUNT_ID_KEY = 'agtools.codebuddy.current_account_id';
 
 export const useCodebuddyAccountStore = createProviderAccountStore<CodebuddyAccount>(
   CODEBUDDY_ACCOUNTS_CACHE_KEY,
@@ -26,5 +28,9 @@ export const useCodebuddyAccountStore = createProviderAccountStore<CodebuddyAcco
     getDisplayEmail: getCodebuddyAccountDisplayEmail,
     getPlanBadge: getCodebuddyPlanBadge,
     getUsage: getCodebuddyUsage,
+  },
+  {
+    currentAccountIdKey: CODEBUDDY_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('codebuddy'),
   },
 );

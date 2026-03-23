@@ -106,12 +106,15 @@ export function TraeAccountsPage() {
     exportFilePrefix: 'trae_accounts',
     store: {
       accounts: store.accounts,
+      currentAccountId: store.currentAccountId,
       loading: store.loading,
       error: store.error,
       fetchAccounts: store.fetchAccounts,
+      fetchCurrentAccountId: store.fetchCurrentAccountId,
       deleteAccounts: store.deleteAccounts,
       refreshToken: store.refreshToken,
       refreshAllTokens: store.refreshAllTokens,
+      setCurrentAccountId: store.setCurrentAccountId,
       updateAccountTags: store.updateAccountTags,
     },
     oauthService: {
@@ -180,6 +183,7 @@ export function TraeAccountsPage() {
     exporting,
     handleExport,
     handleExportByIds,
+    getScopedSelectedCount,
     showExportModal,
     closeExportModal,
     exportJsonContent,
@@ -338,6 +342,9 @@ export function TraeAccountsPage() {
     result.sort(compareAccountsBySort);
     return result;
   }, [accounts, compareAccountsBySort, filterTypes, normalizeTag, searchQuery, tagFilter]);
+
+  const filteredIds = useMemo(() => filteredAccounts.map((account) => account.id), [filteredAccounts]);
+  const exportSelectionCount = getScopedSelectedCount(filteredIds);
 
   const groupedAccounts = useMemo(() => {
     if (!groupByTag) return [] as Array<[string, TraeAccount[]]>;
@@ -1065,16 +1072,16 @@ export function TraeAccountsPage() {
               </button>
               <button
                 className="btn btn-secondary export-btn icon-only"
-                onClick={handleExport}
-                disabled={exporting || accounts.length === 0}
+                onClick={() => void handleExport(filteredIds)}
+                disabled={exporting || filteredIds.length === 0}
                 title={
-                  selected.size > 0
-                    ? `${t('common.shared.export', '导出')} (${selected.size})`
+                  exportSelectionCount > 0
+                    ? `${t('common.shared.export', '导出')} (${exportSelectionCount})`
                     : t('common.shared.export', '导出')
                 }
                 aria-label={
-                  selected.size > 0
-                    ? `${t('common.shared.export', '导出')} (${selected.size})`
+                  exportSelectionCount > 0
+                    ? `${t('common.shared.export', '导出')} (${exportSelectionCount})`
                     : t('common.shared.export', '导出')
                 }
               >

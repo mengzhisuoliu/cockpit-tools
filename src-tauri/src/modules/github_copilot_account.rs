@@ -295,6 +295,7 @@ pub fn upsert_account(
         copilot_quota_reset_date: payload.copilot_quota_reset_date.clone(),
         copilot_limited_user_quotas: payload.copilot_limited_user_quotas.clone(),
         copilot_limited_user_reset_date: payload.copilot_limited_user_reset_date,
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -342,7 +343,9 @@ async fn refresh_account_token_once(account_id: &str) -> Result<GitHubCopilotAcc
     account.copilot_quota_reset_date = bundle.quota_reset_date;
     account.copilot_limited_user_quotas = bundle.limited_user_quotas;
     account.copilot_limited_user_reset_date = bundle.limited_user_reset_date;
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    account.usage_updated_at = Some(refreshed_at);
+    account.last_used = refreshed_at;
 
     let updated = account.clone();
     upsert_account_record(account)?;
@@ -548,7 +551,7 @@ fn extract_premium_metric(account: &GitHubCopilotAccount) -> Option<(String, i32
     Some(("Premium Interactions".to_string(), percent_remaining))
 }
 
-fn extract_quota_metrics(account: &GitHubCopilotAccount) -> Vec<(String, i32)> {
+pub(crate) fn extract_quota_metrics(account: &GitHubCopilotAccount) -> Vec<(String, i32)> {
     let mut metrics = extract_limited_metrics(account);
     if let Some(premium) = extract_premium_metric(account) {
         metrics.push(premium);
@@ -564,7 +567,7 @@ fn average_quota_percentage(metrics: &[(String, i32)]) -> f64 {
     sum as f64 / metrics.len() as f64
 }
 
-fn resolve_current_account_id(accounts: &[GitHubCopilotAccount]) -> Option<String> {
+pub(crate) fn resolve_current_account_id(accounts: &[GitHubCopilotAccount]) -> Option<String> {
     if let Ok(settings) = crate::modules::github_copilot_instance::load_default_settings() {
         if let Some(bind_id) = settings.bind_account_id {
             let trimmed = bind_id.trim();

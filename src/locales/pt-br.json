@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} restantes",
+        "availableAiCredits": "Créditos de IA disponíveis",
         "periodEndOnly": "Fim do ciclo: {{end}}",
         "periodRange": "Ciclo: {{start}} - {{end}}",
         "planEndsIn": "O ciclo reinicia em {{days}} dias",
@@ -256,7 +257,10 @@
       "edit": "Editar",
       "openRootDir": "Abrir pasta",
       "selectPath": "Selecionar caminho",
-      "openWindow": "Abrir janela"
+      "openWindow": "Abrir janela",
+      "showFloatingCard": "Mostrar cartão flutuante",
+      "showFloatingCardDisabled": "Vincule uma conta antes de mostrar o cartão flutuante",
+      "showFloatingCardMissing": "A conta vinculada não existe mais, então o cartão flutuante não pode ser exibido"
     },
     "bulkConfirm": {
       "startAll": "Iniciar todas as instâncias paradas?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Controla a visibilidade do ícone do Dock de forma independente, sem relação com o comportamento de minimizar a janela",
       "hideDockIconOff": "Não (Mostrar ícone do Dock)",
       "hideDockIconOn": "Sim (Ocultar ícone do Dock)",
+      "floatingCardStartup": "Mostrar cartão flutuante ao iniciar",
+      "floatingCardStartupDesc": "Exibir automaticamente o cartão flutuante da conta após iniciar o aplicativo",
+      "floatingCardAlwaysOnTop": "Manter o cartão flutuante sempre no topo por padrão",
+      "floatingCardAlwaysOnTopDesc": "Novas janelas do cartão flutuante permanecem no topo ao serem abertas",
+      "floatingCardShowNow": "Mostrar cartão flutuante agora",
+      "floatingCardShowNowDesc": "Depois de fechá-lo, você pode reabri-lo aqui ou pelo menu da bandeja",
+      "floatingCardShowNowAction": "Mostrar cartão flutuante",
       "dataDir": "Diretório de dados",
       "dataDirDesc": "Local de armazenamento de contas e arquivos de configuração.",
       "fpDir": "Armazenamento do Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Aplicar novamente",
       "exportTitle": "Exportar contas do Zed em JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Trocar plataforma",
+    "currentAccount": "Atual",
+    "recommendedAccount": "Conta recomendada",
+    "accountPreview": "Prévia da conta",
+    "plan": "Plano",
+    "cycle": "Ciclo",
+    "status": "Situação",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Recomendada"
+    },
+    "actions": {
+      "pin": "Fixar",
+      "unpin": "Desafixar",
+      "close": "Fechar",
+      "previousAccount": "Conta anterior",
+      "nextAccount": "Próxima conta",
+      "viewRecommended": "Ver conta recomendada",
+      "backToCurrent": "Voltar",
+      "switchToThisAccount": "Alternar",
+      "openDetails": "Abrir detalhes",
+      "openCockpitTools": "Abrir Cockpit Tools"
+    },
+    "empty": {
+      "title": "Nenhuma conta",
+      "loading": "Carregando informações da conta para a plataforma atual",
+      "desc": "Ainda não há contas para exibir nesta plataforma"
+    },
+    "errors": {
+      "refreshFailed": "Falha ao atualizar: {{error}}",
+      "switchFailed": "Falha ao alternar: {{error}}",
+      "pinFailed": "Não foi possível atualizar o estado de fixação: {{error}}",
+      "closeFailed": "Falha ao fechar: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Cartão flutuante fechado",
+      "body": "Reabra-o pelo menu da bandeja ou ajuste em \"Configurações > Geral\"."
+    },
+    "closeConfirm": {
+      "title": "Fechar o cartão flutuante?",
+      "message": "Depois de fechar, você pode reabri-lo em \"{{path}}\".",
+      "dontAskAgain": "Não perguntar novamente"
+    },
+    "lockedPlatform": "Plataforma bloqueada pela instância"
   }
 }

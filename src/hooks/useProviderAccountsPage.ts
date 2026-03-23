@@ -68,8 +68,11 @@ export interface ProviderDataService {
 /** 各平台 store 需要提供的操作 */
 export interface ProviderStoreActions<TAccount> {
   accounts: TAccount[];
+  currentAccountId?: string | null;
   loading: boolean;
   error?: string | null;
+  fetchCurrentAccountId?: () => Promise<string | null>;
+  setCurrentAccountId?: (accountId: string | null) => void;
   fetchAccounts: () => Promise<void>;
   deleteAccounts: (ids: string[]) => Promise<void>;
   refreshToken: (id: string) => Promise<void>;
@@ -205,8 +208,9 @@ export interface UseProviderAccountsPageReturn {
 
   // Export
   exporting: boolean;
-  handleExport: () => Promise<void>;
+  handleExport: (scopeIds?: string[]) => Promise<void>;
   handleExportByIds: (ids: string[], fileNameBase?: string) => Promise<void>;
+  getScopedSelectedCount: (scopeIds?: string[]) => number;
   showExportModal: boolean;
   closeExportModal: () => void;
   exportJsonContent: string;
@@ -316,14 +320,17 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
   const {
     accounts,
+    currentAccountId: storeCurrentAccountId,
     error: storeError,
     fetchAccounts,
     deleteAccounts,
     refreshToken,
     refreshAllTokens,
+    setCurrentAccountId: setStoreCurrentAccountId,
     updateAccountTags,
   } = store;
   const { sortByKey, sortDirectionKey } = buildSortStorageKeys(platformKey);
+  const managesCurrentAccountId = typeof setStoreCurrentAccountId === 'function';
 
   // ─── Privacy ──────────────────────────────────────────────────────────
   const [privacyModeEnabled, setPrivacyModeEnabled] = useState<boolean>(() =>
@@ -634,14 +641,33 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     [exportModal.startExport],
   );
 
-  const handleExport = useCallback(async () => {
+  const resolveScopedSelection = useCallback(
+    (scopeIds?: string[]) => {
+      const visibleIds = Array.isArray(scopeIds)
+        ? scopeIds.filter(Boolean)
+        : accounts.map((account) => account.id);
+      const visibleIdSet = new Set(visibleIds);
+      const selectedVisibleIds = Array.from(selected).filter((id) => visibleIdSet.has(id));
+
+      return { visibleIds, selectedVisibleIds };
+    },
+    [accounts, selected],
+  );
+
+  const getScopedSelectedCount = useCallback(
+    (scopeIds?: string[]) => resolveScopedSelection(scopeIds).selectedVisibleIds.length,
+    [resolveScopedSelection],
+  );
+
+  const handleExport = useCallback(async (scopeIds?: string[]) => {
     try {
-      const ids = selected.size > 0 ? Array.from(selected) : accounts.map((a) => a.id);
+      const { visibleIds, selectedVisibleIds } = resolveScopedSelection(scopeIds);
+      const ids = selectedVisibleIds.length > 0 ? selectedVisibleIds : visibleIds;
       await handleExportByIds(ids);
     } catch (error) {
       handleExportError(error);
     }
-  }, [selected, accounts, handleExportByIds, handleExportError]);
+  }, [resolveScopedSelection, handleExportByIds, handleExportError]);
 
   const exporting = exportModal.preparing;
 
@@ -1293,7 +1319,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   }, [isFlowNoticeCollapsed, flowNoticeCollapsedKey]);
 
   // ─── Current Account ──────────────────────────────────────────────────
-  const [currentAccountId, setCurrentAccountId] = useState<string | null>(() => {
+  const [localCurrentAccountId, setLocalCurrentAccountId] = useState<string | null>(() => {
     if (!currentAccountIdKey) return null;
     try {
       const value = localStorage.getItem(currentAccountIdKey);
@@ -1303,16 +1329,33 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     }
   });
 
+  const currentAccountId = managesCurrentAccountId
+    ? storeCurrentAccountId ?? null
+    : localCurrentAccountId;
+
+  const setCurrentAccountId = useCallback(
+    (accountId: string | null) => {
+      if (managesCurrentAccountId) {
+        setStoreCurrentAccountId?.(accountId);
+        return;
+      }
+      setLocalCurrentAccountId(accountId);
+    },
+    [managesCurrentAccountId, setStoreCurrentAccountId],
+  );
+
   useEffect(() => {
-    if (!currentAccountId) return;
-    const exists = accounts.some((account) => account.id === currentAccountId);
+    if (!managesCurrentAccountId && !currentAccountId) return;
+    const exists = currentAccountId
+      ? accounts.some((account) => account.id === currentAccountId)
+      : true;
     if (!exists) {
       setCurrentAccountId(null);
     }
-  }, [accounts, currentAccountId]);
+  }, [accounts, currentAccountId, managesCurrentAccountId, setCurrentAccountId]);
 
   useEffect(() => {
-    if (!currentAccountIdKey) return;
+    if (managesCurrentAccountId || !currentAccountIdKey) return;
     try {
       if (currentAccountId) {
         localStorage.setItem(currentAccountIdKey, currentAccountId);
@@ -1322,7 +1365,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     } catch {
       // ignore persistence failures
     }
-  }, [currentAccountId, currentAccountIdKey]);
+  }, [currentAccountId, currentAccountIdKey, managesCurrentAccountId]);
 
   // ─── Utilities ────────────────────────────────────────────────────────
   const formatDate = useCallback(
@@ -1397,6 +1440,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     exporting,
     handleExport,
     handleExportByIds,
+    getScopedSelectedCount,
     showExportModal: exportModal.showModal,
     closeExportModal: exportModal.closeModal,
     exportJsonContent: exportModal.jsonContent,

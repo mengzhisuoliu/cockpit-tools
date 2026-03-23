@@ -1400,10 +1400,17 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
   }
 
   const handleExport = async () => {
-    const ids = selected.size > 0 ? Array.from(selected) : accounts.map((account) => account.id)
+    const visibleIdSet = new Set(filteredAccounts.map((account) => account.id))
+    const selectedVisibleIds = Array.from(selected).filter((id) => visibleIdSet.has(id))
+    const ids = selectedVisibleIds.length > 0 ? selectedVisibleIds : filteredAccounts.map((account) => account.id)
     if (ids.length === 0) return
     await exportModal.startExport(ids)
   }
+
+  const exportSelectionCount = filteredAccounts.reduce(
+    (count, account) => count + (selected.has(account.id) ? 1 : 0),
+    0,
+  )
 
   const toggleSelect = (id: string) => {
     const next = new Set(selected)
@@ -1852,7 +1859,7 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
             )}
             <div className="quota-credits-field">
               <span className="quota-credits-label">
-                Available AI Credits: {availableCreditsDisplay}
+                {t('common.shared.credits.availableAiCredits', 'Available AI Credits')}: {availableCreditsDisplay}
               </span>
             </div>
           </div>
@@ -2485,7 +2492,7 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
               )}
               <div className="quota-credits-field">
                 <span className="quota-credits-label">
-                  Available AI Credits: {availableCreditsDisplay}
+                  {t('common.shared.credits.availableAiCredits', 'Available AI Credits')}: {availableCreditsDisplay}
                 </span>
               </div>
             </div>
@@ -2882,15 +2889,15 @@ export function AccountsPage({ onNavigate }: AccountsPageProps) {
             <button
               className="btn btn-secondary export-btn icon-only"
               onClick={handleExport}
-              disabled={exporting}
+              disabled={exporting || filteredAccounts.length === 0}
               title={
-                selected.size > 0
-                  ? `${t('accounts.export')} (${selected.size})`
+                exportSelectionCount > 0
+                  ? `${t('accounts.export')} (${exportSelectionCount})`
                   : t('accounts.export')
               }
               aria-label={
-                selected.size > 0
-                  ? `${t('accounts.export')} (${selected.size})`
+                exportSelectionCount > 0
+                  ? `${t('accounts.export')} (${exportSelectionCount})`
                   : t('accounts.export')
               }
             >

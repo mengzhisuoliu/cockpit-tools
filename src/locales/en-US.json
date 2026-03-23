@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} left",
+        "availableAiCredits": "Available AI Credits",
         "periodEndOnly": "Cycle end: {{end}}",
         "periodRange": "Cycle: {{start}} - {{end}}",
         "planEndsIn": "Cycle resets in {{days}} days",
@@ -161,6 +162,52 @@
       "updated": {
         "label": "Updated {{relative}} ago"
       }
+    }
+  },
+  "floatingCard": {
+    "selectPlatform": "Switch platform",
+    "lockedPlatform": "Platform locked by instance",
+    "currentAccount": "Current",
+    "recommendedAccount": "Recommended account",
+    "accountPreview": "Account preview",
+    "plan": "Plan",
+    "cycle": "Cycle",
+    "status": "Status",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Recommended"
+    },
+    "actions": {
+      "pin": "Pin",
+      "unpin": "Unpin",
+      "close": "Close",
+      "previousAccount": "Previous account",
+      "nextAccount": "Next account",
+      "viewRecommended": "View recommended account",
+      "backToCurrent": "Back",
+      "switchToThisAccount": "Switch",
+      "openDetails": "Open details",
+      "openCockpitTools": "Open Cockpit Tools"
+    },
+    "empty": {
+      "title": "No accounts",
+      "loading": "Loading account information for the current platform",
+      "desc": "There are no accounts to display on this platform yet"
+    },
+    "errors": {
+      "refreshFailed": "Refresh failed: {{error}}",
+      "switchFailed": "Switch failed: {{error}}",
+      "pinFailed": "Failed to update pin state: {{error}}",
+      "closeFailed": "Close failed: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Floating card closed",
+      "body": "Reopen it from \"Tray > Show Floating Card\", or adjust it in \"Settings > General\"."
+    },
+    "closeConfirm": {
+      "title": "Close floating card?",
+      "message": "After closing, you can reopen it from \"{{path}}\".",
+      "dontAskAgain": "Don't ask again"
     }
   },
   "nav": {
@@ -268,7 +315,10 @@
       "edit": "Edit",
       "openRootDir": "Open Folder",
       "selectPath": "Select Folder",
-      "openWindow": "Open Window"
+      "openWindow": "Open Window",
+      "showFloatingCard": "Show floating card",
+      "showFloatingCardDisabled": "Bind an account before showing the floating card",
+      "showFloatingCardMissing": "The bound account no longer exists, so the floating card cannot be shown"
     },
     "bulkConfirm": {
       "startAll": "Start all stopped instances?",
@@ -455,6 +505,13 @@
       "hideDockIconDesc": "Control Dock icon visibility independently; not affected by window minimize behavior",
       "hideDockIconOff": "No (Show Dock icon)",
       "hideDockIconOn": "Yes (Hide Dock icon)",
+      "floatingCardStartup": "Show floating card on startup",
+      "floatingCardStartupDesc": "Display the floating account card automatically after app launch",
+      "floatingCardAlwaysOnTop": "Keep floating card on top by default",
+      "floatingCardAlwaysOnTopDesc": "New floating card windows stay on top when opened",
+      "floatingCardShowNow": "Show floating card now",
+      "floatingCardShowNowDesc": "After closing it, reopen it here or from the tray menu",
+      "floatingCardShowNowAction": "Show floating card",
       "dataDir": "Data Directory",
       "dataDirDesc": "Storage location for accounts and configuration files.",
       "fpDir": "Antigravity Storage",

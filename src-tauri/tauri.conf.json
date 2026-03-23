@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Cockpit Tools",
-  "version": "0.18.3",
+  "version": "0.19.0",
   "identifier": "com.jlcodes.cockpit-tools",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -13,6 +13,7 @@
     "macOSPrivateApi": true,
     "windows": [
       {
+        "label": "main",
         "title": "Cockpit Tools",
         "width": 1250,
         "height": 800,
@@ -23,6 +24,21 @@
         "hiddenTitle": true,
         "transparent": false,
         "resizable": true
+      },
+      {
+        "label": "floating-card",
+        "title": "Cockpit Tools",
+        "create": false,
+        "width": 250,
+        "height": 290,
+        "minWidth": 250,
+        "minHeight": 290,
+        "decorations": false,
+        "transparent": true,
+        "resizable": false,
+        "skipTaskbar": true,
+        "alwaysOnTop": false,
+        "visible": false
       }
     ],
     "security": {

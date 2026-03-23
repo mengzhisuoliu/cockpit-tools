@@ -971,6 +971,7 @@ pub fn upsert_api_key_account(
         acc.account_structure = None;
         acc.quota = None;
         acc.quota_error = None;
+        acc.usage_updated_at = None;
         if acc.email.trim().is_empty() {
             acc.email = build_api_key_email(&api_key);
         }
@@ -2269,7 +2270,7 @@ fn clear_quota_alert_cooldown(account_id: &str, primary_threshold: i32, secondar
     }
 }
 
-fn resolve_current_account_id(accounts: &[CodexAccount]) -> Option<String> {
+pub(crate) fn resolve_current_account_id(accounts: &[CodexAccount]) -> Option<String> {
     if let Some(account) = get_current_account() {
         return Some(account.id);
     }

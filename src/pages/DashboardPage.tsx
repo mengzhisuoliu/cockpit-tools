@@ -76,7 +76,6 @@ import { getPlatformLabel, renderPlatformIcon } from '../utils/platformMeta';
 import { ManualHelpIconButton } from '../components/ManualHelpIconButton';
 import { isPrivacyModeEnabledByDefault, maskSensitiveValue } from '../utils/privacy';
 import { DisplayGroup, getDisplayGroups } from '../services/groupService';
-import * as zedService from '../services/zedService';
 import {
   buildAntigravityAccountPresentation,
   buildCodebuddyAccountPresentation,
@@ -99,17 +98,6 @@ interface DashboardPageProps {
   onEasterEggTriggerClick: () => void;
 }
 
-const GHCP_CURRENT_ACCOUNT_ID_KEY = 'agtools.github_copilot.current_account_id';
-const WINDSURF_CURRENT_ACCOUNT_ID_KEY = 'agtools.windsurf.current_account_id';
-const KIRO_CURRENT_ACCOUNT_ID_KEY = 'agtools.kiro.current_account_id';
-const CURSOR_CURRENT_ACCOUNT_ID_KEY = 'agtools.cursor.current_account_id';
-const GEMINI_CURRENT_ACCOUNT_ID_KEY = 'agtools.gemini.current_account_id';
-const CODEBUDDY_CURRENT_ACCOUNT_ID_KEY = 'agtools.codebuddy.current_account_id';
-const CODEBUDDY_CN_CURRENT_ACCOUNT_ID_KEY = 'agtools.codebuddycn.current_account_id';
-const QODER_CURRENT_ACCOUNT_ID_KEY = 'agtools.qoder.current_account_id';
-const TRAE_CURRENT_ACCOUNT_ID_KEY = 'agtools.trae.current_account_id';
-const WORKBUDDY_CURRENT_ACCOUNT_ID_KEY = 'agtools.workbuddy.current_account_id';
-const ZED_CURRENT_ACCOUNT_ID_KEY = 'agtools.zed.current_account_id';
 const DASHBOARD_DEFERRED_PREFETCH_DELAY_MS = 1200;
 const DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE = 3;
 const DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS = 250;
@@ -119,16 +107,32 @@ function toFiniteNumber(value: number | null | undefined): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
-function persistStoredCurrentAccountId(storageKey: string, accountId: string | null) {
-  try {
-    if (accountId) {
-      localStorage.setItem(storageKey, accountId);
-    } else {
-      localStorage.removeItem(storageKey);
-    }
-  } catch {
-    // ignore storage write failures
-  }
+type TimestampedAccount = {
+  id: string;
+  last_used?: number | null;
+  created_at?: number | null;
+};
+
+function resolveCurrentAccountById<T extends { id: string }>(
+  accounts: T[],
+  currentId: string | null | undefined,
+): T | null {
+  if (!currentId) return null;
+  return accounts.find((account) => account.id === currentId) ?? null;
+}
+
+function resolveCurrentOrMostRecentAccount<T extends TimestampedAccount>(
+  accounts: T[],
+  currentId: string | null | undefined,
+): T | null {
+  if (accounts.length === 0) return null;
+  const current = resolveCurrentAccountById(accounts, currentId);
+  if (current) return current;
+  return accounts.reduce((prev, curr) => {
+    const prevScore = prev.last_used || prev.created_at || 0;
+    const currScore = curr.last_used || curr.created_at || 0;
+    return currScore > prevScore ? curr : prev;
+  });
 }
 
 function getZedRecommendationScore(account: ZedAccount): { remainingPercent: number; freshness: number } {
@@ -227,6 +231,7 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // GitHub Copilot Data
   const {
     accounts: githubCopilotAccounts,
+    currentAccountId: githubCopilotCurrentId,
     fetchAccounts: fetchGitHubCopilotAccounts,
     switchAccount: switchGitHubCopilotAccount,
   } = useGitHubCopilotAccountStore();
@@ -234,6 +239,7 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // Windsurf Data
   const {
     accounts: windsurfAccounts,
+    currentAccountId: windsurfCurrentId,
     fetchAccounts: fetchWindsurfAccounts,
     switchAccount: switchWindsurfAccount,
   } = useWindsurfAccountStore();
@@ -241,6 +247,7 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // Kiro Data
   const {
     accounts: kiroAccounts,
+    currentAccountId: kiroCurrentId,
     fetchAccounts: fetchKiroAccounts,
     switchAccount: switchKiroAccount,
   } = useKiroAccountStore();
@@ -248,6 +255,7 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // Cursor Data
   const {
     accounts: cursorAccounts,
+    currentAccountId: cursorCurrentId,
     fetchAccounts: fetchCursorAccounts,
     switchAccount: switchCursorAccount,
   } = useCursorAccountStore();
@@ -255,66 +263,55 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // Gemini Data
   const {
     accounts: geminiAccounts,
+    currentAccountId: geminiCurrentId,
     fetchAccounts: fetchGeminiAccounts,
     switchAccount: switchGeminiAccount,
   } = useGeminiAccountStore();
 
   const {
     accounts: codebuddyAccounts,
+    currentAccountId: codebuddyCurrentId,
     fetchAccounts: fetchCodebuddyAccounts,
     switchAccount: switchCodebuddyAccount,
   } = useCodebuddyAccountStore();
 
   const {
     accounts: codebuddyCnAccounts,
+    currentAccountId: codebuddyCnCurrentId,
     fetchAccounts: fetchCodebuddyCnAccounts,
     switchAccount: switchCodebuddyCnAccount,
   } = useCodebuddyCnAccountStore();
 
   const {
     accounts: qoderAccounts,
+    currentAccountId: qoderCurrentId,
     fetchAccounts: fetchQoderAccounts,
     switchAccount: switchQoderAccount,
   } = useQoderAccountStore();
 
   const {
     accounts: traeAccounts,
+    currentAccountId: traeCurrentId,
     fetchAccounts: fetchTraeAccounts,
     switchAccount: switchTraeAccount,
   } = useTraeAccountStore();
 
   const {
     accounts: workbuddyAccounts,
+    currentAccountId: workbuddyCurrentId,
     fetchAccounts: fetchWorkbuddyAccounts,
     switchAccount: switchWorkbuddyAccount,
   } = useWorkbuddyAccountStore();
 
   const {
     accounts: zedAccounts,
+    currentAccountId: zedCurrentId,
     fetchAccounts: fetchZedAccounts,
     switchAccount: switchZedAccount,
   } = useZedAccountStore();
 
   const agCurrentId = agCurrent?.id;
   const codexCurrentId = codexCurrent?.id;
-  const [zedCurrentId, setZedCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(ZED_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-
-  const loadZedRuntimeStatus = React.useCallback(async () => {
-    try {
-      const status = await zedService.getZedRuntimeStatus();
-      const nextAccountId = status.currentAccountId ?? null;
-      setZedCurrentId(nextAccountId);
-      persistStoredCurrentAccountId(ZED_CURRENT_ACCOUNT_ID_KEY, nextAccountId);
-    } catch (error) {
-      console.error('Failed to load Zed runtime status:', error);
-    }
-  }, []);
 
   const agCurrentAccount = useMemo(() => {
     if (!agCurrentId) return null;
@@ -351,7 +348,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
       fetchCodexAccounts,
       fetchCodexCurrent,
       fetchZedAccounts,
-      loadZedRuntimeStatus,
       fetchGitHubCopilotAccounts,
       fetchWindsurfAccounts,
       fetchKiroAccounts,
@@ -445,76 +441,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
   // Refresh States
   const [refreshing, setRefreshing] = React.useState<Set<string>>(new Set());
   const [switching, setSwitching] = React.useState<Set<string>>(new Set());
-  const [githubCopilotCurrentId, setGitHubCopilotCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(GHCP_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [windsurfCurrentId, setWindsurfCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(WINDSURF_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [kiroCurrentId, setKiroCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(KIRO_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [cursorCurrentId, setCursorCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(CURSOR_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [geminiCurrentId, setGeminiCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(GEMINI_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [codebuddyCurrentId, setCodebuddyCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(CODEBUDDY_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [codebuddyCnCurrentId, setCodebuddyCnCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(CODEBUDDY_CN_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [qoderCurrentId, setQoderCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(QODER_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [traeCurrentId, setTraeCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(TRAE_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [workbuddyCurrentId, setWorkbuddyCurrentId] = React.useState<string | null>(() => {
-    try {
-      return localStorage.getItem(WORKBUDDY_CURRENT_ACCOUNT_ID_KEY);
-    } catch {
-      return null;
-    }
-  });
   const [cardRefreshing, setCardRefreshing] = React.useState<{
     ag: boolean;
     codex: boolean;
@@ -583,7 +509,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setRefreshing((prev) => new Set(prev).add(accountId));
     try {
       await useZedAccountStore.getState().refreshToken(accountId);
-      await loadZedRuntimeStatus();
     } catch (error) {
       console.error('Refresh failed:', error);
     } finally {
@@ -713,7 +638,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
       for (const id of idsToRefresh) {
         await useZedAccountStore.getState().refreshToken(id);
       }
-      await loadZedRuntimeStatus();
     } catch (error) {
       console.error('Card refresh failed:', error);
     } finally {
@@ -801,8 +725,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchGitHubCopilotAccount(accountId);
-      setGitHubCopilotCurrentId(accountId);
-      localStorage.setItem(GHCP_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -819,9 +741,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchZedAccount(accountId);
-      setZedCurrentId(accountId);
-      persistStoredCurrentAccountId(ZED_CURRENT_ACCOUNT_ID_KEY, accountId);
-      await loadZedRuntimeStatus();
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -838,8 +757,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchWindsurfAccount(accountId);
-      setWindsurfCurrentId(accountId);
-      localStorage.setItem(WINDSURF_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -856,8 +773,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchKiroAccount(accountId);
-      setKiroCurrentId(accountId);
-      localStorage.setItem(KIRO_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -874,8 +789,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchCursorAccount(accountId);
-      setCursorCurrentId(accountId);
-      localStorage.setItem(CURSOR_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -892,8 +805,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchGeminiAccount(accountId);
-      setGeminiCurrentId(accountId);
-      localStorage.setItem(GEMINI_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1065,8 +976,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchCodebuddyAccount(accountId);
-      setCodebuddyCurrentId(accountId);
-      localStorage.setItem(CODEBUDDY_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1083,8 +992,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchCodebuddyCnAccount(accountId);
-      setCodebuddyCnCurrentId(accountId);
-      localStorage.setItem(CODEBUDDY_CN_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1101,8 +1008,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchQoderAccount(accountId);
-      setQoderCurrentId(accountId);
-      localStorage.setItem(QODER_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1119,8 +1024,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchTraeAccount(accountId);
-      setTraeCurrentId(accountId);
-      localStorage.setItem(TRAE_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1137,8 +1040,6 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     setSwitching((prev) => new Set(prev).add(accountId));
     try {
       await switchWorkbuddyAccount(accountId);
-      setWorkbuddyCurrentId(accountId);
-      localStorage.setItem(WORKBUDDY_CURRENT_ACCOUNT_ID_KEY, accountId);
     } catch (error) {
       console.error('Switch failed:', error);
     } finally {
@@ -1197,236 +1098,60 @@ export function DashboardPage({ onNavigate, onOpenPlatformLayout, onEasterEggTri
     });
   }, [codexAccounts, codexCurrentId]);
 
-  const githubCopilotCurrent = useMemo(() => {
-    if (githubCopilotAccounts.length === 0) return null;
-    if (githubCopilotCurrentId) {
-      const current = githubCopilotAccounts.find((account) => account.id === githubCopilotCurrentId);
-      if (current) return current;
-    }
-    return githubCopilotAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [githubCopilotAccounts, githubCopilotCurrentId]);
+  const githubCopilotCurrent = useMemo(
+    () => resolveCurrentOrMostRecentAccount(githubCopilotAccounts, githubCopilotCurrentId),
+    [githubCopilotAccounts, githubCopilotCurrentId],
+  );
 
-  const windsurfCurrent = useMemo(() => {
-    if (windsurfAccounts.length === 0) return null;
-    if (windsurfCurrentId) {
-      const current = windsurfAccounts.find((account) => account.id === windsurfCurrentId);
-      if (current) return current;
-    }
-    return windsurfAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [windsurfAccounts, windsurfCurrentId]);
+  const windsurfCurrent = useMemo(
+    () => resolveCurrentAccountById(windsurfAccounts, windsurfCurrentId),
+    [windsurfAccounts, windsurfCurrentId],
+  );
 
-  const kiroCurrent = useMemo(() => {
-    if (kiroAccounts.length === 0) return null;
-    if (kiroCurrentId) {
-      const current = kiroAccounts.find((account) => account.id === kiroCurrentId);
-      if (current) return current;
-    }
-    return kiroAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [kiroAccounts, kiroCurrentId]);
+  const kiroCurrent = useMemo(
+    () => resolveCurrentAccountById(kiroAccounts, kiroCurrentId),
+    [kiroAccounts, kiroCurrentId],
+  );
 
-  const cursorCurrent = useMemo(() => {
-    if (cursorAccounts.length === 0) return null;
-    if (cursorCurrentId) {
-      const current = cursorAccounts.find((account) => account.id === cursorCurrentId);
-      if (current) return current;
-    }
-    return cursorAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [cursorAccounts, cursorCurrentId]);
+  const cursorCurrent = useMemo(
+    () => resolveCurrentAccountById(cursorAccounts, cursorCurrentId),
+    [cursorAccounts, cursorCurrentId],
+  );
 
-  const geminiCurrent = useMemo(() => {
-    if (geminiAccounts.length === 0) return null;
-    if (geminiCurrentId) {
-      const current = geminiAccounts.find((account) => account.id === geminiCurrentId);
-      if (current) return current;
-    }
-    return geminiAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [geminiAccounts, geminiCurrentId]);
+  const geminiCurrent = useMemo(
+    () => resolveCurrentAccountById(geminiAccounts, geminiCurrentId),
+    [geminiAccounts, geminiCurrentId],
+  );
 
-  React.useEffect(() => {
-    if (!cursorCurrentId) return;
-    const exists = cursorAccounts.some((account) => account.id === cursorCurrentId);
-    if (exists) return;
-    setCursorCurrentId(null);
-    localStorage.removeItem(CURSOR_CURRENT_ACCOUNT_ID_KEY);
-  }, [cursorAccounts, cursorCurrentId]);
+  const codebuddyCurrent = useMemo(
+    () => resolveCurrentAccountById(codebuddyAccounts, codebuddyCurrentId),
+    [codebuddyAccounts, codebuddyCurrentId],
+  );
 
-  React.useEffect(() => {
-    if (!geminiCurrentId) return;
-    const exists = geminiAccounts.some((account) => account.id === geminiCurrentId);
-    if (exists) return;
-    setGeminiCurrentId(null);
-    localStorage.removeItem(GEMINI_CURRENT_ACCOUNT_ID_KEY);
-  }, [geminiAccounts, geminiCurrentId]);
+  const codebuddyCnCurrent = useMemo(
+    () => resolveCurrentAccountById(codebuddyCnAccounts, codebuddyCnCurrentId),
+    [codebuddyCnAccounts, codebuddyCnCurrentId],
+  );
 
-  React.useEffect(() => {
-    if (!githubCopilotCurrentId) return;
-    const exists = githubCopilotAccounts.some((account) => account.id === githubCopilotCurrentId);
-    if (exists) return;
-    setGitHubCopilotCurrentId(null);
-    localStorage.removeItem(GHCP_CURRENT_ACCOUNT_ID_KEY);
-  }, [githubCopilotAccounts, githubCopilotCurrentId]);
+  const qoderCurrent = useMemo(
+    () => resolveCurrentAccountById(qoderAccounts, qoderCurrentId),
+    [qoderAccounts, qoderCurrentId],
+  );
 
-  React.useEffect(() => {
-    if (!windsurfCurrentId) return;
-    const exists = windsurfAccounts.some((account) => account.id === windsurfCurrentId);
-    if (exists) return;
-    setWindsurfCurrentId(null);
-    localStorage.removeItem(WINDSURF_CURRENT_ACCOUNT_ID_KEY);
-  }, [windsurfAccounts, windsurfCurrentId]);
+  const traeCurrent = useMemo(
+    () => resolveCurrentAccountById(traeAccounts, traeCurrentId),
+    [traeAccounts, traeCurrentId],
+  );
 
-  React.useEffect(() => {
-    if (!kiroCurrentId) return;
-    const exists = kiroAccounts.some((account) => account.id === kiroCurrentId);
-    if (exists) return;
-    setKiroCurrentId(null);
-    localStorage.removeItem(KIRO_CURRENT_ACCOUNT_ID_KEY);
-  }, [kiroAccounts, kiroCurrentId]);
+  const workbuddyCurrent = useMemo(
+    () => resolveCurrentAccountById(workbuddyAccounts, workbuddyCurrentId),
+    [workbuddyAccounts, workbuddyCurrentId],
+  );
 
-  const codebuddyCurrent = useMemo(() => {
-    if (codebuddyAccounts.length === 0) return null;
-    if (codebuddyCurrentId) {
-      const current = codebuddyAccounts.find((account) => account.id === codebuddyCurrentId);
-      if (current) return current;
-    }
-    return codebuddyAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [codebuddyAccounts, codebuddyCurrentId]);
-
-  const codebuddyCnCurrent = useMemo(() => {
-    if (codebuddyCnAccounts.length === 0) return null;
-    if (codebuddyCnCurrentId) {
-      const current = codebuddyCnAccounts.find((account) => account.id === codebuddyCnCurrentId);
-      if (current) return current;
-    }
-    return codebuddyCnAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [codebuddyCnAccounts, codebuddyCnCurrentId]);
-
-  const qoderCurrent = useMemo(() => {
-    if (qoderAccounts.length === 0) return null;
-    if (qoderCurrentId) {
-      const current = qoderAccounts.find((account) => account.id === qoderCurrentId);
-      if (current) return current;
-    }
-    return qoderAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [qoderAccounts, qoderCurrentId]);
-
-  const traeCurrent = useMemo(() => {
-    if (traeAccounts.length === 0) return null;
-    if (traeCurrentId) {
-      const current = traeAccounts.find((account) => account.id === traeCurrentId);
-      if (current) return current;
-    }
-    return traeAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [traeAccounts, traeCurrentId]);
-
-  const workbuddyCurrent = useMemo(() => {
-    if (workbuddyAccounts.length === 0) return null;
-    if (workbuddyCurrentId) {
-      const current = workbuddyAccounts.find((account) => account.id === workbuddyCurrentId);
-      if (current) return current;
-    }
-    return workbuddyAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [workbuddyAccounts, workbuddyCurrentId]);
-
-  const zedCurrent = useMemo(() => {
-    if (zedAccounts.length === 0) return null;
-    if (zedCurrentId) {
-      const current = zedAccounts.find((account) => account.id === zedCurrentId);
-      if (current) return current;
-    }
-    return zedAccounts.reduce((prev, curr) => {
-      const prevScore = prev.last_used || prev.created_at || 0;
-      const currScore = curr.last_used || curr.created_at || 0;
-      return currScore > prevScore ? curr : prev;
-    });
-  }, [zedAccounts, zedCurrentId]);
-
-  React.useEffect(() => {
-    if (!codebuddyCurrentId) return;
-    const exists = codebuddyAccounts.some((account) => account.id === codebuddyCurrentId);
-    if (exists) return;
-    setCodebuddyCurrentId(null);
-    localStorage.removeItem(CODEBUDDY_CURRENT_ACCOUNT_ID_KEY);
-  }, [codebuddyAccounts, codebuddyCurrentId]);
-
-  React.useEffect(() => {
-    if (!codebuddyCnCurrentId) return;
-    const exists = codebuddyCnAccounts.some((account) => account.id === codebuddyCnCurrentId);
-    if (exists) return;
-    setCodebuddyCnCurrentId(null);
-    localStorage.removeItem(CODEBUDDY_CN_CURRENT_ACCOUNT_ID_KEY);
-  }, [codebuddyCnAccounts, codebuddyCnCurrentId]);
-
-  React.useEffect(() => {
-    if (!qoderCurrentId) return;
-    const exists = qoderAccounts.some((account) => account.id === qoderCurrentId);
-    if (exists) return;
-    setQoderCurrentId(null);
-    localStorage.removeItem(QODER_CURRENT_ACCOUNT_ID_KEY);
-  }, [qoderAccounts, qoderCurrentId]);
-
-  React.useEffect(() => {
-    if (!traeCurrentId) return;
-    const exists = traeAccounts.some((account) => account.id === traeCurrentId);
-    if (exists) return;
-    setTraeCurrentId(null);
-    localStorage.removeItem(TRAE_CURRENT_ACCOUNT_ID_KEY);
-  }, [traeAccounts, traeCurrentId]);
-
-  React.useEffect(() => {
-    if (!workbuddyCurrentId) return;
-    const exists = workbuddyAccounts.some((account) => account.id === workbuddyCurrentId);
-    if (exists) return;
-    setWorkbuddyCurrentId(null);
-    localStorage.removeItem(WORKBUDDY_CURRENT_ACCOUNT_ID_KEY);
-  }, [workbuddyAccounts, workbuddyCurrentId]);
-
-  React.useEffect(() => {
-    if (!zedCurrentId) return;
-    const exists = zedAccounts.some((account) => account.id === zedCurrentId);
-    if (exists) return;
-    setZedCurrentId(null);
-    persistStoredCurrentAccountId(ZED_CURRENT_ACCOUNT_ID_KEY, null);
-  }, [zedAccounts, zedCurrentId]);
+  const zedCurrent = useMemo(
+    () => resolveCurrentAccountById(zedAccounts, zedCurrentId),
+    [zedAccounts, zedCurrentId],
+  );
 
   const githubCopilotRecommended = useMemo(() => {
     if (githubCopilotAccounts.length <= 1) return null;

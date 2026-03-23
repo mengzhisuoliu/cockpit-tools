@@ -5,9 +5,11 @@ import {
   getTraeUsage,
 } from '../types/trae';
 import * as traeService from '../services/traeService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const TRAE_ACCOUNTS_CACHE_KEY = 'agtools.trae.accounts.cache';
+const TRAE_CURRENT_ACCOUNT_ID_KEY = 'agtools.trae.current_account_id';
 
 export const useTraeAccountStore = createProviderAccountStore<TraeAccount>(
   TRAE_ACCOUNTS_CACHE_KEY,
@@ -33,5 +35,9 @@ export const useTraeAccountStore = createProviderAccountStore<TraeAccount>(
         allowanceResetAt: usage.resetAt,
       };
     },
+  },
+  {
+    currentAccountIdKey: TRAE_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('trae'),
   },
 );

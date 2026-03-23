@@ -20,8 +20,10 @@ import {
 import { confirm as confirmDialog, open } from '@tauri-apps/plugin-dialog';
 import md5 from 'blueimp-md5';
 import { InstanceInitMode, InstanceProfile } from '../types/instance';
+import type { PlatformId } from '../types/platform';
 import { FileCorruptedModal, parseFileCorruptedError, type FileCorruptedError } from './FileCorruptedModal';
 import type { InstanceStoreState } from '../stores/createInstanceStore';
+import { showInstanceFloatingCardWindow } from '../services/floatingCardService';
 import {
   isPrivacyModeEnabledByDefault,
   maskSensitiveValue,
@@ -76,6 +78,17 @@ const joinPath = (root: string, name: string) => {
   const sep = root.includes('\\') ? '\\' : '/';
   if (root.endsWith(sep)) return `${root}${name}`;
   return `${root}${sep}${name}`;
+};
+
+const resolveFloatingCardPlatformId = (
+  appType: NonNullable<InstancesManagerProps<AccountLike>['appType']>,
+): PlatformId => {
+  switch (appType) {
+    case 'vscode':
+      return 'github-copilot';
+    default:
+      return appType;
+  }
 };
 
 export function InstancesManager<TAccount extends AccountLike>({
@@ -151,6 +164,7 @@ export function InstancesManager<TAccount extends AccountLike>({
   const isGeminiApp = appType === 'gemini';
   const supportsStopControl = !isGeminiApp;
   const hidePathFieldInEditModal = isGeminiApp && Boolean(editing?.isDefault);
+  const floatingCardPlatformId = useMemo(() => resolveFloatingCardPlatformId(appType), [appType]);
 
   const markInstanceStarting = useCallback((instanceId: string) => {
     setStartingInstanceIds((prev) => (prev.includes(instanceId) ? prev : [...prev, instanceId]));
@@ -630,6 +644,25 @@ export function InstancesManager<TAccount extends AccountLike>({
       setMessage({ text: String(e), tone: 'error' });
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleShowFloatingCard = async (instance: InstanceProfile) => {
+    const { account, missing } = resolveAccount(instance);
+    if (!instance.bindAccountId || !account || missing) {
+      return;
+    }
+    try {
+      await showInstanceFloatingCardWindow({
+        platformId: floatingCardPlatformId,
+        instanceId: instance.id,
+        instanceName: instance.isDefault
+          ? t('instances.defaultName', '默认实例')
+          : instance.name || t('instances.defaultName', '默认实例'),
+        boundAccountId: instance.bindAccountId,
+      });
+    } catch (e) {
+      setMessage({ text: String(e), tone: 'error' });
     }
   };
 
@@ -1346,6 +1379,12 @@ export function InstancesManager<TAccount extends AccountLike>({
             const isInstanceStarting = startingInstanceIdSet.has(instance.id);
             const isInstanceStopping = stoppingInstanceIdSet.has(instance.id);
             const isInstanceBusy = actionLoading === instance.id || isInstanceStarting || isInstanceStopping;
+            const canShowFloatingCard = Boolean(instance.bindAccountId) && !accountMissing;
+            const floatingCardActionTitle = canShowFloatingCard
+              ? t('instances.actions.showFloatingCard', '显示悬浮框')
+              : accountMissing
+                ? t('instances.actions.showFloatingCardMissing', '绑定账号不存在，无法显示悬浮框')
+                : t('instances.actions.showFloatingCardDisabled', '请先绑定账号后再显示悬浮框');
             return (
               <div
                 className={`instance-item ${openInlineMenuId === instance.id ? 'dropdown-open' : ''}`}
@@ -1416,6 +1455,14 @@ export function InstancesManager<TAccount extends AccountLike>({
                 </div>
 
                 <div className="instance-actions">
+                  <button
+                    className="icon-button"
+                    title={floatingCardActionTitle}
+                    onClick={() => void handleShowFloatingCard(instance)}
+                    disabled={!canShowFloatingCard || isInstanceBusy || restartingAll || bulkActionLoading}
+                  >
+                    <Eye size={16} />
+                  </button>
                   <button
                     className="icon-button"
                     title={t('instances.actions.start', '启动')}

@@ -15,6 +15,7 @@ type ProviderUsage = {
 };
 
 type ProviderAccountAugmentation = {
+  id: string;
   email?: string | null;
   plan_type?: string | null;
   quota?: unknown;
@@ -38,10 +39,20 @@ type ProviderMapper<TAccount> = {
   getUsage: (account: TAccount) => ProviderUsage;
 };
 
+type ProviderStoreOptions = {
+  currentAccountIdKey?: string;
+  resolveCurrentAccountId?: () => Promise<string | null>;
+  persistCurrentAccountId?: boolean;
+  hydrateCurrentAccountId?: boolean;
+};
+
 export interface ProviderAccountStoreState<TAccount> {
   accounts: TAccount[];
+  currentAccountId: string | null;
   loading: boolean;
   error: string | null;
+  fetchCurrentAccountId: () => Promise<string | null>;
+  setCurrentAccountId: (accountId: string | null) => void;
   fetchAccounts: () => Promise<void>;
   switchAccount: (accountId: string) => Promise<void>;
   deleteAccounts: (accountIds: string[]) => Promise<void>;
@@ -56,7 +67,15 @@ export function createProviderAccountStore<TAccount extends ProviderAccountAugme
   cacheKey: string,
   service: ProviderService<TAccount>,
   mapper: ProviderMapper<TAccount>,
+  options?: ProviderStoreOptions,
 ) {
+  const currentAccountIdKey = options?.currentAccountIdKey ?? null;
+  const hasCurrentAccountResolver = typeof options?.resolveCurrentAccountId === 'function';
+  const shouldPersistCurrentAccountId =
+    options?.persistCurrentAccountId ?? !hasCurrentAccountResolver;
+  const shouldHydrateCurrentAccountId =
+    options?.hydrateCurrentAccountId ?? shouldPersistCurrentAccountId;
+
   const loadCachedAccounts = (): TAccount[] => {
     try {
       const raw = localStorage.getItem(cacheKey);
@@ -74,6 +93,46 @@ export function createProviderAccountStore<TAccount extends ProviderAccountAugme
     } catch {
       // ignore cache write failures
     }
+  };
+
+  const loadCurrentAccountId = (): string | null => {
+    if (!currentAccountIdKey || !shouldHydrateCurrentAccountId) {
+      return null;
+    }
+
+    try {
+      const raw = localStorage.getItem(currentAccountIdKey);
+      const value = raw?.trim();
+      return value ? value : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const persistCurrentAccountId = (accountId: string | null) => {
+    if (!currentAccountIdKey || !shouldPersistCurrentAccountId) {
+      return;
+    }
+
+    try {
+      if (accountId) {
+        localStorage.setItem(currentAccountIdKey, accountId);
+      } else {
+        localStorage.removeItem(currentAccountIdKey);
+      }
+    } catch {
+      // ignore cache write failures
+    }
+  };
+
+  const normalizeCurrentAccountId = (
+    accountId: string | null | undefined,
+    accounts: TAccount[],
+  ): string | null => {
+    const value = accountId?.trim();
+    if (!value) return null;
+    if (accounts.length === 0) return value;
+    return accounts.some((account) => account.id === value) ? value : null;
   };
 
   const mapAccountsForUnifiedView = (accounts: TAccount[]): TAccount[] => {
@@ -115,8 +174,40 @@ export function createProviderAccountStore<TAccount extends ProviderAccountAugme
 
   return create<ProviderAccountStoreState<TAccount>>((set, get) => ({
     accounts: loadCachedAccounts(),
+    currentAccountId: loadCurrentAccountId(),
     loading: false,
     error: null,
+
+    fetchCurrentAccountId: async () => {
+      const accounts = get().accounts;
+
+      if (!options?.resolveCurrentAccountId) {
+        const currentAccountId = normalizeCurrentAccountId(get().currentAccountId, accounts);
+        set({ currentAccountId });
+        persistCurrentAccountId(currentAccountId);
+        return currentAccountId;
+      }
+
+      try {
+        const resolvedAccountId = await options.resolveCurrentAccountId();
+        const currentAccountId = normalizeCurrentAccountId(resolvedAccountId, accounts);
+        set({ currentAccountId });
+        persistCurrentAccountId(currentAccountId);
+        return currentAccountId;
+      } catch (error) {
+        console.error(`[Provider Store] Failed to resolve current account for ${cacheKey}:`, error);
+        const currentAccountId = normalizeCurrentAccountId(get().currentAccountId, accounts);
+        set({ currentAccountId });
+        persistCurrentAccountId(currentAccountId);
+        return currentAccountId;
+      }
+    },
+
+    setCurrentAccountId: (accountId: string | null) => {
+      const currentAccountId = normalizeCurrentAccountId(accountId, get().accounts);
+      set({ currentAccountId });
+      persistCurrentAccountId(currentAccountId);
+    },
 
     fetchAccounts: async () => {
       set({ loading: true, error: null });
@@ -125,6 +216,7 @@ export function createProviderAccountStore<TAccount extends ProviderAccountAugme
         const mapped = mapAccountsForUnifiedView(accounts);
         set({ accounts: mapped, loading: false });
         persistAccountsCache(mapped);
+        await get().fetchCurrentAccountId();
       } catch (e) {
         set({ error: String(e), loading: false });
       }
@@ -142,6 +234,7 @@ export function createProviderAccountStore<TAccount extends ProviderAccountAugme
 
     switchAccount: async (accountId: string) => {
       await service.injectAccount(accountId);
+      get().setCurrentAccountId(accountId);
       await get().fetchAccounts();
     },
 

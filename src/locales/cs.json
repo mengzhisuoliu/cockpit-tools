@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "zbývá {{left}}",
+        "availableAiCredits": "Dostupné AI kredity",
         "periodEndOnly": "Konec cyklu: {{end}}",
         "periodRange": "Cyklus: {{start}} - {{end}}",
         "planEndsIn": "Cyklus se resetuje za {{days}} dní",
@@ -256,7 +257,10 @@
       "edit": "Upravit",
       "openRootDir": "Otvřít složku",
       "selectPath": "Vybrat cestu",
-      "openWindow": "Otevřít okno"
+      "openWindow": "Otevřít okno",
+      "showFloatingCard": "Zobrazit plovoucí kartu",
+      "showFloatingCardDisabled": "Před zobrazením plovoucí karty nejdřív připojte účet",
+      "showFloatingCardMissing": "Vázaný účet už neexistuje, proto nelze plovoucí kartu zobrazit"
     },
     "bulkConfirm": {
       "startAll": "Spustit všechny zastavené instance?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Nezávisle řídí viditelnost ikony v Docku bez vlivu chování minimalizace okna",
       "hideDockIconOff": "Ne (Zobrazit ikonu v Docku)",
       "hideDockIconOn": "Ano (Skrýt ikonu v Docku)",
+      "floatingCardStartup": "Zobrazit plovoucí kartu při spuštění",
+      "floatingCardStartupDesc": "Po spuštění aplikace automaticky zobrazit plovoucí kartu účtu",
+      "floatingCardAlwaysOnTop": "Držet plovoucí kartu vždy navrchu",
+      "floatingCardAlwaysOnTopDesc": "Nově otevřená okna plovoucí karty zůstanou navrchu",
+      "floatingCardShowNow": "Zobrazit plovoucí kartu nyní",
+      "floatingCardShowNowDesc": "Po zavření ji můžete znovu otevřít zde nebo z nabídky v tray",
+      "floatingCardShowNowAction": "Zobrazit plovoucí kartu",
       "dataDir": "Datový adresář",
       "dataDirDesc": "Umístění pro uložení účtů a konfiguračních souborů.",
       "fpDir": "Úložiště Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Použít znovu",
       "exportTitle": "Exportovat JSON účtů Zed"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Přepnout platformu",
+    "currentAccount": "Aktuální",
+    "recommendedAccount": "Doporučený účet",
+    "accountPreview": "Náhled účtu",
+    "plan": "Tarif",
+    "cycle": "Cyklus",
+    "status": "Stav",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Doporučeno"
+    },
+    "actions": {
+      "pin": "Připnout",
+      "unpin": "Odepnout",
+      "close": "Zavřít",
+      "previousAccount": "Předchozí účet",
+      "nextAccount": "Další účet",
+      "viewRecommended": "Zobrazit doporučený účet",
+      "backToCurrent": "Zpět",
+      "switchToThisAccount": "Přepnout",
+      "openDetails": "Otevřít detail",
+      "openCockpitTools": "Otevřít Cockpit Tools"
+    },
+    "empty": {
+      "title": "Žádné účty",
+      "loading": "Načítají se informace o účtu pro aktuální platformu",
+      "desc": "Na této platformě zatím nejsou žádné účty k zobrazení"
+    },
+    "errors": {
+      "refreshFailed": "Obnovení selhalo: {{error}}",
+      "switchFailed": "Přepnutí selhalo: {{error}}",
+      "pinFailed": "Nepodařilo se změnit stav připnutí: {{error}}",
+      "closeFailed": "Zavření se nezdařilo: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Plovoucí karta byla zavřena",
+      "body": "Znovu ji otevřete z nabídky tray nebo ji upravte v „Nastavení > Obecné“."
+    },
+    "closeConfirm": {
+      "title": "Zavřít plovoucí kartu?",
+      "message": "Po zavření ji můžete znovu otevřít v „{{path}}“.",
+      "dontAskAgain": "Příště se neptat"
+    },
+    "lockedPlatform": "Platforma je uzamčena instancí"
   }
 }

@@ -5,9 +5,11 @@ import {
   getZedUsage,
 } from '../types/zed';
 import * as zedService from '../services/zedService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const ZED_ACCOUNTS_CACHE_KEY = 'agtools.zed.accounts.cache';
+const ZED_CURRENT_ACCOUNT_ID_KEY = 'agtools.zed.current_account_id';
 
 export const useZedAccountStore = createProviderAccountStore<ZedAccount>(
   ZED_ACCOUNTS_CACHE_KEY,
@@ -26,5 +28,9 @@ export const useZedAccountStore = createProviderAccountStore<ZedAccount>(
     getDisplayEmail: getZedAccountDisplayEmail,
     getPlanBadge: getZedPlanBadge,
     getUsage: getZedUsage,
+  },
+  {
+    currentAccountIdKey: ZED_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('zed'),
   },
 );

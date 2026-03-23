@@ -122,7 +122,7 @@ export function CodexAccountsPage() {
     handleRefresh, handleRefreshAll, handleDelete, handleBatchDelete,
     deleteConfirm, setDeleteConfirm, deleting, confirmDelete,
     message, setMessage,
-    exporting, handleExport, handleExportByIds,
+    exporting, handleExport, handleExportByIds, getScopedSelectedCount,
     showExportModal, closeExportModal, exportJsonContent, exportJsonHidden,
     toggleExportJsonHidden, exportJsonCopied, copyExportJson,
     savingExportJson, saveExportJson, exportSavedPath,
@@ -1013,6 +1013,9 @@ export function CodexAccountsPage() {
     return result;
   }, [accounts, compareAccountsBySort, filterTypes, normalizeTag, resolvePlanKey, resolvePresentation, searchQuery, tagFilter]);
 
+  const filteredIds = useMemo(() => filteredAccounts.map((account) => account.id), [filteredAccounts]);
+  const exportSelectionCount = getScopedSelectedCount(filteredIds);
+
   const groupedAccounts = useMemo(() => {
     if (!groupByTag) return [] as Array<[string, typeof filteredAccounts]>;
     const groups = new Map<string, typeof filteredAccounts>();
@@ -1436,8 +1439,8 @@ export function CodexAccountsPage() {
             <button className="btn btn-secondary icon-only" onClick={togglePrivacyMode} title={privacyModeEnabled ? t('privacy.showSensitive', '显示邮箱') : t('privacy.hideSensitive', '隐藏邮箱')}>
               {privacyModeEnabled ? <EyeOff size={14} /> : <Eye size={14} />}</button>
             <button className="btn btn-secondary icon-only" onClick={() => openAddModal('token')} disabled={importing} title={t('common.shared.import.label', '导入')}><Download size={14} /></button>
-            <button className="btn btn-secondary export-btn icon-only" onClick={handleExport} disabled={exporting}
-              title={selected.size > 0 ? `${t('common.shared.export', '导出')} (${selected.size})` : t('common.shared.export', '导出')}><Upload size={14} /></button>
+            <button className="btn btn-secondary export-btn icon-only" onClick={() => void handleExport(filteredIds)} disabled={exporting || filteredIds.length === 0}
+              title={exportSelectionCount > 0 ? `${t('common.shared.export', '导出')} (${exportSelectionCount})` : t('common.shared.export', '导出')}><Upload size={14} /></button>
             {selected.size > 0 && (<button className="btn btn-danger icon-only" onClick={handleBatchDelete} title={`${t('common.delete', '删除')} (${selected.size})`}><Trash2 size={14} /></button>)}
             <QuickSettingsPopover type="codex" />
           </div>

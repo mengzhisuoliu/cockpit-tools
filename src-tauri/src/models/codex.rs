@@ -37,6 +37,8 @@ pub struct CodexAccount {
     pub quota: Option<CodexQuota>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub quota_error: Option<CodexQuotaErrorInfo>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub usage_updated_at: Option<i64>,
     pub tags: Option<Vec<String>>,
     pub created_at: i64,
     pub last_used: i64,
@@ -195,6 +197,7 @@ impl CodexAccount {
             tokens,
             quota: None,
             quota_error: None,
+            usage_updated_at: None,
             tags: None,
             created_at: now,
             last_used: now,

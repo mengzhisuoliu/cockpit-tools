@@ -95,12 +95,15 @@ export function CursorAccountsPage() {
     exportFilePrefix: 'cursor_accounts',
     store: {
       accounts: store.accounts,
+      currentAccountId: store.currentAccountId,
       loading: store.loading,
       error: store.error,
       fetchAccounts: store.fetchAccounts,
+      fetchCurrentAccountId: store.fetchCurrentAccountId,
       deleteAccounts: store.deleteAccounts,
       refreshToken: store.refreshToken,
       refreshAllTokens: store.refreshAllTokens,
+      setCurrentAccountId: store.setCurrentAccountId,
       updateAccountTags: store.updateAccountTags,
     },
     oauthService: {
@@ -139,7 +142,7 @@ export function CursorAccountsPage() {
     handleRefresh, handleRefreshAll, handleDelete, handleBatchDelete,
     deleteConfirm, setDeleteConfirm, deleting, confirmDelete,
     message, setMessage,
-    exporting, handleExport, handleExportByIds,
+    exporting, handleExport, handleExportByIds, getScopedSelectedCount,
     showExportModal, closeExportModal, exportJsonContent, exportJsonHidden,
     toggleExportJsonHidden, exportJsonCopied, copyExportJson,
     savingExportJson, saveExportJson, exportSavedPath,
@@ -451,6 +454,9 @@ export function CursorAccountsPage() {
 
     return result;
   }, [accounts, compareAccountsBySort, filterTypes, normalizeTag, resolvePlanKey, searchQuery, tagFilter]);
+
+  const filteredIds = useMemo(() => filteredAccounts.map((account) => account.id), [filteredAccounts]);
+  const exportSelectionCount = getScopedSelectedCount(filteredIds);
 
   const groupedAccounts = useMemo(() => {
     if (!groupByTag) return [] as Array<[string, typeof filteredAccounts]>;
@@ -889,9 +895,9 @@ export function CursorAccountsPage() {
             {privacyModeEnabled ? <EyeOff size={14} /> : <Eye size={14} />}
           </button>
           <button className="btn btn-secondary icon-only" onClick={() => openAddModal('import')} disabled={importing} title={t('common.shared.import.label', '导入')} aria-label={t('common.shared.import.label', '导入')}><Download size={14} /></button>
-          <button className="btn btn-secondary export-btn icon-only" onClick={handleExport} disabled={exporting}
-            title={selected.size > 0 ? `${t('common.shared.export', '导出')} (${selected.size})` : t('common.shared.export', '导出')}
-            aria-label={selected.size > 0 ? `${t('common.shared.export', '导出')} (${selected.size})` : t('common.shared.export', '导出')}>
+          <button className="btn btn-secondary export-btn icon-only" onClick={() => void handleExport(filteredIds)} disabled={exporting || filteredIds.length === 0}
+            title={exportSelectionCount > 0 ? `${t('common.shared.export', '导出')} (${exportSelectionCount})` : t('common.shared.export', '导出')}
+            aria-label={exportSelectionCount > 0 ? `${t('common.shared.export', '导出')} (${exportSelectionCount})` : t('common.shared.export', '导出')}>
             <Upload size={14} />
           </button>
           {selected.size > 0 && (

@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} 남음",
+        "availableAiCredits": "사용 가능한 AI 크레딧",
         "periodEndOnly": "주기 종료: {{end}}",
         "periodRange": "주기: {{start}} - {{end}}",
         "planEndsIn": "{{days}}일 후 주기가 재설정됩니다",
@@ -256,7 +257,10 @@
       "edit": "편집",
       "openRootDir": "폴더 열기",
       "selectPath": "폴더 선택",
-      "openWindow": "창 열기"
+      "openWindow": "창 열기",
+      "showFloatingCard": "플로팅 카드를 표시",
+      "showFloatingCardDisabled": "플로팅 카드를 표시하려면 먼저 계정을 바인딩하세요",
+      "showFloatingCardMissing": "바인딩된 계정이 더 이상 없어 플로팅 카드를 표시할 수 없습니다"
     },
     "bulkConfirm": {
       "startAll": "정지된 모든 인스턴스를 시작할까요?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "창 최소화 동작과 무관하게 Dock 아이콘 표시 상태를 독립적으로 제어합니다",
       "hideDockIconOff": "아니요 (Dock 아이콘 표시)",
       "hideDockIconOn": "예 (Dock 아이콘 숨기기)",
+      "floatingCardStartup": "시작 시 플로팅 카드 표시",
+      "floatingCardStartupDesc": "앱 실행 후 계정 플로팅 카드를 자동으로 표시합니다",
+      "floatingCardAlwaysOnTop": "플로팅 카드를 기본적으로 항상 위에 표시",
+      "floatingCardAlwaysOnTopDesc": "새로 연 플로팅 카드 창을 항상 위에 유지합니다",
+      "floatingCardShowNow": "지금 플로팅 카드 표시",
+      "floatingCardShowNowDesc": "닫은 후에도 여기나 트레이 메뉴에서 다시 열 수 있습니다",
+      "floatingCardShowNowAction": "플로팅 카드 표시",
       "dataDir": "데이터 디렉터리",
       "dataDirDesc": "계정 및 구성 파일 저장 위치.",
       "fpDir": "Antigravity 저장소",
@@ -2473,5 +2484,51 @@
       "reapply": "다시 적용",
       "exportTitle": "Zed 계정 JSON 내보내기"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "플랫폼 전환",
+    "currentAccount": "현재",
+    "recommendedAccount": "추천 계정",
+    "accountPreview": "계정 미리보기",
+    "plan": "플랜",
+    "cycle": "주기",
+    "status": "상태",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "추천"
+    },
+    "actions": {
+      "pin": "고정",
+      "unpin": "고정 해제",
+      "close": "닫기",
+      "previousAccount": "이전 계정",
+      "nextAccount": "다음 계정",
+      "viewRecommended": "추천 계정 보기",
+      "backToCurrent": "돌아가기",
+      "switchToThisAccount": "전환",
+      "openDetails": "상세 열기",
+      "openCockpitTools": "Cockpit Tools 열기"
+    },
+    "empty": {
+      "title": "계정 없음",
+      "loading": "현재 플랫폼의 계정 정보를 불러오는 중입니다",
+      "desc": "이 플랫폼에는 아직 표시할 계정이 없습니다"
+    },
+    "errors": {
+      "refreshFailed": "새로고침 실패: {{error}}",
+      "switchFailed": "전환 실패: {{error}}",
+      "pinFailed": "고정 상태를 업데이트하지 못했습니다: {{error}}",
+      "closeFailed": "닫기 실패: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "플로팅 카드가 닫혔습니다",
+      "body": "트레이 메뉴에서 다시 열거나 \"설정 > 일반\"에서 조정할 수 있습니다."
+    },
+    "closeConfirm": {
+      "title": "플로팅 카드를 닫을까요?",
+      "message": "닫은 뒤에도 \"{{path}}\"에서 다시 열 수 있습니다.",
+      "dontAskAgain": "다시 묻지 않기"
+    },
+    "lockedPlatform": "인스턴스에 의해 플랫폼이 고정됨"
   }
 }

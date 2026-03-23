@@ -58,6 +58,8 @@ pub struct KiroAccount {
     pub status: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub status_reason: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub usage_updated_at: Option<i64>,
 
     pub created_at: i64,
     pub last_used: i64,

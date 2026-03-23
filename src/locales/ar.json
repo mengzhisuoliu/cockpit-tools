@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} متبقي",
+        "availableAiCredits": "أرصدة الذكاء الاصطناعي المتاحة",
         "periodEndOnly": "نهاية الدورة: {{end}}",
         "periodRange": "الدورة: {{start}} - {{end}}",
         "planEndsIn": "تتم إعادة ضبط الدورة خلال {{days}} يومًا",
@@ -162,6 +163,52 @@
         "label": "تم التحديث قبل {{relative}}"
       }
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "تبديل المنصة",
+    "currentAccount": "الحالي",
+    "recommendedAccount": "الحساب الموصى به",
+    "accountPreview": "معاينة الحساب",
+    "plan": "الخطة",
+    "cycle": "الدورة",
+    "status": "الحالة",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "موصى به"
+    },
+    "actions": {
+      "pin": "تثبيت",
+      "unpin": "إلغاء التثبيت",
+      "close": "إغلاق",
+      "previousAccount": "الحساب السابق",
+      "nextAccount": "الحساب التالي",
+      "viewRecommended": "عرض الحساب الموصى به",
+      "backToCurrent": "رجوع",
+      "switchToThisAccount": "تبديل",
+      "openDetails": "فتح التفاصيل",
+      "openCockpitTools": "فتح Cockpit Tools"
+    },
+    "empty": {
+      "title": "لا توجد حسابات",
+      "loading": "جارٍ تحميل معلومات الحساب للمنصة الحالية",
+      "desc": "لا توجد حسابات لعرضها على هذه المنصة حالياً"
+    },
+    "errors": {
+      "refreshFailed": "فشل التحديث: {{error}}",
+      "switchFailed": "فشل التبديل: {{error}}",
+      "pinFailed": "فشل تحديث حالة التثبيت: {{error}}",
+      "closeFailed": "فشل الإغلاق: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "تم إغلاق البطاقة العائمة",
+      "body": "يمكنك إعادة فتحها من قائمة الشريط، أو تعديلها من \"الإعدادات > عام\"."
+    },
+    "closeConfirm": {
+      "title": "إغلاق البطاقة العائمة؟",
+      "message": "بعد الإغلاق، يمكنك فتحها مجددًا من \"{{path}}\".",
+      "dontAskAgain": "عدم السؤال مرة أخرى"
+    },
+    "lockedPlatform": "المنصة مقفلة بواسطة المثيل"
   },
   "nav": {
     "overview": "Antigravity",
@@ -256,7 +303,10 @@
       "edit": "تعديل",
       "openRootDir": "فتح المجلد",
       "selectPath": "اختيار المجلد",
-      "openWindow": "فتح النافذة"
+      "openWindow": "فتح النافذة",
+      "showFloatingCard": "إظهار البطاقة العائمة",
+      "showFloatingCardDisabled": "يجب ربط حساب قبل إظهار البطاقة العائمة",
+      "showFloatingCardMissing": "الحساب المرتبط غير موجود، لذلك لا يمكن إظهار البطاقة العائمة"
     },
     "bulkConfirm": {
       "startAll": "تشغيل جميع المثيلات المتوقفة؟",
@@ -455,6 +505,13 @@
       "hideDockIconDesc": "تحكم مستقل في ظهور أيقونة Dock دون التأثر بسلوك تصغير النافذة",
       "hideDockIconOff": "لا (إظهار أيقونة Dock)",
       "hideDockIconOn": "نعم (إخفاء أيقونة Dock)",
+      "floatingCardStartup": "إظهار البطاقة العائمة عند التشغيل",
+      "floatingCardStartupDesc": "عرض بطاقة الحساب العائمة تلقائياً بعد تشغيل التطبيق",
+      "floatingCardAlwaysOnTop": "إبقاء البطاقة العائمة في الأعلى افتراضياً",
+      "floatingCardAlwaysOnTopDesc": "تبقى نوافذ البطاقة العائمة الجديدة في الأعلى عند فتحها",
+      "floatingCardShowNow": "إظهار البطاقة العائمة الآن",
+      "floatingCardShowNowDesc": "بعد إغلاقها، يمكنك إعادة فتحها من هنا أو من قائمة الشريط",
+      "floatingCardShowNowAction": "إظهار البطاقة العائمة",
       "dataDir": "مجلد البيانات",
       "dataDirDesc": "موقع تخزين الحسابات وملفات التكوين.",
       "fpDir": "مجلد تخزين Antigravity",

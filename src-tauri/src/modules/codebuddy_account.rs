@@ -634,6 +634,7 @@ pub fn upsert_account(payload: CodebuddyOAuthCompletePayload) -> Result<Codebudd
         status_reason: payload.status_reason.clone(),
         quota_query_last_error: None,
         quota_query_last_error_at: None,
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -664,6 +665,8 @@ async fn refresh_account_token_once(account_id: &str) -> Result<CodebuddyAccount
 
     let (payload, quota_refresh_error) =
         codebuddy_oauth::refresh_payload_for_account(&account).await?;
+    let usage_refreshed = quota_refresh_error.is_none()
+        && (payload.quota_raw.is_some() || payload.usage_raw.is_some());
     let tags = account.tags.clone();
     let created_at = account.created_at;
     apply_payload(&mut account, payload);
@@ -676,7 +679,11 @@ async fn refresh_account_token_once(account_id: &str) -> Result<CodebuddyAccount
     }
     account.tags = tags;
     account.created_at = created_at;
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    if usage_refreshed {
+        account.usage_updated_at = Some(refreshed_at);
+    }
+    account.last_used = refreshed_at;
 
     let updated = account.clone();
     upsert_account_record(account)?;
@@ -874,6 +881,7 @@ fn upsert_account_record_from_payload(
         status_reason: payload.status_reason,
         quota_query_last_error: None,
         quota_query_last_error_at: None,
+        usage_updated_at: None,
         created_at: now,
         last_used: now,
     };
@@ -1253,6 +1261,26 @@ pub fn import_payload_from_local() -> Result<Option<CodebuddyOAuthCompletePayloa
 
     let payload = build_local_import_payload(access_token, parsed_json, uid_from_token);
     Ok(Some(payload))
+}
+
+pub(crate) fn resolve_current_account_id(accounts: &[CodebuddyAccount]) -> Option<String> {
+    let payload = import_payload_from_local().ok()??;
+    let incoming_uid = normalize_identity(payload.uid.as_deref());
+    let incoming_email = normalize_email_identity(Some(payload.email.as_str()));
+
+    accounts
+        .iter()
+        .find(|account| {
+            let existing_uid = normalize_identity(account.uid.as_deref());
+            let existing_email = normalize_email_identity(Some(account.email.as_str()));
+            account_matches_payload_identity(
+                existing_uid.as_ref(),
+                existing_email.as_ref(),
+                incoming_uid.as_ref(),
+                incoming_email.as_ref(),
+            )
+        })
+        .map(|account| account.id.clone())
 }
 
 pub fn run_quota_alert_if_needed() -> Result<(), String> {

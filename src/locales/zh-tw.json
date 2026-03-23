@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "剩餘 {{left}}",
+        "availableAiCredits": "可用 AI 點數",
         "periodEndOnly": "週期結束：{{end}}",
         "periodRange": "週期：{{start}} - {{end}}",
         "planEndsIn": "配額週期剩餘 {{days}} 天",
@@ -256,7 +257,10 @@
       "edit": "編輯",
       "openRootDir": "打開目錄",
       "selectPath": "選擇路徑",
-      "openWindow": "定位視窗"
+      "openWindow": "定位視窗",
+      "showFloatingCard": "顯示懸浮框",
+      "showFloatingCardDisabled": "請先綁定帳號後再顯示懸浮框",
+      "showFloatingCardMissing": "綁定帳號不存在，無法顯示懸浮框"
     },
     "bulkConfirm": {
       "startAll": "是否啟動所有已停止的實例？",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "獨立控制 Dock 圖示顯示狀態，不受視窗最小化行為影響",
       "hideDockIconOff": "否（顯示 Dock 圖示）",
       "hideDockIconOn": "是（隱藏 Dock 圖示）",
+      "floatingCardStartup": "啟動時顯示懸浮卡片",
+      "floatingCardStartupDesc": "應用啟動後預設顯示懸浮帳號卡片",
+      "floatingCardAlwaysOnTop": "懸浮卡片預設置頂",
+      "floatingCardAlwaysOnTopDesc": "新開啟的懸浮卡片視窗預設保持置頂",
+      "floatingCardShowNow": "立即顯示懸浮卡片",
+      "floatingCardShowNowDesc": "關閉後可在這裡或托盤選單中重新打開",
+      "floatingCardShowNowAction": "顯示懸浮卡片",
       "dataDir": "資料目錄",
       "dataDirDesc": "帳號與設定檔的儲存位置。",
       "fpDir": "Antigravity 儲存目錄",
@@ -2473,5 +2484,51 @@
       "reapply": "重新套用",
       "exportTitle": "匯出 Zed 帳號 JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "切換平台",
+    "currentAccount": "目前",
+    "recommendedAccount": "推薦帳號",
+    "accountPreview": "帳號預覽",
+    "plan": "方案",
+    "cycle": "週期",
+    "status": "狀態",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "推薦"
+    },
+    "actions": {
+      "pin": "置頂",
+      "unpin": "取消置頂",
+      "close": "關閉",
+      "previousAccount": "上一個帳號",
+      "nextAccount": "下一個帳號",
+      "viewRecommended": "查看推薦帳號",
+      "backToCurrent": "返回",
+      "switchToThisAccount": "切換",
+      "openDetails": "打開詳情頁",
+      "openCockpitTools": "打開 Cockpit Tools"
+    },
+    "empty": {
+      "title": "暫無帳號",
+      "loading": "正在讀取目前平台帳號資訊",
+      "desc": "目前平台還沒有可顯示的帳號"
+    },
+    "errors": {
+      "refreshFailed": "重新整理失敗：{{error}}",
+      "switchFailed": "切換失敗：{{error}}",
+      "pinFailed": "置頂設定失敗：{{error}}",
+      "closeFailed": "關閉失敗：{{error}}"
+    },
+    "hiddenNotification": {
+      "title": "懸浮卡片已關閉",
+      "body": "可在托盤選單重新打開，也可在「設定 > 通用」中調整顯示方式。"
+    },
+    "closeConfirm": {
+      "title": "關閉懸浮卡片？",
+      "message": "關閉後可在「{{path}}」中重新開啟。",
+      "dontAskAgain": "不再提示"
+    },
+    "lockedPlatform": "實例已鎖定平台"
   }
 }

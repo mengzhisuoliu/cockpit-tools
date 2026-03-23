@@ -816,6 +816,7 @@ pub fn update_account_quota(account_id: &str, quota: QuotaData) -> Result<(), St
                 merged_quota.is_forbidden = quota.is_forbidden;
                 merged_quota.last_updated = quota.last_updated;
                 account.update_quota(merged_quota);
+                account.usage_updated_at = Some(chrono::Utc::now().timestamp());
                 save_account(&account)?;
                 return Ok(());
             }
@@ -823,6 +824,7 @@ pub fn update_account_quota(account_id: &str, quota: QuotaData) -> Result<(), St
     }
 
     account.update_quota(quota);
+    account.usage_updated_at = Some(chrono::Utc::now().timestamp());
     save_account(&account)?;
     if let Some(ref quota) = account.quota {
         let _ = modules::quota_cache::write_quota_cache("authorized", &account.email, quota);
@@ -1047,7 +1049,10 @@ fn clear_quota_alert_cooldown(account_id: &str, threshold: i32) {
     }
 }
 
-fn pick_quota_alert_recommendation(accounts: &[Account], current_id: &str) -> Option<Account> {
+pub(crate) fn pick_quota_alert_recommendation(
+    accounts: &[Account],
+    current_id: &str,
+) -> Option<Account> {
     let mut candidates: Vec<Account> = accounts
         .iter()
         .filter(|a| can_be_quota_alert_candidate(a, current_id))

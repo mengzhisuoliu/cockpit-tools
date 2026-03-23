@@ -29,6 +29,7 @@ import { MultiSelectFilterDropdown, type MultiSelectFilterOption } from '../comp
 import { QuickSettingsPopover } from '../components/QuickSettingsPopover';
 import { TagEditModal } from '../components/TagEditModal';
 import { ZedOverviewTabsHeader } from '../components/ZedOverviewTabsHeader';
+import { usePlatformRuntimeSupport } from '../hooks/usePlatformRuntimeSupport';
 import { useProviderAccountsPage } from '../hooks/useProviderAccountsPage';
 import * as zedService from '../services/zedService';
 import { useZedAccountStore } from '../stores/useZedAccountStore';
@@ -157,6 +158,7 @@ function getQuotaTone(progressPercent: number): 'high' | 'medium' | 'low' {
 
 export function ZedAccountsPage() {
   const { t } = useTranslation();
+  const isMacOS = usePlatformRuntimeSupport('macos-only');
   const store = useZedAccountStore();
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
 
@@ -168,12 +170,15 @@ export function ZedAccountsPage() {
     exportFilePrefix: 'zed_accounts',
     store: {
       accounts: store.accounts,
+      currentAccountId: store.currentAccountId,
       loading: store.loading,
       error: store.error,
       fetchAccounts: store.fetchAccounts,
+      fetchCurrentAccountId: store.fetchCurrentAccountId,
       deleteAccounts: store.deleteAccounts,
       refreshToken: store.refreshToken,
       refreshAllTokens: store.refreshAllTokens,
+      setCurrentAccountId: store.setCurrentAccountId,
       updateAccountTags: store.updateAccountTags,
     },
     oauthService: {
@@ -195,8 +200,7 @@ export function ZedAccountsPage() {
         '授权成功，账号已导入；如需让官方 Zed 使用该账号，请点击“应用并重启”。',
       ),
     onInjectSuccess: async () => {
-      const status = await zedService.getZedRuntimeStatus();
-      setCurrentAccountId(status.currentAccountId ?? null);
+      await store.fetchCurrentAccountId();
     },
   });
 
@@ -251,6 +255,7 @@ export function ZedAccountsPage() {
     exporting,
     handleExport,
     handleExportByIds,
+    getScopedSelectedCount,
     showExportModal,
     closeExportModal,
     exportJsonContent,
@@ -300,7 +305,6 @@ export function ZedAccountsPage() {
     isFlowNoticeCollapsed,
     setIsFlowNoticeCollapsed,
     currentAccountId,
-    setCurrentAccountId,
     formatDate,
     normalizeTag,
   } = page;
@@ -310,12 +314,11 @@ export function ZedAccountsPage() {
 
   const syncCurrentAccount = useCallback(async () => {
     try {
-      const status = await zedService.getZedRuntimeStatus();
-      setCurrentAccountId(status.currentAccountId ?? null);
+      await store.fetchCurrentAccountId();
     } catch (error) {
       console.error('加载 Zed 运行时状态失败:', error);
     }
-  }, [setCurrentAccountId]);
+  }, [store.fetchCurrentAccountId]);
 
   useEffect(() => {
     void syncCurrentAccount();
@@ -431,6 +434,9 @@ export function ZedAccountsPage() {
     result.sort(compareAccountsBySort);
     return result;
   }, [accounts, compareAccountsBySort, filterTypes, normalizeTag, resolvePlanKey, searchQuery, tagFilter]);
+
+  const filteredIds = useMemo(() => filteredAccounts.map((account) => account.id), [filteredAccounts]);
+  const exportSelectionCount = getScopedSelectedCount(filteredIds);
 
   const groupedAccounts = useMemo(() => {
     if (!groupByTag) return [] as Array<[string, typeof filteredAccounts]>;
@@ -1094,11 +1100,11 @@ export function ZedAccountsPage() {
           </button>
           <button
             className="btn btn-secondary export-btn icon-only"
-            onClick={handleExport}
-            disabled={exporting}
+            onClick={() => void handleExport(filteredIds)}
+            disabled={exporting || filteredIds.length === 0}
             title={
-              selected.size > 0
-                ? `${t('common.shared.export', '导出')} (${selected.size})`
+              exportSelectionCount > 0
+                ? `${t('common.shared.export', '导出')} (${exportSelectionCount})`
                 : t('common.shared.export', '导出')
             }
           >
@@ -1245,13 +1251,15 @@ export function ZedAccountsPage() {
                 <KeyRound size={14} />
                 {t('common.shared.addModal.token', 'Token / JSON')}
               </button>
-              <button
-                className={`modal-tab ${addTab === 'import' ? 'active' : ''}`}
-                onClick={() => openAddModal('import')}
-              >
-                <Database size={14} />
-                {t('accounts.tabs.import', '导入')}
-              </button>
+              {isMacOS && (
+                <button
+                  className={`modal-tab ${addTab === 'import' ? 'active' : ''}`}
+                  onClick={() => openAddModal('import')}
+                >
+                  <Database size={14} />
+                  {t('accounts.tabs.import', '导入')}
+                </button>
+              )}
             </div>
 
             <div className="modal-body">
@@ -1388,7 +1396,7 @@ export function ZedAccountsPage() {
                 </div>
               )}
 
-              {addTab === 'import' && (
+              {isMacOS && addTab === 'import' && (
                 <div className="add-section">
                   <p className="section-desc">
                     {t('zed.import.localDesc', '支持从本机 Zed 当前登录状态或导出的 JSON 文件导入账号数据。')}

@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} left",
+        "availableAiCredits": "可用 AI 积分",
         "periodEndOnly": "周期结束：{{end}}",
         "periodRange": "周期：{{start}} - {{end}}",
         "planEndsIn": "配额周期剩余 {{days}} 天",
@@ -161,6 +162,52 @@
       "updated": {
         "label": "更新于 {{relative}}前"
       }
+    }
+  },
+  "floatingCard": {
+    "selectPlatform": "切换平台",
+    "lockedPlatform": "实例已锁定平台",
+    "currentAccount": "当前",
+    "recommendedAccount": "推荐账号",
+    "accountPreview": "账号预览",
+    "plan": "套餐",
+    "cycle": "周期",
+    "status": "状态",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "推荐"
+    },
+    "actions": {
+      "pin": "置顶",
+      "unpin": "取消置顶",
+      "close": "关闭",
+      "previousAccount": "上一个账号",
+      "nextAccount": "下一个账号",
+      "viewRecommended": "查看推荐账号",
+      "backToCurrent": "返回",
+      "switchToThisAccount": "切换",
+      "openDetails": "打开详情页",
+      "openCockpitTools": "打开 Cockpit Tools"
+    },
+    "empty": {
+      "title": "暂无账号",
+      "loading": "正在读取当前平台账号信息",
+      "desc": "当前平台还没有可展示的账号"
+    },
+    "errors": {
+      "refreshFailed": "刷新失败：{{error}}",
+      "switchFailed": "切换失败：{{error}}",
+      "pinFailed": "置顶设置失败：{{error}}",
+      "closeFailed": "关闭失败：{{error}}"
+    },
+    "hiddenNotification": {
+      "title": "悬浮卡片已关闭",
+      "body": "可在“托盘 > 显示悬浮卡片”重新打开，也可在“设置 > 通用”中调整显示方式。"
+    },
+    "closeConfirm": {
+      "title": "关闭悬浮卡片？",
+      "message": "关闭后可在“{{path}}”中重新打开。",
+      "dontAskAgain": "不再提示"
     }
   },
   "nav": {
@@ -268,7 +315,10 @@
       "edit": "编辑",
       "openRootDir": "打开目录",
       "selectPath": "选择目录",
-      "openWindow": "定位窗口"
+      "openWindow": "定位窗口",
+      "showFloatingCard": "显示悬浮框",
+      "showFloatingCardDisabled": "请先绑定账号后再显示悬浮框",
+      "showFloatingCardMissing": "绑定账号不存在，无法显示悬浮框"
     },
     "bulkConfirm": {
       "startAll": "确认启动所有未运行实例？",
@@ -455,6 +505,13 @@
       "hideDockIconDesc": "独立控制程序坞图标显示状态，不受窗口最小化行为影响",
       "hideDockIconOff": "否（显示Dock图标）",
       "hideDockIconOn": "是（隐藏Dock图标）",
+      "floatingCardStartup": "启动时显示悬浮卡片",
+      "floatingCardStartupDesc": "应用启动后默认展示悬浮账号卡片",
+      "floatingCardAlwaysOnTop": "悬浮卡片默认置顶",
+      "floatingCardAlwaysOnTopDesc": "新打开的悬浮卡片窗口默认保持置顶",
+      "floatingCardShowNow": "立即显示悬浮卡片",
+      "floatingCardShowNowDesc": "关闭后可在这里或托盘菜单中重新打开",
+      "floatingCardShowNowAction": "显示悬浮卡片",
       "dataDir": "数据目录",
       "dataDirDesc": "账号与配置文件的存储位置。",
       "fpDir": "Antigravity存储目录",

@@ -598,7 +598,7 @@ dependencies = [
 
 [[package]]
 name = "cockpit-tools"
-version = "0.18.3"
+version = "0.19.0"
 dependencies = [
  "aes",
  "aes-gcm",
@@ -614,6 +614,9 @@ dependencies = [
  "mac-notification-sys",
  "md5",
  "minisign-verify",
+ "objc2",
+ "objc2-app-kit",
+ "objc2-foundation",
  "pbkdf2",
  "rand 0.8.5",
  "rcgen",
@@ -627,6 +630,7 @@ dependencies = [
  "serde_urlencoded",
  "sha1",
  "sha2",
+ "swift-rs",
  "sysinfo",
  "tauri",
  "tauri-build",

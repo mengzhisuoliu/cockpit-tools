@@ -8,6 +8,7 @@ import * as githubCopilotService from '../services/githubCopilotService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const GHCP_ACCOUNTS_CACHE_KEY = 'agtools.github_copilot.accounts.cache';
+const GHCP_CURRENT_ACCOUNT_ID_KEY = 'agtools.github_copilot.current_account_id';
 
 export const useGitHubCopilotAccountStore = createProviderAccountStore<GitHubCopilotAccount>(
   GHCP_ACCOUNTS_CACHE_KEY,
@@ -26,5 +27,8 @@ export const useGitHubCopilotAccountStore = createProviderAccountStore<GitHubCop
     getDisplayEmail: getGitHubCopilotAccountDisplayEmail,
     getPlanBadge: getGitHubCopilotPlanBadge,
     getUsage: getGitHubCopilotUsage,
+  },
+  {
+    currentAccountIdKey: GHCP_CURRENT_ACCOUNT_ID_KEY,
   },
 );

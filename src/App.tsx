@@ -31,6 +31,7 @@ import { useZedAccountStore } from './stores/useZedAccountStore';
 import type { UpdateCheckResult } from './components/UpdateNotification';
 import type { Update as UpdaterUpdate } from '@tauri-apps/plugin-updater';
 import { parseUpdaterReleaseNotes } from './utils/updaterReleaseNotes';
+import { FloatingCardWindow } from './pages/FloatingCardWindow';
 import {
   createUpdaterCanceledError,
   isRetryableUpdaterError,
@@ -370,7 +371,7 @@ function getQuotaAlertQuickSettingsType(platform: QuotaAlertPlatform): QuickSett
   }
 }
 
-function App() {
+function MainApp() {
   const { t } = useTranslation();
   const [page, setPage] = useState<Page>('dashboard');
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
@@ -2435,6 +2436,15 @@ function App() {
       </div>
     </div>
   );
+}
+
+function App() {
+  const windowLabel = getCurrentWindow().label;
+  if (windowLabel === 'floating-card' || windowLabel.startsWith('instance-floating-card-')) {
+    return <FloatingCardWindow />;
+  }
+
+  return <MainApp />;
 }
 
 export default App;

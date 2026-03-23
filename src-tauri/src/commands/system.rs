@@ -79,6 +79,12 @@ pub struct GeneralConfig {
     pub minimize_behavior: String,
     /// 是否隐藏 Dock 图标（macOS）
     pub hide_dock_icon: bool,
+    /// 是否在启动时显示悬浮卡片
+    pub floating_card_show_on_startup: bool,
+    /// 悬浮卡片是否默认置顶
+    pub floating_card_always_on_top: bool,
+    /// 关闭悬浮卡片前是否显示确认弹框
+    pub floating_card_confirm_on_close: bool,
     /// OpenCode 启动路径（为空则使用默认路径）
     pub opencode_app_path: String,
     /// Antigravity 启动路径（为空则使用默认路径）
@@ -340,6 +346,11 @@ pub fn save_network_config(
         close_behavior: current.close_behavior,
         minimize_behavior: current.minimize_behavior,
         hide_dock_icon: current.hide_dock_icon,
+        floating_card_show_on_startup: current.floating_card_show_on_startup,
+        floating_card_always_on_top: current.floating_card_always_on_top,
+        floating_card_confirm_on_close: current.floating_card_confirm_on_close,
+        floating_card_position_x: current.floating_card_position_x,
+        floating_card_position_y: current.floating_card_position_y,
         opencode_app_path: current.opencode_app_path,
         antigravity_app_path: current.antigravity_app_path,
         codex_app_path: current.codex_app_path,
@@ -435,6 +446,9 @@ pub fn get_general_config() -> Result<GeneralConfig, String> {
         close_behavior: close_behavior_str.to_string(),
         minimize_behavior: minimize_behavior_str.to_string(),
         hide_dock_icon: user_config.hide_dock_icon,
+        floating_card_show_on_startup: user_config.floating_card_show_on_startup,
+        floating_card_always_on_top: user_config.floating_card_always_on_top,
+        floating_card_confirm_on_close: user_config.floating_card_confirm_on_close,
         opencode_app_path: user_config.opencode_app_path,
         antigravity_app_path: user_config.antigravity_app_path,
         codex_app_path: user_config.codex_app_path,
@@ -533,6 +547,9 @@ pub fn save_general_config(
     close_behavior: String,
     minimize_behavior: Option<String>,
     hide_dock_icon: Option<bool>,
+    floating_card_show_on_startup: Option<bool>,
+    floating_card_always_on_top: Option<bool>,
+    floating_card_confirm_on_close: Option<bool>,
     opencode_app_path: String,
     antigravity_app_path: String,
     codex_app_path: String,
@@ -635,6 +652,12 @@ pub fn save_general_config(
         Some(_) | None => current.minimize_behavior.clone(),
     };
     let hide_dock_icon_value = hide_dock_icon.unwrap_or(current.hide_dock_icon);
+    let floating_card_show_on_startup_value =
+        floating_card_show_on_startup.unwrap_or(current.floating_card_show_on_startup);
+    let floating_card_always_on_top_value =
+        floating_card_always_on_top.unwrap_or(current.floating_card_always_on_top);
+    let floating_card_confirm_on_close_value =
+        floating_card_confirm_on_close.unwrap_or(current.floating_card_confirm_on_close);
     let next_codex_quota_alert_threshold =
         codex_quota_alert_threshold.unwrap_or(current.codex_quota_alert_threshold);
     let next_opencode_auth_overwrite_on_switch =
@@ -693,6 +716,11 @@ pub fn save_general_config(
         close_behavior: close_behavior_enum,
         minimize_behavior: minimize_behavior_enum,
         hide_dock_icon: hide_dock_icon_value,
+        floating_card_show_on_startup: floating_card_show_on_startup_value,
+        floating_card_always_on_top: floating_card_always_on_top_value,
+        floating_card_confirm_on_close: floating_card_confirm_on_close_value,
+        floating_card_position_x: current.floating_card_position_x,
+        floating_card_position_y: current.floating_card_position_y,
         opencode_app_path: normalized_opencode_path,
         antigravity_app_path: normalized_antigravity_path,
         codex_app_path: normalized_codex_path,
@@ -775,6 +803,13 @@ pub fn save_general_config(
     };
 
     config::save_user_config(&new_config)?;
+
+    if let Err(err) = modules::floating_card_window::apply_floating_card_always_on_top(&app) {
+        modules::logger::log_warn(&format!(
+            "[FloatingCard] 保存通用设置后应用置顶状态失败: {}",
+            err
+        ));
+    }
 
     #[cfg(target_os = "macos")]
     if hide_dock_icon_changed {
@@ -916,6 +951,98 @@ pub fn handle_window_close(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn show_floating_card_window(app: tauri::AppHandle) -> Result<(), String> {
+    modules::floating_card_window::show_floating_card_window(&app, true)
+}
+
+#[tauri::command]
+pub fn show_instance_floating_card_window(
+    app: tauri::AppHandle,
+    context: modules::floating_card_window::FloatingCardInstanceContext,
+) -> Result<(), String> {
+    modules::floating_card_window::show_instance_floating_card_window(&app, context, true)
+}
+
+#[tauri::command]
+pub fn get_floating_card_context(
+    window_label: String,
+) -> Result<Option<modules::floating_card_window::FloatingCardInstanceContext>, String> {
+    modules::floating_card_window::get_floating_card_context(&window_label)
+}
+
+#[tauri::command]
+pub fn hide_floating_card_window(app: tauri::AppHandle) -> Result<(), String> {
+    modules::floating_card_window::hide_floating_card_window(&app, false)
+}
+
+#[tauri::command]
+pub fn hide_current_floating_card_window(window: tauri::Window) -> Result<(), String> {
+    window.hide().map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+pub fn set_floating_card_always_on_top(
+    app: tauri::AppHandle,
+    always_on_top: bool,
+) -> Result<(), String> {
+    let current = config::get_user_config();
+    if current.floating_card_always_on_top == always_on_top {
+        return modules::floating_card_window::apply_floating_card_always_on_top(&app);
+    }
+
+    let new_config = UserConfig {
+        floating_card_always_on_top: always_on_top,
+        ..current
+    };
+    config::save_user_config(&new_config)?;
+    modules::floating_card_window::apply_floating_card_always_on_top(&app)
+}
+
+#[tauri::command]
+pub fn set_current_floating_card_window_always_on_top(
+    window: tauri::Window,
+    always_on_top: bool,
+) -> Result<(), String> {
+    window
+        .set_always_on_top(always_on_top)
+        .map_err(|err| err.to_string())
+}
+
+#[tauri::command]
+pub fn set_floating_card_confirm_on_close(confirm_on_close: bool) -> Result<(), String> {
+    let current = config::get_user_config();
+    if current.floating_card_confirm_on_close == confirm_on_close {
+        return Ok(());
+    }
+
+    let new_config = UserConfig {
+        floating_card_confirm_on_close: confirm_on_close,
+        ..current
+    };
+    config::save_user_config(&new_config)
+}
+
+#[tauri::command]
+pub fn save_floating_card_position(x: i32, y: i32) -> Result<(), String> {
+    let current = config::get_user_config();
+    if current.floating_card_position_x == Some(x) && current.floating_card_position_y == Some(y) {
+        return Ok(());
+    }
+
+    let new_config = UserConfig {
+        floating_card_position_x: Some(x),
+        floating_card_position_y: Some(y),
+        ..current
+    };
+    config::save_user_config(&new_config)
+}
+
+#[tauri::command]
+pub fn show_main_window_and_navigate(app: tauri::AppHandle, page: String) -> Result<(), String> {
+    modules::floating_card_window::show_main_window_and_navigate(&app, &page)
 }
 
 /// 打开指定文件夹（如不存在则创建）

@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} kaldı",
+        "availableAiCredits": "Kullanılabilir AI kredileri",
         "periodEndOnly": "Döngü sonu: {{end}}",
         "periodRange": "Döngü: {{start}} - {{end}}",
         "planEndsIn": "Döngü {{days}} gün içinde sıfırlanır",
@@ -256,7 +257,10 @@
       "edit": "Düzenle",
       "openRootDir": "Klasörü aç",
       "selectPath": "Yol seç",
-      "openWindow": "Pencereyi aç"
+      "openWindow": "Pencereyi aç",
+      "showFloatingCard": "Yüzen kartı göster",
+      "showFloatingCardDisabled": "Yüzen kartı göstermeden önce bir hesap bağlayın",
+      "showFloatingCardMissing": "Bağlı hesap artık mevcut değil, bu yüzden yüzen kart gösterilemiyor"
     },
     "bulkConfirm": {
       "startAll": "Tüm durdurulmuş oturumlar başlatılsın mı?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Dock simgesinin görünürlüğünü pencere küçültme davranışından bağımsız olarak kontrol eder",
       "hideDockIconOff": "Hayır (Dock simgesini göster)",
       "hideDockIconOn": "Evet (Dock simgesini gizle)",
+      "floatingCardStartup": "Başlangıçta yüzen kartı göster",
+      "floatingCardStartupDesc": "Uygulama açıldıktan sonra hesap yüzen kartını otomatik olarak göster",
+      "floatingCardAlwaysOnTop": "Yüzen kartı varsayılan olarak her zaman üstte tut",
+      "floatingCardAlwaysOnTopDesc": "Yeni açılan yüzen kart pencereleri üstte kalır",
+      "floatingCardShowNow": "Yüzen kartı şimdi göster",
+      "floatingCardShowNowDesc": "Kapattıktan sonra buradan veya tepsi menüsünden tekrar açabilirsiniz",
+      "floatingCardShowNowAction": "Yüzen kartı göster",
       "dataDir": "Veri dizini",
       "dataDirDesc": "Hesaplar ve yapılandırma dosyaları için depolama konumu.",
       "fpDir": "Antigravity Depolama",
@@ -2473,5 +2484,51 @@
       "reapply": "Yeniden uygula",
       "exportTitle": "Zed hesaplarını JSON olarak dışa aktar"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Platform değiştir",
+    "currentAccount": "Güncel",
+    "recommendedAccount": "Önerilen hesap",
+    "accountPreview": "Hesap önizlemesi",
+    "plan": "Paket",
+    "cycle": "Döngü",
+    "status": "Durum",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Önerilen"
+    },
+    "actions": {
+      "pin": "Sabitle",
+      "unpin": "Sabitlemeyi kaldır",
+      "close": "Kapat",
+      "previousAccount": "Önceki hesap",
+      "nextAccount": "Sonraki hesap",
+      "viewRecommended": "Önerilen hesabı görüntüle",
+      "backToCurrent": "Geri",
+      "switchToThisAccount": "Geç",
+      "openDetails": "Ayrıntıları aç",
+      "openCockpitTools": "Cockpit Tools'u aç"
+    },
+    "empty": {
+      "title": "Hesap yok",
+      "loading": "Geçerli platform için hesap bilgileri yükleniyor",
+      "desc": "Bu platformda henüz gösterilecek hesap yok"
+    },
+    "errors": {
+      "refreshFailed": "Yenileme başarısız: {{error}}",
+      "switchFailed": "Geçiş başarısız: {{error}}",
+      "pinFailed": "Sabitleme durumu güncellenemedi: {{error}}",
+      "closeFailed": "Kapatma başarısız oldu: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Yüzen kart kapatıldı",
+      "body": "Tepsi menüsünden yeniden açabilir veya \"Ayarlar > Genel\" bölümünden düzenleyebilirsiniz."
+    },
+    "closeConfirm": {
+      "title": "Yüzen kart kapatılsın mı?",
+      "message": "Kapattıktan sonra \"{{path}}\" üzerinden yeniden açabilirsiniz.",
+      "dontAskAgain": "Bir daha sorma"
+    },
+    "lockedPlatform": "Platform örnek tarafından kilitlendi"
   }
 }

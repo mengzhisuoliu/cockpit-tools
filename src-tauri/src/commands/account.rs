@@ -310,7 +310,7 @@ pub async fn get_bound_accounts(fingerprint_id: String) -> Result<Vec<models::Ac
 /// 读取本地 state.vscdb 中的 refresh_token，与 Tools 账号列表对比
 /// 如匹配账号与当前账号不同，则静默更新 current_account_id
 #[tauri::command]
-pub async fn sync_current_from_client() -> Result<Option<String>, String> {
+pub async fn sync_current_from_client(app: tauri::AppHandle) -> Result<Option<String>, String> {
     use base64::{engine::general_purpose, Engine as _};
 
     // 读取本地数据库中的 refresh_token
@@ -359,6 +359,7 @@ pub async fn sync_current_from_client() -> Result<Option<String>, String> {
                     account.email
                 ));
                 modules::set_current_account_id(&account.id)?;
+                let _ = crate::modules::tray::update_tray_menu(&app);
                 return Ok(Some(account.id.clone()));
             } else {
                 // 已经是当前账号，无需操作

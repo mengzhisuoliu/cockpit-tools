@@ -836,6 +836,7 @@ pub fn upsert_account(payload: WindsurfOAuthCompletePayload) -> Result<WindsurfA
         windsurf_user_status: payload.windsurf_user_status.clone(),
         windsurf_plan_status: payload.windsurf_plan_status.clone(),
         windsurf_auth_status_raw: payload.windsurf_auth_status_raw.clone(),
+        usage_updated_at: None,
         created_at,
         last_used: now,
     });
@@ -886,7 +887,11 @@ async fn refresh_account_token_once(account_id: &str) -> Result<WindsurfAccount,
     apply_payload(&mut account, payload);
     account.tags = tags;
     account.created_at = created_at;
-    account.last_used = now_ts();
+    let refreshed_at = now_ts();
+    if !preserved_quota {
+        account.usage_updated_at = Some(refreshed_at);
+    }
+    account.last_used = refreshed_at;
 
     let updated = account.clone();
     upsert_account_record(account)?;
@@ -1184,7 +1189,7 @@ fn extract_premium_metric(account: &WindsurfAccount) -> Option<(String, i32)> {
     Some(("Premium Interactions".to_string(), percent_remaining))
 }
 
-fn extract_quota_metrics(account: &WindsurfAccount) -> Vec<(String, i32)> {
+pub(crate) fn extract_quota_metrics(account: &WindsurfAccount) -> Vec<(String, i32)> {
     let mut metrics = extract_limited_metrics(account);
     if let Some(premium) = extract_premium_metric(account) {
         metrics.push(premium);
@@ -1200,7 +1205,50 @@ fn average_quota_percentage(metrics: &[(String, i32)]) -> f64 {
     sum as f64 / metrics.len() as f64
 }
 
-fn resolve_current_account_id(accounts: &[WindsurfAccount]) -> Option<String> {
+pub(crate) fn resolve_current_account_id(accounts: &[WindsurfAccount]) -> Option<String> {
+    if let Ok(Some(local_auth_status)) = read_local_auth_status() {
+        let local_api_key =
+            pick_string_from_object(Some(&local_auth_status), &["apiKey", "api_key"])
+                .and_then(|value| normalize_non_empty(Some(value.as_str())));
+        let local_email = pick_string_from_object(Some(&local_auth_status), &["email"])
+            .and_then(|value| normalize_email(Some(value.as_str())));
+        let local_login_hint = read_local_login_hint()
+            .and_then(|value| normalize_non_empty(Some(value.as_str())))
+            .map(|value| value.to_lowercase());
+
+        if let Some(account_id) = accounts
+            .iter()
+            .find(|account| {
+                if let (Some(existing), Some(incoming)) = (
+                    resolve_account_api_key(account).as_ref(),
+                    local_api_key.as_ref(),
+                ) {
+                    if existing == incoming {
+                        return true;
+                    }
+                }
+
+                if let (Some(existing), Some(incoming)) = (
+                    resolve_account_email(account).as_ref(),
+                    local_email.as_ref(),
+                ) {
+                    if existing == incoming {
+                        return true;
+                    }
+                }
+
+                if let Some(incoming) = local_login_hint.as_ref() {
+                    return account.github_login.eq_ignore_ascii_case(incoming);
+                }
+
+                false
+            })
+            .map(|account| account.id.clone())
+        {
+            return Some(account_id);
+        }
+    }
+
     if let Ok(settings) = crate::modules::windsurf_instance::load_default_settings() {
         if let Some(bind_id) = settings.bind_account_id {
             let trimmed = bind_id.trim();

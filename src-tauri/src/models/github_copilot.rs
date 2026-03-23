@@ -33,6 +33,8 @@ pub struct GitHubCopilotAccount {
     pub copilot_limited_user_quotas: Option<serde_json::Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub copilot_limited_user_reset_date: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub usage_updated_at: Option<i64>,
     pub created_at: i64,
     pub last_used: i64,
 }

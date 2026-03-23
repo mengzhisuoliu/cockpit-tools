@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "{{left}} restantes",
+        "availableAiCredits": "Créditos de IA disponibles",
         "periodEndOnly": "Fin del ciclo: {{end}}",
         "periodRange": "Ciclo: {{start}} - {{end}}",
         "planEndsIn": "El ciclo se restablece en {{days}} días",
@@ -256,7 +257,10 @@
       "edit": "Editar",
       "openRootDir": "Abrir carpeta",
       "selectPath": "Seleccionar ruta",
-      "openWindow": "Abrir ventana"
+      "openWindow": "Abrir ventana",
+      "showFloatingCard": "Mostrar tarjeta flotante",
+      "showFloatingCardDisabled": "Vincula una cuenta antes de mostrar la tarjeta flotante",
+      "showFloatingCardMissing": "La cuenta vinculada ya no existe, por lo que no se puede mostrar la tarjeta flotante"
     },
     "bulkConfirm": {
       "startAll": "¿Iniciar todas las instancias detenidas?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Controla la visibilidad del icono del Dock de forma independiente, sin depender del comportamiento de minimización de la ventana",
       "hideDockIconOff": "No (Mostrar icono del Dock)",
       "hideDockIconOn": "Sí (Ocultar icono del Dock)",
+      "floatingCardStartup": "Mostrar la tarjeta flotante al iniciar",
+      "floatingCardStartupDesc": "Mostrar automáticamente la tarjeta flotante de la cuenta al iniciar la aplicación",
+      "floatingCardAlwaysOnTop": "Mantener la tarjeta flotante siempre encima por defecto",
+      "floatingCardAlwaysOnTopDesc": "Las nuevas ventanas de la tarjeta flotante permanecerán siempre encima al abrirse",
+      "floatingCardShowNow": "Mostrar la tarjeta flotante ahora",
+      "floatingCardShowNowDesc": "Después de cerrarla, puedes volver a abrirla aquí o desde el menú de la bandeja",
+      "floatingCardShowNowAction": "Mostrar la tarjeta flotante",
       "dataDir": "Directorio de datos",
       "dataDirDesc": "Ubicación de almacenamiento para cuentas y archivos de configuración.",
       "fpDir": "Almacenamiento de Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Aplicar de nuevo",
       "exportTitle": "Exportar cuentas de Zed a JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Cambiar plataforma",
+    "currentAccount": "Actual",
+    "recommendedAccount": "Cuenta recomendada",
+    "accountPreview": "Vista previa de la cuenta",
+    "plan": "Suscripción",
+    "cycle": "Ciclo",
+    "status": "Estado",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Recomendada"
+    },
+    "actions": {
+      "pin": "Fijar",
+      "unpin": "Desfijar",
+      "close": "Cerrar",
+      "previousAccount": "Cuenta anterior",
+      "nextAccount": "Cuenta siguiente",
+      "viewRecommended": "Ver cuenta recomendada",
+      "backToCurrent": "Volver",
+      "switchToThisAccount": "Cambiar",
+      "openDetails": "Abrir detalles",
+      "openCockpitTools": "Abrir Cockpit Tools"
+    },
+    "empty": {
+      "title": "No hay cuentas",
+      "loading": "Cargando la información de la cuenta para la plataforma actual",
+      "desc": "Todavía no hay cuentas para mostrar en esta plataforma"
+    },
+    "errors": {
+      "refreshFailed": "Error al actualizar: {{error}}",
+      "switchFailed": "Error al cambiar: {{error}}",
+      "pinFailed": "No se pudo actualizar el estado de fijación: {{error}}",
+      "closeFailed": "Error al cerrar: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Tarjeta flotante cerrada",
+      "body": "Vuelve a abrirla desde el menú de la bandeja o ajústala en «Configuración > General»."
+    },
+    "closeConfirm": {
+      "title": "¿Cerrar la tarjeta flotante?",
+      "message": "Después de cerrarla, podrás volver a abrirla desde «{{path}}».",
+      "dontAskAgain": "No volver a preguntar"
+    },
+    "lockedPlatform": "Plataforma bloqueada por la instancia"
   }
 }

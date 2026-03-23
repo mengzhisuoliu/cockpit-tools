@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "残り {{left}}",
+        "availableAiCredits": "利用可能な AI クレジット",
         "periodEndOnly": "サイクル終了: {{end}}",
         "periodRange": "サイクル: {{start}} - {{end}}",
         "planEndsIn": "{{days}} 日後にサイクルがリセットされます",
@@ -256,7 +257,10 @@
       "edit": "編集",
       "openRootDir": "フォルダーを開く",
       "selectPath": "フォルダーを選択",
-      "openWindow": "ウィンドウを開く"
+      "openWindow": "ウィンドウを開く",
+      "showFloatingCard": "フローティングカードを表示",
+      "showFloatingCardDisabled": "フローティングカードを表示する前にアカウントを紐付けてください",
+      "showFloatingCardMissing": "紐付け済みアカウントが存在しないため、フローティングカードを表示できません"
     },
     "bulkConfirm": {
       "startAll": "停止中のすべてのインスタンスを開始しますか？",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Dockアイコンの表示状態を独立して制御します。ウィンドウの最小化動作の影響を受けません",
       "hideDockIconOff": "いいえ（Dockアイコンを表示）",
       "hideDockIconOn": "はい（Dockアイコンを隠す）",
+      "floatingCardStartup": "起動時にフローティングカードを表示",
+      "floatingCardStartupDesc": "アプリ起動後にアカウントのフローティングカードを自動表示します",
+      "floatingCardAlwaysOnTop": "フローティングカードを常に最前面にする",
+      "floatingCardAlwaysOnTopDesc": "新しく開いたフローティングカードを最前面で表示します",
+      "floatingCardShowNow": "今すぐフローティングカードを表示",
+      "floatingCardShowNowDesc": "閉じた後もここ、またはトレイメニューから再表示できます",
+      "floatingCardShowNowAction": "フローティングカードを表示",
       "dataDir": "データディレクトリ",
       "dataDirDesc": "アカウントと設定ファイルの保存場所。",
       "fpDir": "Antigravityストレージ",
@@ -2473,5 +2484,51 @@
       "reapply": "再適用",
       "exportTitle": "Zed アカウント JSON をエクスポート"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "プラットフォームを切り替え",
+    "currentAccount": "現在",
+    "recommendedAccount": "おすすめアカウント",
+    "accountPreview": "アカウントプレビュー",
+    "plan": "プラン",
+    "cycle": "周期",
+    "status": "状態",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "おすすめ"
+    },
+    "actions": {
+      "pin": "固定",
+      "unpin": "固定解除",
+      "close": "閉じる",
+      "previousAccount": "前のアカウント",
+      "nextAccount": "次のアカウント",
+      "viewRecommended": "おすすめアカウントを表示",
+      "backToCurrent": "戻る",
+      "switchToThisAccount": "切替",
+      "openDetails": "詳細を開く",
+      "openCockpitTools": "Cockpit Tools を開く"
+    },
+    "empty": {
+      "title": "アカウントがありません",
+      "loading": "現在のプラットフォームのアカウント情報を読み込み中です",
+      "desc": "このプラットフォームにはまだ表示できるアカウントがありません"
+    },
+    "errors": {
+      "refreshFailed": "更新に失敗しました: {{error}}",
+      "switchFailed": "切り替えに失敗しました: {{error}}",
+      "pinFailed": "固定状態の更新に失敗しました: {{error}}",
+      "closeFailed": "閉じる操作に失敗しました: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "フローティングカードを閉じました",
+      "body": "トレイメニューから再度開くか、「設定 > 一般」で調整できます。"
+    },
+    "closeConfirm": {
+      "title": "フローティングカードを閉じますか？",
+      "message": "閉じた後でも「{{path}}」から再度表示できます。",
+      "dontAskAgain": "今後は確認しない"
+    },
+    "lockedPlatform": "インスタンスによりプラットフォームが固定されています"
   }
 }

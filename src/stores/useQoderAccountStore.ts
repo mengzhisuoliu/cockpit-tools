@@ -5,9 +5,11 @@ import {
   getQoderUsage,
 } from '../types/qoder';
 import * as qoderService from '../services/qoderService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const QODER_ACCOUNTS_CACHE_KEY = 'agtools.qoder.accounts.cache';
+const QODER_CURRENT_ACCOUNT_ID_KEY = 'agtools.qoder.current_account_id';
 
 export const useQoderAccountStore = createProviderAccountStore<QoderAccount>(
   QODER_ACCOUNTS_CACHE_KEY,
@@ -26,5 +28,9 @@ export const useQoderAccountStore = createProviderAccountStore<QoderAccount>(
     getDisplayEmail: getQoderAccountDisplayEmail,
     getPlanBadge: getQoderPlanBadge,
     getUsage: getQoderUsage,
+  },
+  {
+    currentAccountIdKey: QODER_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('qoder'),
   },
 );

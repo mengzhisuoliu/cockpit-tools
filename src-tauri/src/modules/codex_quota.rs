@@ -311,6 +311,7 @@ async fn refresh_account_quota_once(account_id: &str) -> Result<CodexQuota, Stri
     if account.is_api_key_auth() {
         account.quota = None;
         account.quota_error = None;
+        account.usage_updated_at = None;
         let _ = codex_account::save_account(&account);
         return Err("API Key 账号不支持刷新配额，请在网页端查看。".to_string());
     }
@@ -395,6 +396,7 @@ async fn refresh_account_quota_once(account_id: &str) -> Result<CodexQuota, Stri
 
     account.quota = Some(result.quota.clone());
     account.quota_error = None;
+    account.usage_updated_at = Some(chrono::Utc::now().timestamp());
     codex_account::save_account(&account)?;
 
     Ok(result.quota)

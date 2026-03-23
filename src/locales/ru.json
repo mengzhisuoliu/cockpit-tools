@@ -143,6 +143,7 @@
       },
       "credits": {
         "leftInline": "осталось {{left}}",
+        "availableAiCredits": "Доступные кредиты ИИ",
         "periodEndOnly": "Конец цикла: {{end}}",
         "periodRange": "Цикл: {{start}} - {{end}}",
         "planEndsIn": "Цикл сбросится через {{days}} дн.",
@@ -256,7 +257,10 @@
       "edit": "Редактировать",
       "openRootDir": "Открыть папку",
       "selectPath": "Выбрать путь",
-      "openWindow": "Открыть окно"
+      "openWindow": "Открыть окно",
+      "showFloatingCard": "Показать плавающую карточку",
+      "showFloatingCardDisabled": "Сначала привяжите аккаунт, прежде чем показывать плавающую карточку",
+      "showFloatingCardMissing": "Привязанный аккаунт больше не существует, поэтому плавающую карточку нельзя показать"
     },
     "bulkConfirm": {
       "startAll": "Запустить все остановленные инстансы?",
@@ -455,6 +459,13 @@
       "hideDockIconDesc": "Независимо управляет отображением значка Dock, без привязки к поведению сворачивания окна",
       "hideDockIconOff": "Нет (Показывать значок Dock)",
       "hideDockIconOn": "Да (Скрывать значок Dock)",
+      "floatingCardStartup": "Показывать плавающую карточку при запуске",
+      "floatingCardStartupDesc": "Автоматически показывать плавающую карточку аккаунта после запуска приложения",
+      "floatingCardAlwaysOnTop": "Держать плавающую карточку поверх остальных по умолчанию",
+      "floatingCardAlwaysOnTopDesc": "Новые окна плавающей карточки будут открываться поверх остальных",
+      "floatingCardShowNow": "Показать плавающую карточку сейчас",
+      "floatingCardShowNowDesc": "После закрытия её можно снова открыть здесь или из меню трея",
+      "floatingCardShowNowAction": "Показать плавающую карточку",
       "dataDir": "Каталог данных",
       "dataDirDesc": "Место хранения аккаунтов и конфигурационных файлов.",
       "fpDir": "Хранилище Antigravity",
@@ -2473,5 +2484,51 @@
       "reapply": "Применить снова",
       "exportTitle": "Экспортировать аккаунты Zed в JSON"
     }
+  },
+  "floatingCard": {
+    "selectPlatform": "Переключить платформу",
+    "currentAccount": "Текущий",
+    "recommendedAccount": "Рекомендуемый аккаунт",
+    "accountPreview": "Предпросмотр аккаунта",
+    "plan": "План",
+    "cycle": "Период",
+    "status": "Статус",
+    "pager": "{{current}} / {{total}}",
+    "badges": {
+      "recommended": "Рекомендуется"
+    },
+    "actions": {
+      "pin": "Закрепить",
+      "unpin": "Открепить",
+      "close": "Закрыть",
+      "previousAccount": "Предыдущий аккаунт",
+      "nextAccount": "Следующий аккаунт",
+      "viewRecommended": "Показать рекомендуемый аккаунт",
+      "backToCurrent": "Назад",
+      "switchToThisAccount": "Сменить",
+      "openDetails": "Открыть подробности",
+      "openCockpitTools": "Открыть Cockpit Tools"
+    },
+    "empty": {
+      "title": "Нет аккаунтов",
+      "loading": "Загрузка информации об аккаунте для текущей платформы",
+      "desc": "Для этой платформы пока нет аккаунтов для отображения"
+    },
+    "errors": {
+      "refreshFailed": "Не удалось обновить: {{error}}",
+      "switchFailed": "Не удалось переключить: {{error}}",
+      "pinFailed": "Не удалось обновить состояние закрепления: {{error}}",
+      "closeFailed": "Не удалось закрыть: {{error}}"
+    },
+    "hiddenNotification": {
+      "title": "Плавающая карточка закрыта",
+      "body": "Снова откройте её из меню трея или настройте в разделе «Настройки > Общие»."
+    },
+    "closeConfirm": {
+      "title": "Закрыть плавающую карточку?",
+      "message": "После закрытия ее можно снова открыть через «{{path}}».",
+      "dontAskAgain": "Больше не спрашивать"
+    },
+    "lockedPlatform": "Платформа заблокирована экземпляром"
   }
 }

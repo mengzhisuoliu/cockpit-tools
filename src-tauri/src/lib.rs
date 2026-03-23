@@ -150,6 +150,12 @@ pub fn run() {
                 }
             });
 
+            if let Err(err) =
+                modules::floating_card_window::show_floating_card_window_on_startup(&app.handle())
+            {
+                logger::log_warn(&format!("[FloatingCard] 启动时显示悬浮卡片失败: {}", err));
+            }
+
             Ok(())
         })
         .on_window_event(|window, event| match event {
@@ -234,6 +240,7 @@ pub fn run() {
             commands::import::import_from_json,
             commands::import::import_from_files,
             commands::import::export_accounts,
+            commands::provider_current::get_provider_current_account_id,
             // System Commands
             commands::system::open_data_folder,
             commands::system::save_text_file,
@@ -247,6 +254,16 @@ pub fn run() {
             commands::system::detect_app_path,
             commands::system::set_wakeup_override,
             commands::system::handle_window_close,
+            commands::system::show_floating_card_window,
+            commands::system::show_instance_floating_card_window,
+            commands::system::get_floating_card_context,
+            commands::system::hide_floating_card_window,
+            commands::system::hide_current_floating_card_window,
+            commands::system::set_floating_card_always_on_top,
+            commands::system::set_current_floating_card_window_always_on_top,
+            commands::system::set_floating_card_confirm_on_close,
+            commands::system::save_floating_card_position,
+            commands::system::show_main_window_and_navigate,
             commands::system::open_folder,
             commands::system::delete_corrupted_file,
             // Logs Commands

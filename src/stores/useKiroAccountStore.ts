@@ -5,9 +5,11 @@ import {
   getKiroUsage,
 } from '../types/kiro';
 import * as kiroService from '../services/kiroService';
+import { getProviderCurrentAccountId } from '../services/providerCurrentAccountService';
 import { createProviderAccountStore } from './createProviderAccountStore';
 
 const KIRO_ACCOUNTS_CACHE_KEY = 'agtools.kiro.accounts.cache';
+const KIRO_CURRENT_ACCOUNT_ID_KEY = 'agtools.kiro.current_account_id';
 
 export const useKiroAccountStore = createProviderAccountStore<KiroAccount>(
   KIRO_ACCOUNTS_CACHE_KEY,
@@ -26,5 +28,9 @@ export const useKiroAccountStore = createProviderAccountStore<KiroAccount>(
     getDisplayEmail: getKiroAccountDisplayEmail,
     getPlanBadge: getKiroPlanBadge,
     getUsage: getKiroUsage,
+  },
+  {
+    currentAccountIdKey: KIRO_CURRENT_ACCOUNT_ID_KEY,
+    resolveCurrentAccountId: () => getProviderCurrentAccountId('kiro'),
   },
 );
