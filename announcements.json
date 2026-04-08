@@ -1,26 +1,23 @@
 {
   "version": "1.0",
-  "topRightAd": null,
-  "topRightAdDraft": {
+  "topRightAd": {
     "id": "top-right-ad-2026-04-shop",
     "priority": 100,
-    "title": "买号地址：有需要欢迎选购",
-    "summary": "支持一下作者，感谢长期支持。",
+    "text": "此地址提供 Gemini Pro 成品号与 Codex Plus 兑换码，有需要可以支持一下，感谢。",
     "badge": "推广",
-    "ctaLabel": "前往选购",
+    "ctaLabel": "选购",
     "ctaUrl": "https://xiangzili.xyz",
     "targetVersions": "*",
     "targetLanguages": [
       "*"
     ],
-    "createdAt": "2026-04-07T12:00:00Z",
+    "createdAt": "2026-04-07T12:00:00Z",  
     "expiresAt": null,
     "locales": {
       "zh-CN": {
-        "title": "买号地址：有需要欢迎选购",
-        "summary": "支持一下作者，感谢长期支持。",
+        "text": "此地址提供 Gemini Pro 成品号与 Codex Plus 兑换码，有需要可以支持一下，感谢。",
         "badge": "推广",
-        "ctaLabel": "前往选购"
+        "ctaLabel": "选购"
       }
     }
   },
