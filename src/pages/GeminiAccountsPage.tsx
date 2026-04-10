@@ -137,7 +137,7 @@ export function GeminiAccountsPage() {
           executing: false,
           executeMessage: null,
           executeError: null,
-        });
+          });
       } catch (error) {
         console.error('[GeminiAccountsPage] load default launch command failed:', error);
       }

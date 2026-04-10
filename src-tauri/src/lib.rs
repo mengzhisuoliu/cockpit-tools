@@ -272,6 +272,7 @@ pub fn run() {
             commands::system::get_network_config,
             commands::system::save_network_config,
             commands::system::get_general_config,
+            commands::system::get_available_terminals,
             commands::system::save_general_config,
             commands::system::save_tray_platform_layout,
             commands::system::set_app_path,

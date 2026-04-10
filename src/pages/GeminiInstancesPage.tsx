@@ -106,7 +106,9 @@ export function GeminiInstancesContent({ accountsForSelect }: GeminiInstancesCon
     if (!launchModal || launchModal.executing) return;
     setLaunchModal((prev) => (prev ? { ...prev, executing: true, executeError: null, executeMessage: null } : prev));
     try {
-      const result = await geminiInstanceService.executeGeminiInstanceLaunchCommand(launchModal.instanceId);
+      const result = await geminiInstanceService.executeGeminiInstanceLaunchCommand(
+        launchModal.instanceId,
+      );
       setLaunchModal((prev) =>
         prev
           ? {

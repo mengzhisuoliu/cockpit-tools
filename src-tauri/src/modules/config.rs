@@ -67,6 +67,9 @@ pub struct UserConfig {
     /// 界面语言
     #[serde(default = "default_language")]
     pub language: String,
+    /// 默认终端
+    #[serde(default = "default_default_terminal")]
+    pub default_terminal: String,
     /// 应用主题
     #[serde(default = "default_theme")]
     pub theme: String,
@@ -394,6 +397,9 @@ fn default_global_proxy_no_proxy() -> String {
 fn default_language() -> String {
     "zh-cn".to_string()
 }
+fn default_default_terminal() -> String {
+    "system".to_string()
+}
 fn default_theme() -> String {
     "system".to_string()
 }
@@ -665,6 +671,7 @@ impl Default for UserConfig {
             global_proxy_url: default_global_proxy_url(),
             global_proxy_no_proxy: default_global_proxy_no_proxy(),
             language: default_language(),
+            default_terminal: default_default_terminal(),
             theme: default_theme(),
             ui_scale: default_ui_scale(),
             auto_refresh_minutes: default_auto_refresh(),
@@ -1098,6 +1105,12 @@ pub fn load_user_config() -> Result<UserConfig, String> {
         }
         if !obj.contains_key("report_token") {
             obj.insert("report_token".to_string(), json!(default_report_token()));
+        }
+        if !obj.contains_key("default_terminal") {
+            obj.insert(
+                "default_terminal".to_string(),
+                json!(default_default_terminal()),
+            );
         }
         if !obj.contains_key("global_proxy_enabled") {
             obj.insert(

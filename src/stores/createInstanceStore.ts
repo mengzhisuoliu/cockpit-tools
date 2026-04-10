@@ -12,6 +12,7 @@ export type InstanceStoreState = {
   createInstance: (payload: {
     name: string;
     userDataDir: string;
+    workingDir?: string | null;
     extraArgs?: string;
     bindAccountId?: string | null;
     copySourceInstanceId: string;
@@ -20,6 +21,7 @@ export type InstanceStoreState = {
   updateInstance: (payload: {
     instanceId: string;
     name?: string;
+    workingDir?: string | null;
     extraArgs?: string;
     bindAccountId?: string | null;
     followLocalAccount?: boolean;
@@ -37,6 +39,7 @@ type InstanceService = {
   createInstance: (payload: {
     name: string;
     userDataDir: string;
+    workingDir?: string | null;
     extraArgs?: string;
     bindAccountId?: string | null;
     copySourceInstanceId: string;
@@ -45,6 +48,7 @@ type InstanceService = {
   updateInstance: (payload: {
     instanceId: string;
     name?: string;
+    workingDir?: string | null;
     extraArgs?: string;
     bindAccountId?: string | null;
     followLocalAccount?: boolean;

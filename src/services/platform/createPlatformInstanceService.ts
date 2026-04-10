@@ -18,6 +18,7 @@ type PlatformInstanceCommandPrefix =
 type InstancePayload = {
   name: string;
   userDataDir: string;
+  workingDir?: string | null;
   extraArgs?: string;
   bindAccountId?: string | null;
   copySourceInstanceId: string;
@@ -27,6 +28,7 @@ type InstancePayload = {
 type UpdateInstancePayload = {
   instanceId: string;
   name?: string;
+  workingDir?: string | null;
   extraArgs?: string;
   bindAccountId?: string | null;
   followLocalAccount?: boolean;
@@ -63,6 +65,7 @@ export function createPlatformInstanceService(
       return await invoke(commandFor(prefix, 'create_instance'), {
         name: payload.name,
         userDataDir: payload.userDataDir,
+        workingDir: payload.workingDir ?? null,
         extraArgs: payload.extraArgs ?? '',
         bindAccountId: payload.bindAccountId ?? null,
         copySourceInstanceId: payload.copySourceInstanceId,
@@ -76,6 +79,9 @@ export function createPlatformInstanceService(
       };
       if (payload.name !== undefined) {
         body.name = payload.name;
+      }
+      if (payload.workingDir !== undefined) {
+        body.workingDir = payload.workingDir;
       }
       if (payload.extraArgs !== undefined) {
         body.extraArgs = payload.extraArgs;

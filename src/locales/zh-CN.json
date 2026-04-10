@@ -497,6 +497,9 @@
       "languageDesc": "选择界面的显示语言",
       "theme": "应用主题",
       "themeDesc": "切换深色或浅色模式",
+      "defaultTerminal": "默认终端",
+      "defaultTerminalDesc": "Gemini CLI 打开时使用的终端",
+      "terminalSystem": "跟随系统",
       "sideNavLayout": "侧边栏布局",
       "sideNavLayoutDesc": "切换原始布局或经典布局",
       "sideNavLayoutOriginal": "原始布局",
@@ -2224,7 +2227,11 @@
       "unsupportedDescPlatform": "Gemini Cli 多开实例仅支持 macOS、Windows 和 Linux。",
       "launchDialogTitle": "启动实例",
       "launchHint": "可复制命令手动执行，或点击下方按钮直接在终端执行。",
-      "runInTerminal": "终端执行"
+      "runInTerminal": "终端执行",
+      "workingDir": "工作目录",
+      "workingDirPlaceholder": "默认当前路径",
+      "workingDirDesc": "启动时将首先切换到此目录",
+      "pickWorkingDir": "选择工作目录"
     },
     "switch": {
       "success": "切号成功"

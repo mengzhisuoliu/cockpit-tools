@@ -2,6 +2,7 @@ export interface InstanceProfile {
   id: string;
   name: string;
   userDataDir: string;
+  workingDir?: string | null;
   extraArgs: string;
   bindAccountId?: string | null;
   createdAt: number;

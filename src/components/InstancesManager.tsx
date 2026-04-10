@@ -134,6 +134,7 @@ export function InstancesManager<TAccount extends AccountLike>({
   const [editing, setEditing] = useState<InstanceProfile | null>(null);
   const [formName, setFormName] = useState('');
   const [formPath, setFormPath] = useState('');
+  const [formWorkingDir, setFormWorkingDir] = useState('');
   const [formExtraArgs, setFormExtraArgs] = useState('');
   const [formInitMode, setFormInitMode] = useState<InstanceInitMode>('copy');
   const [formBindAccountId, setFormBindAccountId] = useState<string>('');
@@ -311,6 +312,7 @@ export function InstancesManager<TAccount extends AccountLike>({
   const resetForm = (showRoot = false) => {
     setFormName('');
     setFormPath(showRoot && defaultRoot ? defaultRoot : '');
+    setFormWorkingDir('');
     setFormExtraArgs('');
     setFormInitMode('copy');
     setFormBindAccountId('');
@@ -347,6 +349,7 @@ export function InstancesManager<TAccount extends AccountLike>({
     setEditing(instance);
     setFormName(instance.isDefault ? t('instances.defaultName', '默认实例') : instance.name || '');
     setFormPath(instance.userDataDir || '');
+    setFormWorkingDir(instance.workingDir || '');
     setFormExtraArgs(instance.extraArgs || '');
     setFormInitMode('copy');
     setFormBindAccountId(instance.bindAccountId || '');
@@ -380,6 +383,21 @@ export function InstancesManager<TAccount extends AccountLike>({
       });
       if (selected && typeof selected === 'string') {
         setFormPath(selected);
+      }
+    } catch (e) {
+      setFormError(String(e));
+      setFormErrorTick((prev) => prev + 1);
+    }
+  };
+
+  const handleSelectWorkingDir = async () => {
+    try {
+      const selected = await open({
+        directory: true,
+        multiple: false,
+      });
+      if (selected && typeof selected === 'string') {
+        setFormWorkingDir(selected);
       }
     } catch (e) {
       setFormError(String(e));
@@ -426,11 +444,13 @@ export function InstancesManager<TAccount extends AccountLike>({
         const updatePayload: {
           instanceId: string;
           name?: string;
+          workingDir?: string | null;
           extraArgs?: string;
           bindAccountId?: string | null;
           followLocalAccount?: boolean;
         } = {
           instanceId: editing.id,
+          workingDir: formWorkingDir,
           extraArgs: formExtraArgs,
         };
         if (!isEditingDefault) {
@@ -452,6 +472,7 @@ export function InstancesManager<TAccount extends AccountLike>({
         await createInstance({
           name: formName.trim(),
           userDataDir: formPath.trim(),
+          workingDir: formWorkingDir,
           extraArgs: formExtraArgs,
           initMode: formInitMode,
           bindAccountId: isCreateEmpty ? null : formBindAccountId,
@@ -1733,6 +1754,23 @@ export function InstancesManager<TAccount extends AccountLike>({
                   )}
                 </div>
               )}
+
+              <div className="form-group">
+                <label>{t('gemini.instances.workingDir', '工作目录')}</label>
+                <div className="instance-path-row">
+                  <input
+                    className="form-input"
+                    value={formWorkingDir}
+                    onChange={(e) => setFormWorkingDir(e.target.value)}
+                    placeholder={t('gemini.instances.workingDirPlaceholder', '默认当前路径')}
+                  />
+                  <button className="btn btn-secondary" onClick={handleSelectWorkingDir}>
+                    <FolderOpen size={16} />
+                    {t('instances.actions.selectPath', '选择目录')}
+                  </button>
+                </div>
+                <p className="form-hint">{t('gemini.instances.workingDirDesc', '启动时将首先切换到此目录')}</p>
+              </div>
 
               {!editing && formInitMode === 'copy' && (
                 <div className="form-group">

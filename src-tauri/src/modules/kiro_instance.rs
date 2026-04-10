@@ -199,6 +199,7 @@ pub fn create_instance(params: CreateInstanceParams) -> Result<InstanceProfile, 
         id: Uuid::new_v4().to_string(),
         name,
         user_data_dir,
+        working_dir: params.working_dir,
         extra_args: params.extra_args.trim().to_string(),
         bind_account_id: if create_empty {
             None

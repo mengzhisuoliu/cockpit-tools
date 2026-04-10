@@ -73,6 +73,7 @@ interface NetworkConfig {
 /** 通用配置类型 */
 interface GeneralConfig {
   language: string;
+  default_terminal: string;
   theme: string;
   ui_scale: number;
   auto_refresh_minutes: number;
@@ -230,9 +231,50 @@ const buildDefaultCurrentAccountRefreshCustomModeMap = (): Record<
 export function SettingsPage() {
   const { t } = useTranslation();
   const isMacOS = usePlatformRuntimeSupport('macos-only');
+  const isWindows = usePlatformRuntimeSupport('windows-only');
+  const isLinux = usePlatformRuntimeSupport('linux-only');
   const sideNavLayoutMode = useSideNavLayoutStore((state) => state.mode);
   const setSideNavLayoutMode = useSideNavLayoutStore((state) => state.setMode);
   const [activeTab, setActiveTab] = useState<'general' | 'network' | 'about'>('general');
+  const [availableTerminals, setAvailableTerminals] = useState<string[]>(['system']);
+
+  useEffect(() => {
+    invoke<string[]>('get_available_terminals')
+      .then(setAvailableTerminals)
+      .catch(err => console.error('获取可用终端失败:', err));
+  }, []);
+
+  const terminalOptions = useMemo(() => {
+    const common = [{ value: 'system', label: t('settings.general.terminalSystem', '系统默认') }];
+    const allOptions = isMacOS ? [
+      { value: 'Terminal', label: 'Terminal.app' },
+      { value: 'iTerm2', label: 'iTerm2' },
+      { value: 'Warp', label: 'Warp' },
+      { value: 'Ghostty', label: 'Ghostty' },
+      { value: 'WezTerm', label: 'WezTerm' },
+      { value: 'Kitty', label: 'Kitty' },
+      { value: 'Alacritty', label: 'Alacritty' },
+    ] : isWindows ? [
+      { value: 'cmd', label: 'Command Prompt (cmd)' },
+      { value: 'PowerShell', label: 'PowerShell' },
+      { value: 'pwsh', label: 'PowerShell Core (pwsh)' },
+      { value: 'wt', label: 'Windows Terminal (wt)' },
+    ] : isLinux ? [
+      { value: 'x-terminal-emulator', label: 'x-terminal-emulator' },
+      { value: 'gnome-terminal', label: 'gnome-terminal' },
+      { value: 'konsole', label: 'konsole' },
+      { value: 'xfce4-terminal', label: 'xfce4-terminal' },
+      { value: 'xterm', label: 'xterm' },
+      { value: 'alacritty', label: 'Alacritty' },
+      { value: 'kitty', label: 'Kitty' },
+    ] : [];
+
+    return [
+      ...common,
+      ...allOptions.filter(opt => availableTerminals.includes(opt.value))
+    ];
+  }, [isMacOS, isWindows, isLinux, availableTerminals, t]);
+
   const orderedPlatformIds = usePlatformLayoutStore((state) => state.orderedPlatformIds);
   const platformSettingsOrder = useMemo<Record<PlatformId, number>>(() => {
     const next: Record<PlatformId, number> = { ...FALLBACK_PLATFORM_SETTINGS_ORDER };
@@ -266,6 +308,7 @@ export function SettingsPage() {
   
   // General Settings States
   const [language, setLanguage] = useState(getCurrentLanguage());
+  const [defaultTerminal, setDefaultTerminal] = useState('system');
   const [theme, setTheme] = useState('system');
   const [uiScale, setUiScale] = useState('1');
   const [autoRefresh, setAutoRefresh] = useState('5');
@@ -683,6 +726,7 @@ export function SettingsPage() {
       try {
         await invoke('save_general_config', {
           language,
+          defaultTerminal,
           theme,
           uiScale: normalizedUiScale,
           autoRefreshMinutes: autoRefreshNum,
@@ -811,6 +855,7 @@ export function SettingsPage() {
     appAutoLaunchEnabled,
     generalLoaded,
     language,
+    defaultTerminal,
     theme,
     uiScale,
     opencodeAppPath,
@@ -1075,6 +1120,7 @@ export function SettingsPage() {
     try {
       const config = await invoke<GeneralConfig>('get_general_config');
       setLanguage(normalizeLanguage(config.language));
+      setDefaultTerminal(config.default_terminal || 'system');
       setTheme(config.theme);
       setUiScale(String(config.ui_scale ?? 1));
       setAutoRefresh(String(config.auto_refresh_minutes));
@@ -1611,6 +1657,24 @@ export function SettingsPage() {
                     <option value="light">{t('settings.general.themeLight')}</option>
                     <option value="dark">{t('settings.general.themeDark')}</option>
                     <option value="system">{t('settings.general.themeSystem')}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="settings-row">
+                <div className="row-label">
+                  <div className="row-title">{t('settings.general.defaultTerminal', '默认终端')}</div>
+                  <div className="row-desc">{t('settings.general.defaultTerminalDesc', 'Gemini CLI 打开时使用的终端')}</div>
+                </div>
+                <div className="row-control">
+                  <select 
+                    className="settings-select" 
+                    value={defaultTerminal} 
+                    onChange={(e) => setDefaultTerminal(e.target.value)}
+                  >
+                    {terminalOptions.map((option) => (
+                      <option key={option.value} value={option.value}>{option.label}</option>
+                    ))}
                   </select>
                 </div>
               </div>

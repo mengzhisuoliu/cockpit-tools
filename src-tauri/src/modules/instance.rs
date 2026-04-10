@@ -298,6 +298,7 @@ pub fn create_instance(params: CreateInstanceParams) -> Result<InstanceProfile, 
         id: Uuid::new_v4().to_string(),
         name,
         user_data_dir,
+        working_dir: params.working_dir,
         extra_args: params.extra_args.trim().to_string(),
         bind_account_id: if create_empty {
             None
@@ -338,6 +339,13 @@ pub fn update_instance(params: UpdateInstanceParams) -> Result<InstanceProfile, 
     let instance = &mut store.instances[index];
     if let Some(normalized) = next_name {
         instance.name = normalized;
+    }
+    if let Some(working_dir) = params.working_dir {
+        instance.working_dir = if working_dir.trim().is_empty() {
+            None
+        } else {
+            Some(working_dir.trim().to_string())
+        };
     }
     if let Some(ref extra_args) = params.extra_args {
         instance.extra_args = extra_args.trim().to_string();
