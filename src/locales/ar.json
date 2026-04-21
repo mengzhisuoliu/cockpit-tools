@@ -1703,7 +1703,12 @@
         "available": "اللوحة العادية",
         "save": "حفظ المجموعة",
         "freeNotice": "الحسابات المجانية غير مدعومة بعد. لا يمكن تحديد الحسابات المجانية.",
-        "freeUnsupported": "الحسابات المجانية غير مدعومة بعد"
+        "freeUnsupported": "الحسابات المجانية غير مدعومة بعد",
+        "restrictFreeToggle": "تقييد الحسابات المجانية",
+        "freeNoticeRestricted": "الحسابات المجانية مقيّدة. عطّل هذا الخيار لتحديدها.",
+        "freeNoticeUnstable": "قد يكون وكيل الحسابات المجانية غير مستقر. استخدمه بحذر.",
+        "restrictFreeDisableConfirmTitle": "السماح بالحسابات المجانية",
+        "restrictFreeDisableConfirmMessage": "قد يكون وكيل الحسابات المجانية غير مستقر. هل تريد المتابعة؟"
       },
       "entryAction": "إضافة إلى خدمة API",
       "testAction": "اختبار خدمة API",

@@ -1657,7 +1657,12 @@
         "available": "Zwykły widok",
         "save": "Zapisz kolekcję",
         "freeNotice": "Bezpłatne konta nie są jeszcze obsługiwane. Nie można wybrać kont bezpłatnych.",
-        "freeUnsupported": "Bezpłatne konta nie są jeszcze obsługiwane"
+        "freeUnsupported": "Bezpłatne konta nie są jeszcze obsługiwane",
+        "restrictFreeToggle": "Ogranicz konta Free",
+        "freeNoticeRestricted": "Konta Free są ograniczone. Wyłącz tę opcję, aby je wybrać.",
+        "freeNoticeUnstable": "Proxy kont Free może być niestabilne. Używaj ostrożnie.",
+        "restrictFreeDisableConfirmTitle": "Zezwól na konta Free",
+        "restrictFreeDisableConfirmMessage": "Proxy kont Free może być niestabilne. Na pewno ich użyć?"
       },
       "entryAction": "Dodaj do usługi API",
       "testAction": "Przetestuj usługę API",

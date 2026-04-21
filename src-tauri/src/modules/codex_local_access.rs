@@ -829,8 +829,17 @@ fn is_free_plan_type(plan_type: Option<&str>) -> bool {
     !normalized.is_empty() && normalized.contains("free")
 }
 
-fn is_local_access_eligible_account(account: &CodexAccount) -> bool {
-    !account.is_api_key_auth() && !is_free_plan_type(account.plan_type.as_deref())
+fn is_local_access_eligible_account(
+    account: &CodexAccount,
+    restrict_free_accounts: bool,
+) -> bool {
+    if account.is_api_key_auth() {
+        return false;
+    }
+    if restrict_free_accounts && is_free_plan_type(account.plan_type.as_deref()) {
+        return false;
+    }
+    true
 }
 
 fn sanitize_collection(
@@ -857,7 +866,9 @@ fn sanitize_collection(
 
     let valid_account_ids: HashSet<String> = codex_account::list_accounts_checked()?
         .into_iter()
-        .filter(is_local_access_eligible_account)
+        .filter(|account| {
+            is_local_access_eligible_account(account, collection.restrict_free_accounts)
+        })
         .map(|account| account.id)
         .collect();
 
@@ -901,6 +912,7 @@ async fn ensure_runtime_loaded() -> Result<(), String> {
             port: allocate_random_local_port()?,
             api_key: generate_local_api_key(),
             routing_strategy: CodexLocalAccessRoutingStrategy::default(),
+            restrict_free_accounts: true,
             account_ids: Vec::new(),
             created_at: now_ms(),
             updated_at: now_ms(),
@@ -1211,6 +1223,7 @@ pub async fn activate_local_access_for_dir(
 
 pub async fn save_local_access_accounts(
     account_ids: Vec<String>,
+    restrict_free_accounts: bool,
 ) -> Result<CodexLocalAccessState, String> {
     ensure_runtime_loaded().await?;
 
@@ -1224,6 +1237,7 @@ pub async fn save_local_access_accounts(
                 port: allocate_random_local_port()?,
                 api_key: generate_local_api_key(),
                 routing_strategy: CodexLocalAccessRoutingStrategy::default(),
+                restrict_free_accounts: true,
                 account_ids: Vec::new(),
                 created_at: now_ms(),
                 updated_at: now_ms(),
@@ -1232,7 +1246,7 @@ pub async fn save_local_access_accounts(
 
     let valid_account_ids: HashSet<String> = codex_account::list_accounts_checked()?
         .into_iter()
-        .filter(is_local_access_eligible_account)
+        .filter(|account| is_local_access_eligible_account(account, restrict_free_accounts))
         .map(|account| account.id)
         .collect();
 
@@ -1247,6 +1261,7 @@ pub async fn save_local_access_accounts(
         }
     }
 
+    collection.restrict_free_accounts = restrict_free_accounts;
     collection.account_ids = next_account_ids;
     collection.updated_at = now_ms();
     let (changed, _) = sanitize_collection(&mut collection)?;
@@ -2218,7 +2233,9 @@ async fn proxy_request_with_account_pool(
                 last_error = "API Key 账号不支持加入本地接入".to_string();
                 continue;
             }
-            if is_free_plan_type(account.plan_type.as_deref()) {
+            if collection.restrict_free_accounts
+                && is_free_plan_type(account.plan_type.as_deref())
+            {
                 last_error = "Free 账号不支持加入本地接入".to_string();
                 continue;
             }

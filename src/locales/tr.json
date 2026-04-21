@@ -1657,7 +1657,12 @@
         "available": "Normal görünüm",
         "save": "Koleksiyonu kaydet",
         "freeNotice": "Ücretsiz hesaplar henüz desteklenmemektedir. Free accounts cannot be selected.",
-        "freeUnsupported": "Ücretsiz hesaplar henüz desteklenmiyor"
+        "freeUnsupported": "Ücretsiz hesaplar henüz desteklenmiyor",
+        "restrictFreeToggle": "Free hesapları sınırla",
+        "freeNoticeRestricted": "Free hesaplar sınırlıdır. Seçmek için bunu kapatın.",
+        "freeNoticeUnstable": "Free hesap proxy'si kararsız olabilir. Dikkatli kullanın.",
+        "restrictFreeDisableConfirmTitle": "Free hesaplara izin ver",
+        "restrictFreeDisableConfirmMessage": "Free hesap proxy'si kararsız olabilir. Kullanmak istediğinizden emin misiniz?"
       },
       "entryAction": "API hizmetine ekle",
       "testAction": "API hizmetini test et",

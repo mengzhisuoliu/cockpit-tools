@@ -1657,7 +1657,12 @@
         "available": "Normale Übersicht",
         "save": "Sammlung speichern",
         "freeNotice": "Kostenlose Konten werden noch nicht unterstützt. Kostenlose Konten können nicht ausgewählt werden.",
-        "freeUnsupported": "Kostenlose Konten werden noch nicht unterstützt"
+        "freeUnsupported": "Kostenlose Konten werden noch nicht unterstützt",
+        "restrictFreeToggle": "Free-Konten begrenzen",
+        "freeNoticeRestricted": "Free-Konten sind eingeschränkt. Deaktiviere dies, um sie auszuwählen.",
+        "freeNoticeUnstable": "Proxy für Free-Konten kann instabil sein. Vorsichtig verwenden.",
+        "restrictFreeDisableConfirmTitle": "Free-Konten zulassen",
+        "restrictFreeDisableConfirmMessage": "Proxy für Free-Konten kann instabil sein. Wirklich verwenden?"
       },
       "entryAction": "Zum API-Dienst hinzufügen",
       "testAction": "API-Dienst testen",

@@ -2153,17 +2153,27 @@ export function CodexAccountsPage() {
     [localAccessCollection?.accountIds],
   );
 
-  const handleSaveLocalAccessAccounts = useCallback(async (accountIds: string[]) => {
+  const handleSaveLocalAccessAccounts = useCallback(async (
+    accountIds: string[],
+    options?: { restrictFreeAccounts?: boolean },
+  ) => {
     setLocalAccessSaving(true);
     try {
+      const restrictFreeAccounts = options?.restrictFreeAccounts ?? true;
       const accountById = new Map(accounts.map((account) => [account.id, account]));
       const filteredAccountIds = accountIds.filter((accountId) => {
         const account = accountById.get(accountId);
         if (!account) return false;
         if (isCodexApiKeyAccount(account)) return false;
-        return !isCodexExplicitFreePlanType(account.plan_type);
+        if (restrictFreeAccounts && isCodexExplicitFreePlanType(account.plan_type)) {
+          return false;
+        }
+        return true;
       });
-      const nextState = await codexLocalAccessService.saveCodexLocalAccessAccounts(filteredAccountIds);
+      const nextState = await codexLocalAccessService.saveCodexLocalAccessAccounts(
+        filteredAccountIds,
+        restrictFreeAccounts,
+      );
       setLocalAccessState(nextState);
       setMessage({
         text: t('codex.localAccess.saveSuccess', 'API 服务集合已更新'),
@@ -2182,6 +2192,9 @@ export function CodexAccountsPage() {
     try {
       await handleSaveLocalAccessAccounts(
         localAccessCollection.accountIds.filter((id) => id !== accountId),
+        {
+          restrictFreeAccounts: localAccessCollection.restrictFreeAccounts ?? true,
+        },
       );
     } catch (error) {
       setMessage({
@@ -4768,7 +4781,9 @@ export function CodexAccountsPage() {
           initialSelectedIds={localAccessModalSelectedIds}
           maskAccountText={maskAccountText}
           onClose={() => setShowLocalAccessModal(false)}
-          onSaveAccounts={({ accountIds }) => handleSaveLocalAccessAccounts(accountIds)}
+          onSaveAccounts={({ accountIds, restrictFreeAccounts }) =>
+            handleSaveLocalAccessAccounts(accountIds, { restrictFreeAccounts })
+          }
           onClearStats={handleClearLocalAccessStats}
           onRefreshStats={reloadLocalAccessState}
           onUpdatePort={handleUpdateLocalAccessPort}

@@ -10,6 +10,7 @@ export interface CodexLocalAccessCollection {
   port: number;
   apiKey: string;
   routingStrategy: CodexLocalAccessRoutingStrategy;
+  restrictFreeAccounts: boolean;
   accountIds: string[];
   createdAt: number;
   updatedAt: number;

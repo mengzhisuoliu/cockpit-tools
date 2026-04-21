@@ -16,6 +16,10 @@ impl Default for CodexLocalAccessRoutingStrategy {
     }
 }
 
+fn default_restrict_free_accounts() -> bool {
+    true
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CodexLocalAccessCollection {
@@ -24,6 +28,8 @@ pub struct CodexLocalAccessCollection {
     pub api_key: String,
     #[serde(default)]
     pub routing_strategy: CodexLocalAccessRoutingStrategy,
+    #[serde(default = "default_restrict_free_accounts")]
+    pub restrict_free_accounts: bool,
     pub account_ids: Vec<String>,
     pub created_at: i64,
     pub updated_at: i64,

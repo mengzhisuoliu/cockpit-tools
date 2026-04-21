@@ -1657,7 +1657,12 @@
         "available": "Běžný přehled",
         "save": "Uložit kolekci",
         "freeNotice": "Bezplatné účty zatím nejsou podporovány. Nelze vybrat bezplatné účty.",
-        "freeUnsupported": "Bezplatné účty zatím nejsou podporovány"
+        "freeUnsupported": "Bezplatné účty zatím nejsou podporovány",
+        "restrictFreeToggle": "Omezit Free účty",
+        "freeNoticeRestricted": "Free účty jsou omezené. Vypněte tuto volbu, chcete-li je vybrat.",
+        "freeNoticeUnstable": "Proxy pro Free účty může být nestabilní. Používejte opatrně.",
+        "restrictFreeDisableConfirmTitle": "Povolit Free účty",
+        "restrictFreeDisableConfirmMessage": "Proxy pro Free účty může být nestabilní. Opravdu je chcete použít?"
       },
       "entryAction": "Přidat do API služby",
       "testAction": "Otestovat API službu",

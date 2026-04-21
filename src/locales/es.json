@@ -1657,7 +1657,12 @@
         "available": "Panel normal",
         "save": "Guardar colección",
         "freeNotice": "Las cuentas gratuitas aún no son compatibles. No se pueden seleccionar cuentas gratuitas.",
-        "freeUnsupported": "Las cuentas gratuitas aún no son compatibles"
+        "freeUnsupported": "Las cuentas gratuitas aún no son compatibles",
+        "restrictFreeToggle": "Limitar cuentas Free",
+        "freeNoticeRestricted": "Las cuentas Free están limitadas. Desactiva esto para seleccionarlas.",
+        "freeNoticeUnstable": "El proxy de cuentas Free puede ser inestable. Úsalo con cuidado.",
+        "restrictFreeDisableConfirmTitle": "Permitir cuentas Free",
+        "restrictFreeDisableConfirmMessage": "El proxy de cuentas Free puede ser inestable. ¿Seguro que quieres usarlas?"
       },
       "entryAction": "Agregar al servicio API",
       "testAction": "Probar servicio API",

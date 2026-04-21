@@ -1706,7 +1706,12 @@
         "available": "Tampilan biasa",
         "save": "Simpan koleksi",
         "freeNotice": "Akun gratis belum didukung. Akun gratis tidak dapat dipilih.",
-        "freeUnsupported": "Akun gratis belum didukung"
+        "freeUnsupported": "Akun gratis belum didukung",
+        "restrictFreeToggle": "Batasi akun Free",
+        "freeNoticeRestricted": "Akun Free dibatasi. Nonaktifkan ini untuk memilihnya.",
+        "freeNoticeUnstable": "Proxy akun Free bisa tidak stabil. Gunakan dengan hati-hati.",
+        "restrictFreeDisableConfirmTitle": "Izinkan akun Free",
+        "restrictFreeDisableConfirmMessage": "Proxy akun Free bisa tidak stabil. Yakin ingin menggunakannya?"
       },
       "entryAction": "Tambahkan ke Layanan API",
       "testAction": "Uji Layanan API",

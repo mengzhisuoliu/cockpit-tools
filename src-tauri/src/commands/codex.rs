@@ -682,8 +682,13 @@ pub async fn codex_local_access_get_state() -> Result<CodexLocalAccessState, Str
 #[tauri::command]
 pub async fn codex_local_access_save_accounts(
     account_ids: Vec<String>,
+    restrict_free_accounts: Option<bool>,
 ) -> Result<CodexLocalAccessState, String> {
-    codex_local_access::save_local_access_accounts(account_ids).await
+    codex_local_access::save_local_access_accounts(
+        account_ids,
+        restrict_free_accounts.unwrap_or(true),
+    )
+    .await
 }
 
 #[tauri::command]

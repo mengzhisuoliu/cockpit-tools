@@ -50,7 +50,10 @@ interface CodexLocalAccessModalProps {
   initialSelectedIds: string[];
   maskAccountText: (value?: string | null) => string;
   onClose: () => void;
-  onSaveAccounts: (payload: { accountIds: string[] }) => Promise<unknown> | unknown;
+  onSaveAccounts: (payload: {
+    accountIds: string[];
+    restrictFreeAccounts: boolean;
+  }) => Promise<unknown> | unknown;
   onClearStats: () => Promise<unknown> | unknown;
   onRefreshStats: () => Promise<unknown> | unknown;
   onUpdatePort: (port: number) => Promise<unknown> | unknown;
@@ -115,6 +118,7 @@ export function CodexLocalAccessModal({
   const [filterTypes, setFilterTypes] = useState<string[]>([]);
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [groupFilter, setGroupFilter] = useState<string[]>([]);
+  const [restrictFreeAccounts, setRestrictFreeAccounts] = useState(true);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [portInput, setPortInput] = useState('');
@@ -207,14 +211,8 @@ export function CodexLocalAccessModal({
     [oauthAccounts],
   );
   const normalizedInitialSelectedIds = useMemo(
-    () =>
-      initialSelectedIds.filter((accountId) => {
-        if (!oauthAccountIdSet.has(accountId)) return false;
-        const account = oauthAccounts.find((item) => item.id === accountId);
-        if (!account) return false;
-        return !isCodexExplicitFreePlanType(account.plan_type);
-      }),
-    [initialSelectedIds, oauthAccountIdSet, oauthAccounts],
+    () => initialSelectedIds.filter((accountId) => oauthAccountIdSet.has(accountId)),
+    [initialSelectedIds, oauthAccountIdSet],
   );
 
   useEffect(() => {
@@ -224,6 +222,7 @@ export function CodexLocalAccessModal({
     setFilterTypes([]);
     setTagFilter([]);
     setGroupFilter([]);
+    setRestrictFreeAccounts(collection?.restrictFreeAccounts ?? true);
     setError('');
     setNotice('');
     setKeyVisible(false);
@@ -235,7 +234,7 @@ export function CodexLocalAccessModal({
         searchInputRef.current?.focus();
       }, 0);
     }
-  }, [collection?.port, isOpen, mode, normalizedInitialSelectedIds]);
+  }, [collection?.port, collection?.restrictFreeAccounts, isOpen, mode, normalizedInitialSelectedIds]);
 
   const normalizeTag = (value: string) => value.trim().toLowerCase();
 
@@ -369,10 +368,12 @@ export function CodexLocalAccessModal({
 
   const visibleSelectableAccounts = useMemo(
     () =>
-      visibleAccounts.filter(
-        (account) => !isCodexExplicitFreePlanType(account.plan_type),
-      ),
-    [visibleAccounts],
+      visibleAccounts.filter((account) => {
+        if (!restrictFreeAccounts) return true;
+        if (!isCodexExplicitFreePlanType(account.plan_type)) return true;
+        return selected.has(account.id);
+      }),
+    [restrictFreeAccounts, selected, visibleAccounts],
   );
 
   const selectedVisibleCount = useMemo(
@@ -395,8 +396,10 @@ export function CodexLocalAccessModal({
   }, [allVisibleSelected, selectedVisibleCount]);
 
   const selectionDirty = useMemo(
-    () => !areSetsEqual(selected, new Set(normalizedInitialSelectedIds)),
-    [normalizedInitialSelectedIds, selected],
+    () =>
+      !areSetsEqual(selected, new Set(normalizedInitialSelectedIds)) ||
+      restrictFreeAccounts !== (collection?.restrictFreeAccounts ?? true),
+    [collection?.restrictFreeAccounts, normalizedInitialSelectedIds, restrictFreeAccounts, selected],
   );
 
   const allStatsByAccountId = useMemo(() => {
@@ -531,12 +534,20 @@ export function CodexLocalAccessModal({
     });
   };
 
+  const handleToggleRestrictFreeAccounts = async () => {
+    if (actionBusy) return;
+    setRestrictFreeAccounts((prev) => !prev);
+  };
+
   const toggleSelect = (accountId: string) => {
     if (actionBusy) return;
     const account = oauthAccountById.get(accountId);
     if (!account) return;
-    if (isCodexExplicitFreePlanType(account.plan_type)) return;
     setSelected((prev) => {
+      const isFreeAccount = isCodexExplicitFreePlanType(account.plan_type);
+      if (isFreeAccount && restrictFreeAccounts && !prev.has(accountId)) {
+        return prev;
+      }
       const next = new Set(prev);
       if (next.has(accountId)) {
         next.delete(accountId);
@@ -554,9 +565,15 @@ export function CodexLocalAccessModal({
       const filtered = Array.from(selected).filter((accountId) => {
         const account = oauthAccountById.get(accountId);
         if (!account) return false;
-        return !isCodexExplicitFreePlanType(account.plan_type);
+        if (restrictFreeAccounts && isCodexExplicitFreePlanType(account.plan_type)) {
+          return false;
+        }
+        return true;
       });
-      await onSaveAccounts({ accountIds: filtered });
+      await onSaveAccounts({
+        accountIds: filtered,
+        restrictFreeAccounts,
+      });
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -1045,15 +1062,20 @@ export function CodexLocalAccessModal({
                   <FolderPlus size={16} />
                   <span>{t('codex.localAccess.memberTitle', '集合成员')}</span>
                 </div>
-              </div>
-              <div className="codex-local-access-inline-info">
-                <CircleAlert size={14} />
-                <span>
-                  {t(
-                    'codex.localAccess.modal.freeNotice',
-                    '暂不支持 Free 账号，Free 账号不可勾选。',
-                  )}
-                </span>
+                <label className="codex-local-access-free-toggle">
+                  <input
+                    type="checkbox"
+                    checked={restrictFreeAccounts}
+                    onChange={() => void handleToggleRestrictFreeAccounts()}
+                    disabled={actionBusy}
+                  />
+                  <span>
+                    {t(
+                      'codex.localAccess.modal.restrictFreeToggle',
+                      '限制 Free 账号使用',
+                    )}
+                  </span>
+                </label>
               </div>
 
               <div className="group-account-toolbar">
@@ -1142,19 +1164,21 @@ export function CodexLocalAccessModal({
                     const presentation = buildCodexAccountPresentation(account, t);
                     const isChecked = selected.has(account.id);
                     const isFreeAccount = isCodexExplicitFreePlanType(account.plan_type);
+                    const isFreeSelectionBlocked =
+                      isFreeAccount && restrictFreeAccounts && !isChecked;
                     const accountStats = allStatsByAccountId.get(account.id)?.usage;
 
                     return (
                       <label
                         key={account.id}
                         className={`group-account-item${isChecked ? ' is-current' : ''}${
-                          isFreeAccount ? ' is-disabled' : ''
+                          isFreeSelectionBlocked ? ' is-disabled' : ''
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          disabled={actionBusy || isFreeAccount}
+                          disabled={actionBusy || isFreeSelectionBlocked}
                           onChange={() => toggleSelect(account.id)}
                         />
                         <div className="group-account-main">
@@ -1174,14 +1198,6 @@ export function CodexLocalAccessModal({
                               defaultValue: '{{count}} 次请求',
                             })}
                           </span>
-                          {isFreeAccount && (
-                            <span className="codex-local-access-member-unsupported">
-                              {t(
-                                'codex.localAccess.modal.freeUnsupported',
-                                '暂不支持 Free 账号',
-                              )}
-                            </span>
-                          )}
                           {renderQuotaPreview(presentation, 2)}
                         </div>
                         </div>

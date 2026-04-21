@@ -1657,7 +1657,12 @@
         "available": "Bảng thông thường",
         "save": "Lưu bộ",
         "freeNotice": "Tài khoản miễn phí chưa được hỗ trợ. Tài khoản miễn phí không thể được chọn.",
-        "freeUnsupported": "Tài khoản miễn phí chưa được hỗ trợ"
+        "freeUnsupported": "Tài khoản miễn phí chưa được hỗ trợ",
+        "restrictFreeToggle": "Giới hạn tài khoản Free",
+        "freeNoticeRestricted": "Tài khoản Free bị giới hạn. Tắt tùy chọn này để chọn chúng.",
+        "freeNoticeUnstable": "Proxy tài khoản Free có thể không ổn định. Hãy dùng thận trọng.",
+        "restrictFreeDisableConfirmTitle": "Cho phép tài khoản Free",
+        "restrictFreeDisableConfirmMessage": "Proxy tài khoản Free có thể không ổn định. Bạn có chắc muốn dùng không?"
       },
       "entryAction": "Thêm vào dịch vụ API",
       "testAction": "Kiểm tra dịch vụ API",

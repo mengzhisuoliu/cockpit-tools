@@ -7,6 +7,17 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.22.6] - 2026-04-21
+
+### 新增
+- **外部导入现已覆盖启动期与运行期的 Deep Link 唤起链路**：启动参数、单实例唤起、`deep_link.on_open_url` / `get_current` 以及 macOS `RunEvent::Opened` 现已统一走同一导入处理器，并支持待处理 payload 投递。
+- **Codex API 服务成员管理现已新增可持久化的“限制 Free 账号”开关**：集合配置新增 `restrictFreeAccounts`（默认 `true`），需要时可显式放开 Free 套餐账号。
+
+### 变更
+- **Codex API 服务账号过滤现已端到端遵循已保存的 Free 限制策略**：保存成员、运行时集合清洗、请求代理候选过滤现统一使用同一规则，不再固定强制屏蔽 Free 套餐。
+- **Antigravity 外部导入 token 处理现已在打开添加弹框前自动归一化 OAuth 刷新令牌**：`1//...` 负载会自动包装为 JSON（`{"refresh_token":"..."}`），减少手工转换 token 的步骤。
+
+---
 ## [0.22.5] - 2026-04-20
 
 ### 修复

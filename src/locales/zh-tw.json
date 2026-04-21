@@ -1657,7 +1657,12 @@
         "available": "一般面板",
         "save": "儲存集合",
         "freeNotice": "暫不支援 Free 帳號，Free 帳號不可勾選。",
-        "freeUnsupported": "暫不支援 Free 帳號"
+        "freeUnsupported": "暫不支援 Free 帳號",
+        "restrictFreeToggle": "限制 Free 帳號使用",
+        "freeNoticeRestricted": "已限制 Free 帳號，關閉後才可勾選。",
+        "freeNoticeUnstable": "Free 帳號反代可能不穩定，請謹慎使用。",
+        "restrictFreeDisableConfirmTitle": "確認允許 Free 帳號",
+        "restrictFreeDisableConfirmMessage": "Free 帳號反代可能不穩定，確定要使用嗎？"
       },
       "entryAction": "加入 API 服務",
       "testAction": "測試 API 服務",

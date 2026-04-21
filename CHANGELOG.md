@@ -7,6 +7,17 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.6] - 2026-04-21
+
+### Added
+- **External provider import now handles deep-link wakeups across startup and runtime paths**: startup arguments, single-instance wakeups, `deep_link.on_open_url` / `get_current`, and macOS `RunEvent::Opened` now all route through the same import handler with pending payload delivery.
+- **Codex API Service member management now includes a persisted `Limit Free Accounts` toggle**: collection settings add `restrictFreeAccounts` (default `true`), so Free-plan accounts can be explicitly allowed when needed.
+
+### Changed
+- **Codex API Service account filtering now follows the persisted Free-account restriction end-to-end**: save flow, runtime collection sanitization, and request proxy candidate filtering now use the same rule instead of always hard-blocking Free plans.
+- **Antigravity external-import token handling now auto-normalizes raw OAuth refresh tokens before opening the add-account modal**: `1//...` payloads are automatically wrapped into JSON (`{"refresh_token":"..."}`) to reduce manual token conversion.
+
+---
 ## [0.22.5] - 2026-04-20
 
 ### Fixed

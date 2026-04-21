@@ -1657,7 +1657,12 @@
         "available": "Vue normale",
         "save": "Enregistrer la collection",
         "freeNotice": "Les comptes gratuits ne sont pas encore pris en charge. Les comptes gratuits ne peuvent pas être sélectionnés.",
-        "freeUnsupported": "Les comptes gratuits ne sont pas encore pris en charge"
+        "freeUnsupported": "Les comptes gratuits ne sont pas encore pris en charge",
+        "restrictFreeToggle": "Limiter les comptes Free",
+        "freeNoticeRestricted": "Les comptes Free sont limités. Désactivez ceci pour les sélectionner.",
+        "freeNoticeUnstable": "Le proxy des comptes Free peut être instable. À utiliser avec prudence.",
+        "restrictFreeDisableConfirmTitle": "Autoriser les comptes Free",
+        "restrictFreeDisableConfirmMessage": "Le proxy des comptes Free peut être instable. Voulez-vous vraiment les utiliser ?"
       },
       "entryAction": "Ajouter au service API",
       "testAction": "Tester le service API",

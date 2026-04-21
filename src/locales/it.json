@@ -1657,7 +1657,12 @@
         "available": "Panoramica normale",
         "save": "Salva raccolta",
         "freeNotice": "Gli account gratuiti non sono ancora supportati. Non è possibile selezionare account gratuiti.",
-        "freeUnsupported": "Gli account gratuiti non sono ancora supportati"
+        "freeUnsupported": "Gli account gratuiti non sono ancora supportati",
+        "restrictFreeToggle": "Limita account Free",
+        "freeNoticeRestricted": "Gli account Free sono limitati. Disattiva questa opzione per selezionarli.",
+        "freeNoticeUnstable": "Il proxy degli account Free può essere instabile. Usalo con cautela.",
+        "restrictFreeDisableConfirmTitle": "Consenti account Free",
+        "restrictFreeDisableConfirmMessage": "Il proxy degli account Free può essere instabile. Vuoi usarli davvero?"
       },
       "entryAction": "Aggiungi al servizio API",
       "testAction": "Testa il servizio API",
