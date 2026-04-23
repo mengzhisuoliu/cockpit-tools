@@ -1678,7 +1678,11 @@
       "label": "导出格式",
       "cockpitTools": "Cockpit Tools",
       "sub2api": "sub2api 格式",
-      "cpa": "cpa 格式"
+      "cpa": "cpa 格式",
+      "downloadAll": "一键下载全部",
+      "cpaCardTitle": "账号 {{index}}",
+      "savedFolder": "保存目录",
+      "savedPath": "保存路径"
     },
     "localAccess": {
       "title": "API 服务",

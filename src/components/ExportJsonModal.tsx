@@ -1,12 +1,15 @@
 import { Check, Copy, Download, Eye, EyeOff, FolderOpen, X } from 'lucide-react';
 import { type ReactNode, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ModalErrorMessage } from './ModalErrorMessage';
 
 interface ExportJsonModalProps {
   isOpen: boolean;
   title: string;
   jsonContent: string;
   customContent?: ReactNode;
+  errorMessage?: string | null;
+  errorScrollKey?: string | number;
   hidden: boolean;
   copied: boolean;
   saving: boolean;
@@ -68,6 +71,8 @@ export function ExportJsonModal(props: ExportJsonModalProps) {
     title,
     jsonContent,
     customContent,
+    errorMessage,
+    errorScrollKey,
     hidden,
     copied,
     saving,
@@ -106,6 +111,7 @@ export function ExportJsonModal(props: ExportJsonModalProps) {
               {toolbarContent}
             </div>
           ) : null}
+          <ModalErrorMessage message={errorMessage} scrollKey={errorScrollKey} />
           {customContent ? (
             customContent
           ) : (

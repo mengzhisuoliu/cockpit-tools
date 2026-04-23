@@ -7,6 +7,18 @@
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)。
 
 ---
+## [0.22.10] - 2026-04-24
+
+### 变更
+- **Windsurf Auth1 账号注入现已与官方客户端 token 语义对齐**：Auth1 链路会把 `devin-session-token$...` 作为本地会话写入的主访问 token，在可用时同步写入 `sessionToken` 与 `authMethod=auth1`，并移除额外 synthetic API key 补拉请求依赖。
+- **Windsurf 启动行为现已默认复用现有窗口，不再强制新开窗口**：默认启动命令不再强制 `open -n`；实例启动与默认启动统一跟随应用复用窗口行为。
+- **Codex JSON 导出现已在同一弹框支持 CPA 多文档工作流**：CPA 导出可按账号卡片展示，支持逐条保存账号 JSON，也支持选择目录后一键批量下载全部文件。
+
+### 修复
+- **导出失败现已在当前导出弹框内直接提示**：复制/保存/打开目录失败会在弹框内固定错误区展示，并在重试、切换预览状态、切换导出格式或关闭弹框时清理旧错误，避免残留重复提示。
+- **Windsurf 扩展状态现已为受支持前缀写入兼容迁移 token**：对 `sk-ws-01-`、`devin-session-token$`、`cog_` 令牌会同步写入 `windsurf.pendingApiKeyMigration`，避免启动后反复进入迁移链路。
+
+---
 ## [0.22.9] - 2026-04-23
 
 ### 新增

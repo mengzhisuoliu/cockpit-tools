@@ -38,7 +38,6 @@ fn inject_bound_account_for_instance_start(
         bind_id, safe_dir
     ));
 
-    modules::windsurf_instance::close_windsurf(&[user_data_dir.to_string()], 20)?;
     modules::windsurf_instance::inject_account_to_profile(Path::new(user_data_dir), bind_id)?;
     modules::logger::log_info(&format!("Windsurf 账号注入完成: {}", account.github_login));
     Ok(())
@@ -226,13 +225,8 @@ pub async fn windsurf_start_instance(instance_id: String) -> Result<InstanceProf
         let default_dir = modules::windsurf_instance::get_default_windsurf_user_data_dir()?;
         let default_dir_str = default_dir.to_string_lossy().to_string();
         let default_settings = modules::windsurf_instance::load_default_settings()?;
-        if let Some(pid) =
-            modules::windsurf_instance::resolve_windsurf_pid(default_settings.last_pid, None)
-        {
-            modules::process::close_pid(pid, 20)?;
-            let _ = modules::windsurf_instance::update_default_pid(None)?;
-        }
         modules::windsurf_instance::close_windsurf(&[default_dir_str.clone()], 20)?;
+        let _ = modules::windsurf_instance::update_default_pid(None)?;
         inject_bound_account_for_instance_start(
             &default_dir_str,
             default_settings.bind_account_id.as_deref(),
@@ -268,14 +262,8 @@ pub async fn windsurf_start_instance(instance_id: String) -> Result<InstanceProf
         .find(|item| item.id == instance_id)
         .ok_or("实例不存在")?;
 
-    if let Some(pid) = modules::windsurf_instance::resolve_windsurf_pid(
-        instance.last_pid,
-        Some(&instance.user_data_dir),
-    ) {
-        modules::process::close_pid(pid, 20)?;
-        let _ = modules::windsurf_instance::update_instance_pid(&instance.id, None)?;
-    }
     modules::windsurf_instance::close_windsurf(&[instance.user_data_dir.clone()], 20)?;
+    let _ = modules::windsurf_instance::update_instance_pid(&instance.id, None)?;
     inject_bound_account_for_instance_start(
         &instance.user_data_dir,
         instance.bind_account_id.as_deref(),
@@ -304,16 +292,8 @@ pub async fn windsurf_stop_instance(instance_id: String) -> Result<InstanceProfi
         let default_dir = modules::windsurf_instance::get_default_windsurf_user_data_dir()?;
         let default_dir_str = default_dir.to_string_lossy().to_string();
         let default_settings = modules::windsurf_instance::load_default_settings()?;
-        if let Some(pid) =
-            modules::windsurf_instance::resolve_windsurf_pid(default_settings.last_pid, None)
-        {
-            modules::process::close_pid(pid, 20)?;
-        }
-        let updated_settings = modules::windsurf_instance::update_default_pid(None)?;
-        let running = updated_settings
-            .last_pid
-            .and_then(|pid| modules::windsurf_instance::resolve_windsurf_pid(Some(pid), None))
-            .is_some();
+        modules::windsurf_instance::close_windsurf(&[default_dir_str.clone()], 20)?;
+        let _ = modules::windsurf_instance::update_default_pid(None)?;
         return Ok(InstanceProfileView {
             id: DEFAULT_INSTANCE_ID.to_string(),
             name: String::new(),
@@ -324,7 +304,7 @@ pub async fn windsurf_stop_instance(instance_id: String) -> Result<InstanceProfi
             created_at: 0,
             last_launched_at: None,
             last_pid: None,
-            running,
+            running: false,
             initialized: is_profile_initialized(&default_dir.to_string_lossy()),
             is_default: true,
             follow_local_account: false,
@@ -338,12 +318,7 @@ pub async fn windsurf_stop_instance(instance_id: String) -> Result<InstanceProfi
         .find(|item| item.id == instance_id)
         .ok_or("实例不存在")?;
 
-    if let Some(pid) = modules::windsurf_instance::resolve_windsurf_pid(
-        instance.last_pid,
-        Some(&instance.user_data_dir),
-    ) {
-        modules::process::close_pid(pid, 20)?;
-    }
+    modules::windsurf_instance::close_windsurf(&[instance.user_data_dir.clone()], 20)?;
     let updated = modules::windsurf_instance::update_instance_pid(&instance.id, None)?;
     let initialized = is_profile_initialized(&updated.user_data_dir);
     Ok(InstanceProfileView::from_profile(

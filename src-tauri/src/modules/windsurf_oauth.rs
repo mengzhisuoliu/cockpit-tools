@@ -30,8 +30,6 @@ const FIREBASE_SIGN_IN_URL: &str =
 
 const POST_AUTH_METHOD_PATH: &str =
     "/exa.seat_management_pb.SeatManagementService/WindsurfPostAuth";
-const GET_CURRENT_USER_METHOD_PATH: &str =
-    "/exa.seat_management_pb.SeatManagementService/GetCurrentUser";
 const GET_PLAN_STATUS_METHOD_PATH: &str =
     "/exa.seat_management_pb.SeatManagementService/GetPlanStatus";
 
@@ -72,8 +70,6 @@ impl WindsurfPasswordAuthMethod {
 
 lazy_static::lazy_static! {
     static ref PENDING_OAUTH_STATE: Arc<Mutex<Option<PendingOAuthState>>> = Arc::new(Mutex::new(None));
-    static ref DEVIN_SYNTHETIC_API_KEY_RE: regex::Regex =
-        regex::Regex::new(r#"devin-synthetic-apikey\$[^\x00-\x1f\s"\\]+"#).unwrap();
 }
 
 #[derive(Debug, Clone)]
@@ -1513,54 +1509,6 @@ async fn exchange_auth1_for_session(
     Err("WindsurfPostAuth 未返回 sessionToken".to_string())
 }
 
-fn extract_auth1_synthetic_api_key(proto_response: &[u8]) -> Option<String> {
-    let text = String::from_utf8_lossy(proto_response);
-    DEVIN_SYNTHETIC_API_KEY_RE
-        .find(&text)
-        .map(|matched| matched.as_str().to_string())
-}
-
-async fn fetch_auth1_synthetic_api_key(session_token: &str) -> Result<String, String> {
-    let mut body = crate::utils::protobuf::encode_string_field(1, session_token);
-    body.extend(crate::utils::protobuf::encode_varint((2 << 3) as u64));
-    body.extend(crate::utils::protobuf::encode_varint(1));
-
-    let url = format!(
-        "{}{}",
-        WINDSURF_BACKEND_API_BASE_URL, GET_CURRENT_USER_METHOD_PATH
-    );
-    let client = reqwest::Client::new();
-    let response = client
-        .post(url)
-        .header("Content-Type", "application/proto")
-        .header("Accept", "*/*")
-        .header("Connect-Protocol-Version", "1")
-        .header("X-Auth-Token", session_token)
-        .header("Origin", "https://windsurf.com")
-        .header("Referer", "https://windsurf.com/profile")
-        .header("User-Agent", APP_USER_AGENT)
-        .body(body)
-        .send()
-        .await
-        .map_err(|e| format!("Auth1 获取用户信息失败: {}", e))?;
-
-    let status = response.status();
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| format!("读取 Auth1 用户信息响应失败: {}", e))?;
-    if !status.is_success() {
-        return Err(format!(
-            "Auth1 获取用户信息失败: HTTP {}, body_len={}",
-            status.as_u16(),
-            bytes.len()
-        ));
-    }
-
-    extract_auth1_synthetic_api_key(bytes.as_ref())
-        .ok_or_else(|| "Auth1 响应中未找到可用的 synthetic apiKey".to_string())
-}
-
 fn parse_proto_fields(
     data: &[u8],
 ) -> Result<std::collections::HashMap<u32, Vec<ProtoFieldValue>>, String> {
@@ -1734,7 +1682,8 @@ async fn build_payload_from_auth1_session_token(
     session_token: &str,
     auth_status_raw: Option<Value>,
 ) -> Result<WindsurfOAuthCompletePayload, String> {
-    let api_key = fetch_auth1_synthetic_api_key(session_token).await?;
+    // 与官方客户端一致：Auth1 链路优先使用 devin-session-token 作为 metadata.apiKey。
+    let api_key = session_token.trim().to_string();
     let api_server_url = resolve_api_server_url(
         auth_status_raw.as_ref(),
         Some(WINDSURF_AUTH1_API_SERVER_URL),

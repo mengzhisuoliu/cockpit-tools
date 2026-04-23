@@ -1678,7 +1678,11 @@
       "label": "Export Format",
       "cockpitTools": "Cockpit Tools",
       "sub2api": "sub2api",
-      "cpa": "cpa"
+      "cpa": "cpa",
+      "downloadAll": "Download All",
+      "cpaCardTitle": "Account {{index}}",
+      "savedFolder": "Saved Folder",
+      "savedPath": "Saved Path"
     },
     "localAccess": {
       "title": "API Service",

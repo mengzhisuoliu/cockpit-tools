@@ -50,7 +50,7 @@ import { useCodexAccountStore } from '../stores/useCodexAccountStore';
 import * as codexService from '../services/codexService';
 import * as codexLocalAccessService from '../services/codexLocalAccessService';
 import { TagEditModal } from '../components/TagEditModal';
-import { ExportJsonModal } from '../components/ExportJsonModal';
+import { ExportJsonModal, maskJsonPreviewContent } from '../components/ExportJsonModal';
 import { ModalErrorMessage, useModalErrorState } from '../components/ModalErrorMessage';
 import { PaginationControls } from '../components/PaginationControls';
 import { CodexAccountGroupModal, CodexAddToGroupModal } from '../components/CodexAccountGroupModal';
@@ -128,8 +128,8 @@ import {
   usePagination,
 } from '../hooks/usePagination';
 import {
+  buildCodexExportContent,
   buildCodexExportFileNameBase,
-  transformCodexExportJson,
   type CodexExportFormat,
 } from '../utils/codexExportFormats';
 import {
@@ -245,6 +245,14 @@ function getDirectoryPath(filePath: string): string {
   return filePath.slice(0, slashIndex);
 }
 
+function joinFilePath(directory: string, fileName: string): string {
+  if (!directory) return fileName;
+  const separator = directory.includes('\\') ? '\\' : '/';
+  return directory.endsWith('/') || directory.endsWith('\\')
+    ? `${directory}${fileName}`
+    : `${directory}${separator}${fileName}`;
+}
+
 export function CodexAccountsPage() {
   const [activeTab, setActiveTab] = useState<CodexTab>('overview');
   const untaggedKey = '__untagged__';
@@ -258,7 +266,16 @@ export function CodexAccountsPage() {
   const [formattedExportJsonCopied, setFormattedExportJsonCopied] = useState(false);
   const [formattedSavingExportJson, setFormattedSavingExportJson] = useState(false);
   const [formattedExportSavedPath, setFormattedExportSavedPath] = useState<string | null>(null);
+  const [formattedExportSavedPathIsDirectory, setFormattedExportSavedPathIsDirectory] = useState(false);
   const [formattedExportPathCopied, setFormattedExportPathCopied] = useState(false);
+  const [formattedBatchSavingExportJson, setFormattedBatchSavingExportJson] = useState(false);
+  const [formattedSavingExportDocumentId, setFormattedSavingExportDocumentId] = useState<string | null>(null);
+  const {
+    message: exportModalError,
+    scrollKey: exportModalErrorScrollKey,
+    report: reportExportModalError,
+    clear: clearExportModalError,
+  } = useModalErrorState();
 
   // ─── Codex 账号分组 ────────────────────────────────────────────
   const [codexGroups, setCodexGroups] = useState<CodexAccountGroup[]>([]);
@@ -549,8 +566,12 @@ export function CodexAccountsPage() {
     setFormattedExportJsonCopied(false);
     setFormattedSavingExportJson(false);
     setFormattedExportSavedPath(null);
+    setFormattedExportSavedPathIsDirectory(false);
     setFormattedExportPathCopied(false);
-  }, [exportJsonContent, showExportModal]);
+    setFormattedBatchSavingExportJson(false);
+    setFormattedSavingExportDocumentId(null);
+    clearExportModalError();
+  }, [clearExportModalError, exportJsonContent, showExportModal]);
 
   useEffect(() => {
     if (!showExportModal) {
@@ -558,18 +579,39 @@ export function CodexAccountsPage() {
     }
     setFormattedExportJsonCopied(false);
     setFormattedExportSavedPath(null);
+    setFormattedExportSavedPathIsDirectory(false);
     setFormattedExportPathCopied(false);
-  }, [exportFormat, showExportModal]);
+    setFormattedBatchSavingExportJson(false);
+    setFormattedSavingExportDocumentId(null);
+    clearExportModalError();
+  }, [clearExportModalError, exportFormat, showExportModal]);
 
-  const formattedExportJsonContent = useMemo(() => {
-    if (!exportJsonContent) return '';
+  const formattedExportContent = useMemo(() => {
+    if (!exportJsonContent) {
+      return {
+        type: 'single' as const,
+        fileNameBase: buildCodexExportFileNameBase(exportFileNameBase, exportFormat),
+        jsonContent: '',
+      };
+    }
     try {
-      return transformCodexExportJson(exportJsonContent, exportFormat);
+      return buildCodexExportContent(exportJsonContent, exportFormat, exportFileNameBase);
     } catch (error) {
       console.error('[CodexExport] transform failed:', error);
-      return exportJsonContent;
+      return buildCodexExportContent(exportJsonContent, 'cockpit_tools', exportFileNameBase);
     }
-  }, [exportFormat, exportJsonContent]);
+  }, [exportFileNameBase, exportFormat, exportJsonContent]);
+
+  const formattedExportJsonContent = useMemo(() => {
+    return formattedExportContent.type === 'single' ? formattedExportContent.jsonContent : '';
+  }, [formattedExportContent]);
+
+  const formattedExportDocuments = useMemo(() => {
+    if (formattedExportContent.type !== 'multiple') {
+      return [];
+    }
+    return formattedExportContent.documents;
+  }, [formattedExportContent]);
 
   const handleExportByIds = useCallback(
     async (ids: string[], fileNameBase?: string) => {
@@ -593,46 +635,118 @@ export function CodexAccountsPage() {
     setFormattedExportJsonCopied(false);
     setFormattedSavingExportJson(false);
     setFormattedExportSavedPath(null);
+    setFormattedExportSavedPathIsDirectory(false);
     setFormattedExportPathCopied(false);
-  }, [closeExportModal]);
+    setFormattedBatchSavingExportJson(false);
+    setFormattedSavingExportDocumentId(null);
+    clearExportModalError();
+  }, [clearExportModalError, closeExportModal]);
+
+  const handleToggleExportJsonHidden = useCallback(() => {
+    clearExportModalError();
+    toggleExportJsonHidden();
+  }, [clearExportModalError, toggleExportJsonHidden]);
 
   const copyFormattedExportJson = useCallback(async () => {
-    if (!formattedExportJsonContent) return;
+    if (!formattedExportJsonContent || formattedExportDocuments.length > 0) return;
     try {
+      clearExportModalError();
       await navigator.clipboard.writeText(formattedExportJsonContent);
       setFormattedExportJsonCopied(true);
       window.setTimeout(() => setFormattedExportJsonCopied(false), 1200);
     } catch (error) {
       console.error('[CodexExport] copy failed:', error);
-      setMessage({
-        text: t('messages.exportFailed', { error: String(error) }),
-        tone: 'error',
-      });
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
     }
-  }, [formattedExportJsonContent, setMessage, t]);
+  }, [clearExportModalError, formattedExportDocuments.length, formattedExportJsonContent, reportExportModalError, t]);
 
   const saveFormattedExportJson = useCallback(async () => {
-    if (!formattedExportJsonContent || formattedSavingExportJson) return;
+    if (!formattedExportJsonContent || formattedSavingExportJson || formattedExportDocuments.length > 0) return;
     setFormattedSavingExportJson(true);
     try {
+      clearExportModalError();
       const fileName = buildExportFileName(
         buildCodexExportFileNameBase(exportFileNameBase, exportFormat),
       );
       const savedPath = await saveJsonFile(formattedExportJsonContent, fileName);
       if (savedPath) {
         setFormattedExportSavedPath(savedPath);
+        setFormattedExportSavedPathIsDirectory(false);
         setFormattedExportPathCopied(false);
       }
     } catch (error) {
       console.error('[CodexExport] save failed:', error);
-      setMessage({
-        text: t('messages.exportFailed', { error: String(error) }),
-        tone: 'error',
-      });
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
     } finally {
       setFormattedSavingExportJson(false);
     }
-  }, [exportFileNameBase, exportFormat, formattedExportJsonContent, formattedSavingExportJson, saveJsonFile, setMessage, t]);
+  }, [clearExportModalError, exportFileNameBase, exportFormat, formattedExportDocuments.length, formattedExportJsonContent, formattedSavingExportJson, reportExportModalError, saveJsonFile, t]);
+
+  const saveFormattedExportDocument = useCallback(async (
+    documentId: string,
+    jsonContent: string,
+    fileNameBase: string,
+  ) => {
+    if (!jsonContent || formattedSavingExportDocumentId) return;
+    setFormattedSavingExportDocumentId(documentId);
+    try {
+      clearExportModalError();
+      const savedPath = await saveJsonFile(jsonContent, buildExportFileName(fileNameBase));
+      if (savedPath) {
+        setFormattedExportSavedPath(savedPath);
+        setFormattedExportSavedPathIsDirectory(false);
+        setFormattedExportPathCopied(false);
+      }
+    } catch (error) {
+      console.error('[CodexExport] save single CPA document failed:', error);
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
+    } finally {
+      setFormattedSavingExportDocumentId(null);
+    }
+  }, [clearExportModalError, formattedSavingExportDocumentId, reportExportModalError, saveJsonFile, t]);
+
+  const saveAllFormattedExportDocuments = useCallback(async () => {
+    if (!formattedExportDocuments.length || formattedBatchSavingExportJson) return;
+    setFormattedBatchSavingExportJson(true);
+    try {
+      clearExportModalError();
+      let defaultPath: string | undefined;
+      try {
+        defaultPath = await invoke<string>('get_downloads_dir');
+      } catch (error) {
+        console.warn('[CodexExport] get downloads dir failed:', error);
+      }
+
+      const selected = await openFileDialog({
+        directory: true,
+        multiple: false,
+        defaultPath,
+      });
+      if (!selected || Array.isArray(selected)) {
+        return;
+      }
+
+      for (const document of formattedExportDocuments) {
+        const targetPath = joinFilePath(
+          selected,
+          buildExportFileName(document.fileNameBase),
+        );
+        await invoke('save_text_file', {
+          path: targetPath,
+          content: document.jsonContent,
+        });
+      }
+
+      setFormattedExportSavedPath(selected);
+      setFormattedExportSavedPathIsDirectory(true);
+      setFormattedExportPathCopied(false);
+    } catch (error) {
+      console.error('[CodexExport] save CPA documents failed:', error);
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
+    } finally {
+      setFormattedBatchSavingExportJson(false);
+    }
+  }, [clearExportModalError, formattedBatchSavingExportJson, formattedExportDocuments, reportExportModalError, t]);
 
   const canOpenFormattedExportSavedDirectory = useMemo(
     () => Boolean(formattedExportSavedPath),
@@ -642,30 +756,145 @@ export function CodexAccountsPage() {
   const openFormattedExportSavedDirectory = useCallback(async () => {
     if (!formattedExportSavedPath) return;
     try {
-      await openPath(getDirectoryPath(formattedExportSavedPath));
+      clearExportModalError();
+      await openPath(
+        formattedExportSavedPathIsDirectory
+          ? formattedExportSavedPath
+          : getDirectoryPath(formattedExportSavedPath),
+      );
     } catch (error) {
       console.error('[CodexExport] open directory failed:', error);
-      setMessage({
-        text: t('messages.exportFailed', { error: String(error) }),
-        tone: 'error',
-      });
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
     }
-  }, [formattedExportSavedPath, setMessage, t]);
+  }, [clearExportModalError, formattedExportSavedPath, formattedExportSavedPathIsDirectory, reportExportModalError, t]);
 
   const copyFormattedExportSavedPath = useCallback(async () => {
     if (!formattedExportSavedPath) return;
     try {
+      clearExportModalError();
       await navigator.clipboard.writeText(formattedExportSavedPath);
       setFormattedExportPathCopied(true);
       window.setTimeout(() => setFormattedExportPathCopied(false), 1200);
     } catch (error) {
       console.error('[CodexExport] copy path failed:', error);
-      setMessage({
-        text: t('messages.exportFailed', { error: String(error) }),
-        tone: 'error',
-      });
+      reportExportModalError(t('messages.exportFailed', { error: String(error) }));
     }
-  }, [formattedExportSavedPath, setMessage, t]);
+  }, [clearExportModalError, formattedExportSavedPath, reportExportModalError, t]);
+
+  const formattedExportModalCustomContent = useMemo(() => {
+    if (!formattedExportDocuments.length) {
+      return undefined;
+    }
+
+    return (
+      <>
+        <div className="export-json-actions">
+          <button className="btn btn-secondary btn-sm" onClick={handleToggleExportJsonHidden}>
+            {exportJsonHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+            {exportJsonHidden ? t('common.preview', '预览') : t('common.close', '关闭')}
+          </button>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => void saveAllFormattedExportDocuments()}
+            disabled={formattedBatchSavingExportJson}
+          >
+            <Download size={14} />
+            {formattedBatchSavingExportJson
+              ? t('common.loading', '加载中...')
+              : t('codex.exportFormat.downloadAll', '一键下载全部')}
+          </button>
+        </div>
+
+        <div className="export-json-card-list">
+          {formattedExportDocuments.map((document, index) => (
+            <div key={document.id} className="export-json-card">
+              <div className="export-json-card-header">
+                <div className="export-json-card-heading">
+                  <div className="export-json-card-title">
+                    {t('codex.exportFormat.cpaCardTitle', '账号 {{index}}', { index: index + 1 })}
+                  </div>
+                  {!exportJsonHidden ? (
+                    <div className="export-json-card-subtitle">{document.label}</div>
+                  ) : null}
+                </div>
+                <div className="export-json-card-actions">
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() =>
+                      void saveFormattedExportDocument(
+                        document.id,
+                        document.jsonContent,
+                        document.fileNameBase,
+                      )
+                    }
+                    disabled={
+                      Boolean(formattedSavingExportDocumentId) || formattedBatchSavingExportJson
+                    }
+                  >
+                    <Download size={14} />
+                    {formattedSavingExportDocumentId === document.id
+                      ? t('common.loading', '加载中...')
+                      : t('settings.about.download', 'Download')}
+                  </button>
+                </div>
+              </div>
+
+              <textarea
+                className="export-json-textarea export-json-card-textarea"
+                readOnly
+                spellCheck={false}
+                value={
+                  exportJsonHidden
+                    ? maskJsonPreviewContent(document.jsonContent)
+                    : document.jsonContent
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        {formattedExportSavedPath ? (
+          <div className="export-json-path-box">
+            <div className="export-json-path-title">
+              {formattedExportSavedPathIsDirectory
+                ? t('codex.exportFormat.savedFolder', '保存目录')
+                : t('codex.exportFormat.savedPath', '保存路径')}
+            </div>
+            <div className="export-json-path-value">{formattedExportSavedPath}</div>
+            <div className="export-json-path-actions">
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => void openFormattedExportSavedDirectory()}
+                disabled={!canOpenFormattedExportSavedDirectory}
+              >
+                <FolderOpen size={14} />
+                {t('instances.actions.openFolder', '打开文件夹')}
+              </button>
+              <button className="btn btn-secondary btn-sm" onClick={() => void copyFormattedExportSavedPath()}>
+                {formattedExportPathCopied ? <Check size={14} /> : <Copy size={14} />}
+                {formattedExportPathCopied ? t('common.success', '成功') : t('common.copy', '复制')}
+              </button>
+            </div>
+          </div>
+        ) : null}
+      </>
+    );
+  }, [
+    canOpenFormattedExportSavedDirectory,
+    copyFormattedExportSavedPath,
+    exportJsonHidden,
+    formattedBatchSavingExportJson,
+    formattedExportDocuments,
+    formattedExportPathCopied,
+    formattedExportSavedPath,
+    formattedExportSavedPathIsDirectory,
+    formattedSavingExportDocumentId,
+    openFormattedExportSavedDirectory,
+    saveAllFormattedExportDocuments,
+    saveFormattedExportDocument,
+    t,
+    handleToggleExportJsonHidden,
+  ]);
 
   useEffect(() => {
     try {
@@ -4545,6 +4774,9 @@ export function CodexAccountsPage() {
           isOpen={showExportModal}
           title={`${t('common.shared.export.title', '导出')} JSON`}
           jsonContent={formattedExportJsonContent}
+          customContent={formattedExportModalCustomContent}
+          errorMessage={exportModalError}
+          errorScrollKey={exportModalErrorScrollKey}
           hidden={exportJsonHidden}
           copied={formattedExportJsonCopied}
           saving={formattedSavingExportJson}
@@ -4567,7 +4799,7 @@ export function CodexAccountsPage() {
             </>
           )}
           onClose={handleCloseExportModal}
-          onToggleHidden={toggleExportJsonHidden}
+          onToggleHidden={handleToggleExportJsonHidden}
           onCopyJson={copyFormattedExportJson}
           onSaveJson={saveFormattedExportJson}
           onOpenSavedDirectory={openFormattedExportSavedDirectory}

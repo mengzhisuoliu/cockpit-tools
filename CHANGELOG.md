@@ -7,6 +7,18 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.10] - 2026-04-24
+
+### Changed
+- **Windsurf Auth1 account injection now matches official client token semantics**: Auth1 flows now keep `devin-session-token$...` as the primary access token for local session writes, inject `sessionToken` / `authMethod=auth1` into local auth status when available, and stop relying on the extra synthetic-API-key recovery request.
+- **Windsurf launch now defaults to window reuse instead of forcing a new window**: default start commands no longer force `open -n`; instance and default launches follow normal app reuse behavior.
+- **Codex JSON export now supports CPA multi-document workflows in one modal**: CPA exports can render per-account cards, save each account JSON separately, or batch-download all generated files into a chosen directory.
+
+### Fixed
+- **Export failures are now surfaced inside the active export modal**: copy/save/open-directory failures now appear in-modal with anchored error messaging, and stale error states are cleared when retrying, toggling preview state, switching format, or closing the modal.
+- **Windsurf extension state now writes compatible pending migration tokens for supported prefixes**: supported tokens (`sk-ws-01-`, `devin-session-token$`, `cog_`) are written into `windsurf.pendingApiKeyMigration`, preventing repeated migration loops after startup.
+
+---
 ## [0.22.9] - 2026-04-23
 
 ### Added
