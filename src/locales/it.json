@@ -2298,12 +2298,12 @@
       "filterMissing": "Sconosciuti ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Le sessioni possono restare nascoste dopo il passaggio all’API",
-      "message": "Per il comportamento ufficiale di Codex, le sessioni esistenti potrebbero non apparire automaticamente dopo il passaggio a API Key / API Service. Puoi ripristinarle più tardi da Gestione sessioni > Ripara visibilità, oppure eseguire una riparazione rapida durante questo cambio.",
+      "title": "Sessioni Codex nascoste",
+      "message": "Per il comportamento ufficiale di Codex, le sessioni esistenti potrebbero non apparire automaticamente dopo il passaggio diretto tra modalità API e account. Puoi eseguire Ripara visibilità una volta in questa finestra e ripararle anche più tardi da Gestione sessioni > Ripara visibilità.",
       "dontAskAgain": "Non mostrare più",
       "switchOnly": "Solo passa",
       "switchAndRepair": "Passa e ripara",
-      "repairFailed": "Il cambio è completato, ma la riparazione rapida non è riuscita. Puoi riprovare più tardi da Gestione sessioni > Ripara visibilità."
+      "repairFailed": "Riparazione rapida non riuscita. Puoi riprovare più tardi da Gestione sessioni > Ripara visibilità."
     }
   },
   "githubCopilot": {

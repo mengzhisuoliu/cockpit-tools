@@ -2298,12 +2298,12 @@
       "filterMissing": "Desconocidas ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Las sesiones pueden ocultarse temporalmente tras cambiar a API",
-      "message": "Por el comportamiento oficial de Codex, las sesiones existentes pueden no aparecer automáticamente tras cambiar a API Key / API Service. Puedes restaurarlas luego en Gestión de sesiones > Reparar visibilidad, o ejecutar una reparación rápida durante este cambio.",
+      "title": "Sesiones de Codex ocultas",
+      "message": "Por el comportamiento oficial de Codex, las sesiones existentes pueden no aparecer automáticamente después de cambiar directamente entre el modo API y las cuentas. Puedes ejecutar Reparar visibilidad una vez en este diálogo, y también repararlas luego en Gestión de sesiones > Reparar visibilidad.",
       "dontAskAgain": "No volver a mostrar",
       "switchOnly": "Solo cambiar",
       "switchAndRepair": "Cambiar y reparar",
-      "repairFailed": "El cambio se completó, pero falló la reparación rápida. Puedes reintentarlo luego en Gestión de sesiones > Reparar visibilidad."
+      "repairFailed": "Falló la reparación rápida. Puedes reintentarlo luego en Gestión de sesiones > Reparar visibilidad."
     }
   },
   "githubCopilot": {

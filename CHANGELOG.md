@@ -7,6 +7,16 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.17] - 2026-04-30
+
+### Changed
+- **Codex API/account switching now keeps account changes and session-visibility repair separate**: switching between OAuth accounts, API Key accounts, and the local API Service now completes the real account change first, then shows a post-switch “Codex Sessions Hidden” dialog with an explicit Repair Visibility action, in-dialog repair results, and a “don’t show again” option.
+
+### Fixed
+- **Codex API Service activation no longer shows the session-visibility dialog after cancellation**: canceling the API Service risk notice stops the activation flow without showing the post-switch repair guidance.
+- **Codex account switching no longer auto-runs history visibility repair in the backend**: normal account switching no longer waits on rollout/SQLite repair work, avoiding stuck processing states when users only want to switch accounts.
+
+---
 ## [0.22.16] - 2026-04-30
 
 ### Changed

@@ -2298,12 +2298,12 @@
       "filterMissing": "Bilinmiyor ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "API’ye geçince oturumlar geçici olarak gizlenebilir",
-      "message": "Codex’in resmi davranışı nedeniyle API Key / API Service’e geçtikten sonra mevcut oturumlar otomatik görünmeyebilir. Bunları daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünden geri getirebilir veya bu geçiş sırasında bir kez hızlı onarım çalıştırabilirsiniz.",
+      "title": "Codex oturumları gizli",
+      "message": "Codex’in resmi davranışı nedeniyle API modu ile hesaplar arasında doğrudan geçiş yaptıktan sonra mevcut oturumlar otomatik görünmeyebilir. Bu pencerede Görünürlüğü Onar işlemini bir kez çalıştırabilir, daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünden de onarabilirsiniz.",
       "dontAskAgain": "Bir daha gösterme",
       "switchOnly": "Sadece geç",
       "switchAndRepair": "Geç ve onar",
-      "repairFailed": "Geçiş tamamlandı, ancak hızlı onarım başarısız oldu. Daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünden tekrar deneyebilirsiniz."
+      "repairFailed": "Hızlı onarım başarısız oldu. Daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünden tekrar deneyebilirsiniz."
     }
   },
   "githubCopilot": {

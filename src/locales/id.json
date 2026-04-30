@@ -2344,12 +2344,12 @@
       "filterMissing": "Tidak diketahui ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Sesi bisa tersembunyi sementara setelah beralih ke API",
-      "message": "Karena perilaku resmi Codex, sesi yang ada mungkin tidak muncul otomatis setelah beralih ke API Key / API Service. Anda dapat memulihkannya nanti dari Manajemen Sesi > Perbaiki Visibilitas, atau menjalankan satu perbaikan cepat saat beralih.",
+      "title": "Sesi Codex tersembunyi",
+      "message": "Karena perilaku resmi Codex, sesi yang ada mungkin tidak muncul otomatis setelah beralih langsung antara mode API dan akun. Anda dapat menjalankan Perbaiki Visibilitas sekali di dialog ini, dan juga memperbaikinya nanti dari Manajemen Sesi > Perbaiki Visibilitas.",
       "dontAskAgain": "Jangan tampilkan lagi",
       "switchOnly": "Beralih saja",
       "switchAndRepair": "Beralih & perbaiki",
-      "repairFailed": "Peralihan selesai, tetapi perbaikan cepat gagal. Anda dapat mencoba lagi nanti dari Manajemen Sesi > Perbaiki Visibilitas."
+      "repairFailed": "Perbaikan cepat gagal. Anda dapat mencoba lagi nanti dari Manajemen Sesi > Perbaiki Visibilitas."
     }
   },
   "codebuddy": {

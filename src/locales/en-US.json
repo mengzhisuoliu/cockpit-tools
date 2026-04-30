@@ -1654,12 +1654,12 @@
       "unsupportedCountryRegion": "The current network region does not support refreshing Codex authorization. OpenAI authorization rejected this network exit. Switch to a supported region and retry."
     },
     "apiSwitchNotice": {
-      "title": "Sessions may be temporarily hidden after switching to API",
-      "message": "Because of Codex's official behavior, existing sessions may not appear automatically after switching to API Key / API Service. You can restore them later from Session Management > Repair Visibility, or run one quick repair during this switch.",
+      "title": "Codex Sessions Hidden",
+      "message": "Because of Codex's official behavior, existing sessions may not appear automatically after switching directly between API mode and accounts. You can run Repair Visibility once in this dialog, and you can also repair them later from Session Management > Repair Visibility.",
       "dontAskAgain": "Don't show again",
       "switchOnly": "Switch Only",
       "switchAndRepair": "Switch & Repair Once",
-      "repairFailed": "Switch completed, but the quick repair failed. You can retry later from Session Management > Repair Visibility."
+      "repairFailed": "Quick repair failed. You can retry later from Session Management > Repair Visibility."
     },
     "current": "Current",
     "account": {

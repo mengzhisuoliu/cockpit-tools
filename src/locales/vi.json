@@ -2298,12 +2298,12 @@
       "filterMissing": "Không rõ ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Phiên có thể tạm ẩn sau khi chuyển sang API",
-      "message": "Do hành vi chính thức của Codex, các phiên hiện có có thể không tự hiện sau khi chuyển sang API Key / API Service. Bạn có thể khôi phục sau trong Quản lý phiên > Sửa hiển thị, hoặc chạy một lần sửa nhanh trong lần chuyển này.",
+      "title": "Phiên Codex bị ẩn",
+      "message": "Do hành vi chính thức của Codex, các phiên hiện có có thể không tự hiển thị sau khi chuyển trực tiếp giữa chế độ API và tài khoản. Bạn có thể chạy Sửa hiển thị một lần trong hộp thoại này, và cũng có thể sửa sau trong Quản lý phiên > Sửa hiển thị.",
       "dontAskAgain": "Không hiện lại",
       "switchOnly": "Chỉ chuyển",
       "switchAndRepair": "Chuyển & sửa",
-      "repairFailed": "Đã chuyển xong nhưng sửa nhanh thất bại. Bạn có thể thử lại sau trong Quản lý phiên > Sửa hiển thị."
+      "repairFailed": "Sửa nhanh thất bại. Bạn có thể thử lại sau trong Quản lý phiên > Sửa hiển thị."
     }
   },
   "githubCopilot": {

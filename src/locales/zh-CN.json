@@ -1654,12 +1654,12 @@
       "unsupportedCountryRegion": "当前网络地区不支持刷新 Codex 授权。OpenAI 授权服务拒绝了当前网络出口的刷新请求，请切换到支持的网络地区后重试。"
     },
     "apiSwitchNotice": {
-      "title": "切换到 API 后，会话可能暂时不可见",
-      "message": "由于 Codex 官方机制，切换到 API Key / API 服务后，原有会话可能不会自动显示。你可以在切换后通过「会话管理」里的「修复可见性」恢复，也可以在本次切换时快速修复一次。",
+      "title": "Codex 会话不可见",
+      "message": "由于 Codex 官方机制，API 与账号直接切换后，原有会话可能不会自动显示。你可以在本弹框中执行一次「修复可见性」，后续也可以通过「会话管理」里的「修复可见性」功能修复。",
       "dontAskAgain": "不再提示",
       "switchOnly": "仅切换",
       "switchAndRepair": "切换并修复一次",
-      "repairFailed": "已完成切换，但快捷修复失败。你仍可稍后在「会话管理」中使用「修复可见性」重试。"
+      "repairFailed": "快捷修复失败。你仍可稍后在「会话管理」中使用「修复可见性」重试。"
     },
     "current": "当前",
     "account": {

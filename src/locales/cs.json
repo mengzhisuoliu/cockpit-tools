@@ -2298,12 +2298,12 @@
       "filterMissing": "Neznámé ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Po přepnutí na API se relace mohou dočasně skrýt",
-      "message": "Kvůli oficiálnímu chování Codexu se existující relace po přepnutí na API Key / API Service nemusí zobrazit automaticky. Můžete je později obnovit v Správa relací > Opravit viditelnost, nebo spustit jednu rychlou opravu při tomto přepnutí.",
+      "title": "Relace Codexu jsou skryté",
+      "message": "Kvůli oficiálnímu chování Codexu se existující relace po přímém přepnutí mezi režimem API a účty nemusí zobrazit automaticky. V tomto okně můžete jednou spustit Opravit viditelnost a později také ve Správa relací > Opravit viditelnost.",
       "dontAskAgain": "Už nezobrazovat",
       "switchOnly": "Jen přepnout",
       "switchAndRepair": "Přepnout a opravit",
-      "repairFailed": "Přepnutí proběhlo, ale rychlá oprava selhala. Zkuste to později ve Správa relací > Opravit viditelnost."
+      "repairFailed": "Rychlá oprava selhala. Zkuste to později ve Správa relací > Opravit viditelnost."
     }
   },
   "githubCopilot": {

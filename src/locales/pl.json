@@ -2298,12 +2298,12 @@
       "filterMissing": "Nieznane ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Sesje mogą być chwilowo ukryte po przełączeniu na API",
-      "message": "Ze względu na oficjalne zachowanie Codexu istniejące sesje mogą nie pojawić się automatycznie po przełączeniu na API Key / API Service. Możesz je później przywrócić w Zarządzanie sesjami > Napraw widoczność albo uruchomić jedną szybką naprawę podczas tego przełączenia.",
+      "title": "Sesje Codex są ukryte",
+      "message": "Ze względu na oficjalne zachowanie Codexu istniejące sesje mogą nie pojawić się automatycznie po bezpośrednim przełączeniu między trybem API a kontami. Możesz raz uruchomić Napraw widoczność w tym oknie, a później także w Zarządzanie sesjami > Napraw widoczność.",
       "dontAskAgain": "Nie pokazuj ponownie",
       "switchOnly": "Tylko przełącz",
       "switchAndRepair": "Przełącz i napraw",
-      "repairFailed": "Przełączenie zakończone, ale szybka naprawa się nie powiodła. Możesz spróbować później w Zarządzanie sesjami > Napraw widoczność."
+      "repairFailed": "Szybka naprawa się nie powiodła. Możesz spróbować później w Zarządzanie sesjami > Napraw widoczność."
     }
   },
   "githubCopilot": {

@@ -465,6 +465,10 @@
   backdrop-filter: blur(8px);
 }
 
+.codex-local-access-risk-notice-overlay {
+  z-index: 10010;
+}
+
 .codex-local-access-hide-confirm-modal {
   width: min(460px, calc(100vw - 32px));
   border-radius: 20px;
@@ -554,6 +558,35 @@
 .codex-api-switch-notice-options {
   border-color: color-mix(in srgb, var(--primary) 14%, var(--border));
   background: color-mix(in srgb, var(--bg-tertiary) 88%, var(--primary) 12%);
+}
+
+.codex-api-switch-notice-repair-entry {
+  margin-top: 16px;
+}
+
+.codex-api-switch-notice-repair-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.codex-api-switch-notice-repair-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #16a34a 20%, var(--border));
+  background: color-mix(in srgb, #dcfce7 74%, var(--bg-surface));
+  color: #166534;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.codex-api-switch-notice-repair-result svg {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .codex-api-switch-notice-footer {
@@ -742,6 +775,12 @@
 [data-theme="dark"] .codex-local-access-risk-notice-points {
   border-color: rgba(245, 158, 11, 0.14);
   background: rgba(51, 65, 85, 0.68);
+}
+
+[data-theme="dark"] .codex-api-switch-notice-repair-result {
+  border-color: rgba(74, 222, 128, 0.22);
+  background: rgba(20, 83, 45, 0.28);
+  color: #bbf7d0;
 }
 
 .codex-accounts-page .folder-breadcrumb {

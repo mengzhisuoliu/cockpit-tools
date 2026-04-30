@@ -2298,12 +2298,12 @@
       "filterMissing": "Unbekannt ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Sitzungen können nach dem API-Wechsel kurz ausgeblendet sein",
-      "message": "Aufgrund des offiziellen Codex-Verhaltens erscheinen vorhandene Sitzungen nach dem Wechsel zu API Key / API Service möglicherweise nicht automatisch. Sie können sie später unter Sitzungsverwaltung > Sichtbarkeit reparieren wiederherstellen oder bei diesem Wechsel einmal schnell reparieren.",
+      "title": "Codex-Sitzungen ausgeblendet",
+      "message": "Aufgrund des offiziellen Codex-Verhaltens erscheinen vorhandene Sitzungen nach dem direkten Wechsel zwischen API-Modus und Konten möglicherweise nicht automatisch. Sie können in diesem Dialog einmal Sichtbarkeit reparieren ausführen und sie später auch unter Sitzungsverwaltung > Sichtbarkeit reparieren wiederherstellen.",
       "dontAskAgain": "Nicht mehr anzeigen",
       "switchOnly": "Nur wechseln",
       "switchAndRepair": "Wechseln & reparieren",
-      "repairFailed": "Der Wechsel ist abgeschlossen, aber die Schnellreparatur ist fehlgeschlagen. Sie können es später unter Sitzungsverwaltung > Sichtbarkeit reparieren erneut versuchen."
+      "repairFailed": "Die Schnellreparatur ist fehlgeschlagen. Sie können es später unter Sitzungsverwaltung > Sichtbarkeit reparieren erneut versuchen."
     }
   },
   "githubCopilot": {

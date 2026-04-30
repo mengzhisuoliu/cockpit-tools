@@ -2298,12 +2298,12 @@
       "filterMissing": "Inconnus ({{count}})"
     },
     "apiSwitchNotice": {
-      "title": "Les sessions peuvent être masquées après le passage à l’API",
-      "message": "En raison du comportement officiel de Codex, les sessions existantes peuvent ne pas s’afficher automatiquement après le passage à API Key / API Service. Vous pouvez les restaurer plus tard via Gestion des sessions > Réparer la visibilité, ou lancer une réparation rapide pendant ce changement.",
+      "title": "Sessions Codex masquées",
+      "message": "En raison du comportement officiel de Codex, les sessions existantes peuvent ne pas s’afficher automatiquement après un changement direct entre le mode API et les comptes. Vous pouvez lancer Réparer la visibilité une fois dans cette fenêtre, puis aussi le refaire plus tard via Gestion des sessions > Réparer la visibilité.",
       "dontAskAgain": "Ne plus afficher",
       "switchOnly": "Changer seulement",
       "switchAndRepair": "Changer et réparer",
-      "repairFailed": "Le changement est terminé, mais la réparation rapide a échoué. Vous pouvez réessayer plus tard via Gestion des sessions > Réparer la visibilité."
+      "repairFailed": "La réparation rapide a échoué. Vous pouvez réessayer plus tard via Gestion des sessions > Réparer la visibilité."
     }
   },
   "githubCopilot": {
