@@ -37,6 +37,11 @@ import {
   buildQuotaPreviewLines,
 } from '../presentation/platformAccountPresentation';
 import { buildValidAccountsFilterOption, splitValidityFilterValues } from '../utils/accountValidityFilter';
+import {
+  formatCodexQuotaPoolPercent,
+  summarizeCodexQuotaPool,
+  type CodexQuotaPoolItem,
+} from '../utils/codexQuotaPool';
 import { AccountTagFilterDropdown } from './AccountTagFilterDropdown';
 import {
   MultiSelectFilterDropdown,
@@ -116,6 +121,15 @@ function formatLatencyMs(value: number): string {
   return `${Math.round(value)}ms`;
 }
 
+function formatQuotaPoolLabel(
+  baseLabel: string,
+  pool: CodexQuotaPoolItem,
+  hourlyLabel: string,
+  weeklyLabel: string,
+): string {
+  return `${baseLabel} · ${hourlyLabel} ${formatCodexQuotaPoolPercent(pool.hourly)} · ${weeklyLabel} ${formatCodexQuotaPoolPercent(pool.weekly)}`;
+}
+
 function areSetsEqual(left: Set<string>, right: Set<string>): boolean {
   if (left.size !== right.size) return false;
   for (const value of left) {
@@ -176,6 +190,14 @@ export function CodexLocalAccessModal({
         { key: 'weekly', label: t('codex.localAccess.statsRange.weekly', '周') },
         { key: 'monthly', label: t('codex.localAccess.statsRange.monthly', '月') },
       ] satisfies Array<{ key: StatsRangeKey; label: string }>,
+    [t],
+  );
+  const quotaPoolLabels = useMemo(
+    () => ({
+      hourly: t('codex.localAccess.quotaPool.hourlyShort', '5h'),
+      weekly: t('codex.localAccess.quotaPool.weeklyShort', '周'),
+      title: t('codex.localAccess.quotaPool.title', '额度池'),
+    }),
     [t],
   );
   const selectedStatsWindow = useMemo<CodexLocalAccessStatsWindow | null>(() => {
@@ -248,6 +270,14 @@ export function CodexLocalAccessModal({
     () => accounts.filter((account) => !isCodexApiKeyAccount(account)),
     [accounts],
   );
+  const quotaPoolSummary = useMemo(
+    () => summarizeCodexQuotaPool(oauthAccounts),
+    [oauthAccounts],
+  );
+  const currentQuotaPoolSummary = useMemo(() => {
+    const accountIds = new Set(collection?.accountIds ?? []);
+    return summarizeCodexQuotaPool(oauthAccounts.filter((account) => accountIds.has(account.id)));
+  }, [collection?.accountIds, oauthAccounts]);
   const oauthAccountIdSet = useMemo(
     () => new Set(oauthAccounts.map((account) => account.id)),
     [oauthAccounts],
@@ -352,19 +382,70 @@ export function CodexLocalAccessModal({
       }
     });
     return counts;
-  }, [oauthAccounts, t]);
+  }, [oauthAccounts]);
+
+  const allTierFilterLabel = useMemo(
+    () =>
+      formatQuotaPoolLabel(
+        t('common.shared.filter.all', { count: tierCounts.all }),
+        quotaPoolSummary.all,
+        quotaPoolLabels.hourly,
+        quotaPoolLabels.weekly,
+      ),
+    [quotaPoolLabels.hourly, quotaPoolLabels.weekly, quotaPoolSummary.all, t, tierCounts.all],
+  );
 
   const tierFilterOptions = useMemo<MultiSelectFilterOption[]>(
     () => [
-      { value: 'FREE', label: `FREE (${tierCounts.FREE})` },
-      { value: 'PLUS', label: `PLUS (${tierCounts.PLUS})` },
-      { value: 'PRO', label: `PRO (${tierCounts.PRO})` },
-      { value: 'TEAM', label: `TEAM (${tierCounts.TEAM})` },
-      { value: 'ENTERPRISE', label: `ENTERPRISE (${tierCounts.ENTERPRISE})` },
+      {
+        value: 'FREE',
+        label: formatQuotaPoolLabel(
+          `FREE (${tierCounts.FREE})`,
+          quotaPoolSummary.byPlan.FREE,
+          quotaPoolLabels.hourly,
+          quotaPoolLabels.weekly,
+        ),
+      },
+      {
+        value: 'PLUS',
+        label: formatQuotaPoolLabel(
+          `PLUS (${tierCounts.PLUS})`,
+          quotaPoolSummary.byPlan.PLUS,
+          quotaPoolLabels.hourly,
+          quotaPoolLabels.weekly,
+        ),
+      },
+      {
+        value: 'PRO',
+        label: formatQuotaPoolLabel(
+          `PRO (${tierCounts.PRO})`,
+          quotaPoolSummary.byPlan.PRO,
+          quotaPoolLabels.hourly,
+          quotaPoolLabels.weekly,
+        ),
+      },
+      {
+        value: 'TEAM',
+        label: formatQuotaPoolLabel(
+          `TEAM (${tierCounts.TEAM})`,
+          quotaPoolSummary.byPlan.TEAM,
+          quotaPoolLabels.hourly,
+          quotaPoolLabels.weekly,
+        ),
+      },
+      {
+        value: 'ENTERPRISE',
+        label: formatQuotaPoolLabel(
+          `ENTERPRISE (${tierCounts.ENTERPRISE})`,
+          quotaPoolSummary.byPlan.ENTERPRISE,
+          quotaPoolLabels.hourly,
+          quotaPoolLabels.weekly,
+        ),
+      },
       { value: 'ERROR', label: `ERROR (${tierCounts.ERROR})` },
       buildValidAccountsFilterOption(t, tierCounts.VALID),
     ],
-    [t, tierCounts],
+    [quotaPoolLabels.hourly, quotaPoolLabels.weekly, quotaPoolSummary.byPlan, t, tierCounts],
   );
 
   const visibleAccounts = useMemo(() => {
@@ -534,7 +615,7 @@ export function CodexLocalAccessModal({
           <span
             key={line.key}
             className={`codex-local-access-quota-chip ${line.quotaClass}`}
-            title={line.text}
+            title={line.title}
           >
             <span className="codex-local-access-quota-dot" />
             <span>{line.text}</span>
@@ -960,6 +1041,26 @@ export function CodexLocalAccessModal({
                   </div>
                 ))}
               </div>
+              {currentQuotaPoolSummary.visiblePlans.length > 0 && (
+                <div
+                  className="codex-local-access-quota-pool-grid"
+                  aria-label={quotaPoolLabels.title}
+                >
+                  {currentQuotaPoolSummary.visiblePlans.map((item) => (
+                    <div key={item.key} className="codex-local-access-quota-pool-card">
+                      <span className="codex-local-access-quota-pool-plan">
+                        {item.key} ({item.count})
+                      </span>
+                      <span className="codex-local-access-quota-pool-value">
+                        {quotaPoolLabels.hourly} {formatCodexQuotaPoolPercent(item.hourly)}
+                      </span>
+                      <span className="codex-local-access-quota-pool-value">
+                        {quotaPoolLabels.weekly} {formatCodexQuotaPoolPercent(item.weekly)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           )}
 
@@ -1247,7 +1348,7 @@ export function CodexLocalAccessModal({
                   <MultiSelectFilterDropdown
                     options={tierFilterOptions}
                     selectedValues={filterTypes}
-                    allLabel={t('common.shared.filter.all', { count: tierCounts.all })}
+                    allLabel={allTierFilterLabel}
                     filterLabel={t('common.shared.filterLabel', '筛选')}
                     clearLabel={t('accounts.clearFilter', '清空筛选')}
                     emptyLabel={t('common.none', '暂无')}

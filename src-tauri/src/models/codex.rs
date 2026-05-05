@@ -214,6 +214,7 @@ impl Default for CodexAccountIndex {
 /// JWT Payload 中的用户信息
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CodexJwtPayload {
+    #[serde(default)]
     pub aud: serde_json::Value, // 可能是 string 或 array
     pub iss: Option<String>,
     pub email: Option<String>,

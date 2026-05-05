@@ -525,6 +525,48 @@
   color: color-mix(in srgb, var(--text-muted) 82%, var(--text-secondary));
 }
 
+.codex-local-access-quota-pool-grid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.codex-local-access-quota-pool-grid::-webkit-scrollbar {
+  display: none;
+}
+
+.codex-local-access-quota-pool-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  min-width: max-content;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(37, 99, 235, 0.16);
+  background: rgba(239, 246, 255, 0.62);
+  color: #1e3a8a;
+  font-size: 11px;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.48);
+}
+
+.codex-local-access-quota-pool-plan {
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.codex-local-access-quota-pool-value {
+  font-weight: 700;
+  color: color-mix(in srgb, currentColor 78%, var(--text-secondary));
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .codex-local-access-panel-grid {
   display: flex;
   flex-direction: column;
@@ -881,6 +923,14 @@
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.codex-local-access-member-section .group-account-picker-filters {
+  flex-wrap: wrap;
+}
+
+.codex-local-access-member-section .account-filter-surface .tag-filter-panel {
+  min-width: 300px;
 }
 
 .codex-local-access-member-section .group-account-search {

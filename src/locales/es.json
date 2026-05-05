@@ -135,7 +135,10 @@
         "descTooltip": "Descendente (clic para Ascendente)",
         "toggleDirection": "Cambiar dirección",
         "credits": "Por créditos restantes",
-        "planEnd": "Por hora de finalización del ciclo"
+        "planEnd": "Por hora de finalización del ciclo",
+        "recommended": "Recomendado",
+        "recommendedAscTooltip": "Recomendado (menos conveniente primero)",
+        "recommendedDescTooltip": "Recomendado (más conveniente primero)"
       },
       "sortLabel": "Ordenar",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "No se pudieron guardar los ajustes de copia: {{error}}",
           "cleanupDone": "Se limpiaron {{count}} copias caducadas",
           "cleanupFailed": "No se pudieron limpiar las copias caducadas: {{error}}",
-          "openFolderFailed": "No se pudo abrir la carpeta de copias: {{error}}"
+          "openFolderFailed": "No se pudo abrir la carpeta de copias: {{error}}",
+          "downloadSuccess": "Copia descargada en {{path}}",
+          "downloadFailed": "Error al descargar la copia: {{error}}"
         },
         "errors": {
           "invalidRetention": "La retención debe estar entre 1 y 365 días"
-        }
+        },
+        "platformFilterLabel": "Plataforma",
+        "platformFilterAll": "Todas las plataformas",
+        "platformEmptyTitle": "Sin copias coincidentes",
+        "platformEmptyDesc": "Esta plataforma no tiene una copia de cuentas descargable.",
+        "archiveTag": "Archivo",
+        "archiveSize": "Archivo: {{size}}",
+        "platformsTitle": "Cuentas de plataforma",
+        "platformDownloadAction": "Descargar JSON de plataforma",
+        "downloadJsonAction": "Archivo JSON",
+        "downloadZipAction": "Archivo ZIP"
       },
       "exportTitle": "Exportación de datos",
       "exportDesc": "Exporta datos de cuentas, datos de configuración o un paquete completo de migración según lo necesites.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Las cuentas Free están limitadas. Desactiva esto para seleccionarlas.",
         "freeNoticeUnstable": "El proxy de cuentas Free puede ser inestable. Úsalo con cuidado.",
         "restrictFreeDisableConfirmTitle": "Permitir cuentas Free",
-        "restrictFreeDisableConfirmMessage": "El proxy de cuentas Free puede ser inestable. ¿Seguro que quieres usarlas?"
+        "restrictFreeDisableConfirmMessage": "El proxy de cuentas Free puede ser inestable. ¿Seguro que quieres usarlas?",
+        "manageMembers": "Gestionar miembros"
       },
       "entryAction": "Agregar al servicio API",
       "testAction": "Probar servicio API",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL del puerto API",
       "modelId": "ID del modelo",
       "modelIdPlaceholder": "Selecciona ID de modelo",
-      "modelIdViewOnly": "Solo ver"
+      "modelIdViewOnly": "Solo ver",
+      "quotaPool": {
+        "title": "Bolsa de cuota",
+        "hourlyShort": "5h",
+        "weeklyShort": "Semana",
+        "viewFull": "Ver estadísticas completas",
+        "modalTitle": "Bolsa de cuota del servicio API",
+        "empty": "Aún no hay estadísticas de cuota"
+      }
     },
     "local": {
       "desc": "Importa la cuenta actual desde ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Cuota de 5 horas",
       "weekly": "Cuota semanal",
-      "reset": "Reinicio"
+      "reset": "Reinicio",
+      "weeklyBlocksHourly": "La cuota semanal es 0, por eso la cuota de 5 horas no está disponible"
     },
     "quotaError": {
       "badge": "Error de cuota",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Proveedor",
+        "inlineLabel": "Proveedor: {{provider}}",
         "custom": "Personalizado",
         "endpoint": "Punto final del proveedor",
         "hint": "Se ha completado automáticamente una Base URL compatible. Aún puedes editarla manualmente.",

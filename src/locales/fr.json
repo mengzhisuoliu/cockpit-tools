@@ -135,7 +135,10 @@
         "descTooltip": "Descendant (cliquer pour ascendant)",
         "toggleDirection": "Changer la direction",
         "credits": "Par crédits restants",
-        "planEnd": "Par heure de fin de cycle"
+        "planEnd": "Par heure de fin de cycle",
+        "recommended": "Recommandé",
+        "recommendedAscTooltip": "Recommandé (moins intéressant d’abord)",
+        "recommendedDescTooltip": "Recommandé (plus intéressant d’abord)"
       },
       "sortLabel": "Trier",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Échec de l’enregistrement des réglages de sauvegarde : {{error}}",
           "cleanupDone": "{{count}} sauvegarde(s) expirée(s) nettoyée(s)",
           "cleanupFailed": "Échec du nettoyage des sauvegardes expirées : {{error}}",
-          "openFolderFailed": "Échec de l’ouverture du dossier de sauvegarde : {{error}}"
+          "openFolderFailed": "Échec de l’ouverture du dossier de sauvegarde : {{error}}",
+          "downloadSuccess": "Sauvegarde téléchargée vers {{path}}",
+          "downloadFailed": "Échec du téléchargement de la sauvegarde : {{error}}"
         },
         "errors": {
           "invalidRetention": "La durée de conservation doit être comprise entre 1 et 365 jours"
-        }
+        },
+        "platformFilterLabel": "Plateforme",
+        "platformFilterAll": "Toutes les plateformes",
+        "platformEmptyTitle": "Aucune sauvegarde correspondante",
+        "platformEmptyDesc": "Cette plateforme ne dispose d’aucune sauvegarde de comptes téléchargeable.",
+        "archiveTag": "Archive",
+        "archiveSize": "Archive : {{size}}",
+        "platformsTitle": "Comptes de plateforme",
+        "platformDownloadAction": "Télécharger le JSON de la plateforme",
+        "downloadJsonAction": "Fichier JSON",
+        "downloadZipAction": "Archive ZIP"
       },
       "exportTitle": "Export des données",
       "exportDesc": "Exportez selon vos besoins les données des comptes, les données de configuration ou un package complet de migration.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Les comptes Free sont limités. Désactivez ceci pour les sélectionner.",
         "freeNoticeUnstable": "Le proxy des comptes Free peut être instable. À utiliser avec prudence.",
         "restrictFreeDisableConfirmTitle": "Autoriser les comptes Free",
-        "restrictFreeDisableConfirmMessage": "Le proxy des comptes Free peut être instable. Voulez-vous vraiment les utiliser ?"
+        "restrictFreeDisableConfirmMessage": "Le proxy des comptes Free peut être instable. Voulez-vous vraiment les utiliser ?",
+        "manageMembers": "Gérer les membres"
       },
       "entryAction": "Ajouter au service API",
       "testAction": "Tester le service API",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL du port API",
       "modelId": "ID du modèle",
       "modelIdPlaceholder": "Sélectionner l'ID du modèle",
-      "modelIdViewOnly": "Lecture seule"
+      "modelIdViewOnly": "Lecture seule",
+      "quotaPool": {
+        "title": "Pool de quotas",
+        "hourlyShort": "5h",
+        "weeklyShort": "Semaine",
+        "viewFull": "Voir les stats complètes",
+        "modalTitle": "Pool de quotas du service API",
+        "empty": "Aucune statistique de quota pour l’instant"
+      }
     },
     "local": {
       "desc": "Importer le compte connecté depuis ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Quota de 5 heures",
       "weekly": "Quota hebdomadaire",
-      "reset": "Réinitialiser"
+      "reset": "Réinitialiser",
+      "weeklyBlocksHourly": "Le quota hebdomadaire est à 0 ; le quota de 5 heures est donc indisponible"
     },
     "quotaError": {
       "badge": "Erreur de quota",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Fournisseur",
+        "inlineLabel": "Fournisseur : {{provider}}",
         "custom": "Personnalisé",
         "endpoint": "Point de terminaison du fournisseur",
         "hint": "Une Base URL compatible a été renseignée automatiquement. Vous pouvez toujours la modifier manuellement.",

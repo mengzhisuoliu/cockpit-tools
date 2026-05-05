@@ -1248,6 +1248,17 @@
   white-space: nowrap;
 }
 
+.instances-page .account-provider-item {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.instances-page .account-provider-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .instances-page .account-quota-empty {
   font-size: 11px;
   color: var(--text-muted);
@@ -1270,6 +1281,10 @@
 
 .instances-page .quota-dot.low {
   background: var(--danger);
+}
+
+.instances-page .account-provider-item .quota-dot {
+  background: var(--primary);
 }
 
 .instances-page .quota-text.high {

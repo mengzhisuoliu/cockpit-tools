@@ -185,14 +185,14 @@ fn parse_external_import_url_with_reason(
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty());
     if token.is_empty() && import_url.is_none() {
-        return Err("缺少内容参数（token/import_token/payload/import_payload/import_url）".to_string());
+        return Err(
+            "缺少内容参数（token/import_token/payload/import_payload/import_url）".to_string(),
+        );
     }
     if !token.is_empty() && import_url.is_some() {
         return Err("内容参数不能同时包含 token/payload 与 import_url".to_string());
     }
-    let token = token
-        .trim()
-        .to_string();
+    let token = token.trim().to_string();
 
     let auto_import = parse_boolean_like(
         query

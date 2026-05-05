@@ -906,12 +906,7 @@ async fn refresh_account_token_once(account_id: &str) -> Result<KiroAccount, Str
 }
 
 pub async fn refresh_account_token(account_id: &str) -> Result<KiroAccount, String> {
-    let result = crate::modules::refresh_retry::retry_once_with_delay(
-        "Kiro Refresh",
-        account_id,
-        || async { refresh_account_token_once(account_id).await },
-    )
-    .await;
+    let result = refresh_account_token_once(account_id).await;
     if let Err(err) = &result {
         persist_quota_query_error(account_id, err);
     }

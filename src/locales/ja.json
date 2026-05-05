@@ -135,7 +135,10 @@
         "descTooltip": "降順（クリックで昇順へ）",
         "toggleDirection": "順序を切り替え",
         "credits": "残りのクレジットにより",
-        "planEnd": "サイクル終了時間まで"
+        "planEnd": "サイクル終了時間まで",
+        "recommended": "おすすめ順",
+        "recommendedAscTooltip": "おすすめ順（切り替え優先度が低い順）",
+        "recommendedDescTooltip": "おすすめ順（切り替え優先度が高い順）"
       },
       "sortLabel": "並べ替え",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "バックアップ設定の保存に失敗しました: {{error}}",
           "cleanupDone": "期限切れのバックアップを {{count}} 件整理しました",
           "cleanupFailed": "期限切れバックアップの整理に失敗しました: {{error}}",
-          "openFolderFailed": "バックアップフォルダーを開けませんでした: {{error}}"
+          "openFolderFailed": "バックアップフォルダーを開けませんでした: {{error}}",
+          "downloadSuccess": "バックアップを {{path}} にダウンロードしました",
+          "downloadFailed": "バックアップのダウンロードに失敗しました: {{error}}"
         },
         "errors": {
           "invalidRetention": "保持日数は 1 日から 365 日の間で指定してください"
-        }
+        },
+        "platformFilterLabel": "プラットフォーム",
+        "platformFilterAll": "すべてのプラットフォーム",
+        "platformEmptyTitle": "一致するバックアップなし",
+        "platformEmptyDesc": "このプラットフォームにはダウンロード可能なアカウントバックアップがありません。",
+        "archiveTag": "アーカイブ",
+        "archiveSize": "アーカイブ: {{size}}",
+        "platformsTitle": "プラットフォームアカウント",
+        "platformDownloadAction": "プラットフォームJSONをダウンロード",
+        "downloadJsonAction": "JSONファイル",
+        "downloadZipAction": "ZIPアーカイブ"
       },
       "exportTitle": "データのエクスポート",
       "exportDesc": "必要に応じて、アカウントデータ、設定データ、または完全な移行パッケージをエクスポートします。",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Freeアカウントは制限中です。選択するにはこの設定をオフにしてください。",
         "freeNoticeUnstable": "Freeアカウントのプロキシは不安定な場合があります。注意して使用してください。",
         "restrictFreeDisableConfirmTitle": "Freeアカウントを許可",
-        "restrictFreeDisableConfirmMessage": "Freeアカウントのプロキシは不安定な場合があります。使用してもよろしいですか？"
+        "restrictFreeDisableConfirmMessage": "Freeアカウントのプロキシは不安定な場合があります。使用してもよろしいですか？",
+        "manageMembers": "メンバー管理"
       },
       "entryAction": "API サービスに追加",
       "testAction": "API サービスをテスト",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "APIポートURL",
       "modelId": "モデル ID",
       "modelIdPlaceholder": "モデル ID を選択",
-      "modelIdViewOnly": "表示のみ"
+      "modelIdViewOnly": "表示のみ",
+      "quotaPool": {
+        "title": "クォータプール",
+        "hourlyShort": "5h",
+        "weeklyShort": "週",
+        "viewFull": "完全な統計を表示",
+        "modalTitle": "APIサービスのクォータプール",
+        "empty": "クォータ統計はまだありません"
+      }
     },
     "local": {
       "desc": "~/.codex/auth.json から現在ログイン中のアカウントをインポート",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "5 時間クォータ",
       "weekly": "週次クォータ",
-      "reset": "リセット"
+      "reset": "リセット",
+      "weeklyBlocksHourly": "週クォータが 0 のため、5時間クォータは利用できません"
     },
     "quotaError": {
       "badge": "クォータエラー",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "プロバイダー",
+        "inlineLabel": "プロバイダー: {{provider}}",
         "custom": "カスタム",
         "endpoint": "プロバイダーエンドポイント",
         "hint": "互換性のある Base URL を自動入力しました。必要なら手動で編集できます。",

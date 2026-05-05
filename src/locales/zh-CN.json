@@ -588,13 +588,13 @@
       "backup": {
         "title": "备份管理",
         "desc": "统一管理定期备份、备份目录和备份列表。",
-        "modalDesc": "在这里配置自动备份规则，查看项目目录内的备份文件，并执行恢复或清理。",
+        "modalDesc": "在这里配置自动备份规则，查看项目目录内的备份文件，并执行恢复、下载或清理。",
         "statusEnabled": "自动备份已开启",
         "statusDisabled": "自动备份已关闭",
         "lastRunLabel": "最近备份：{{time}}",
         "lastRunNever": "尚未生成备份",
         "autoTitle": "定期备份",
-        "autoDesc": "开启后每天自动导出一次备份，文件可直接用当前导入恢复。",
+        "autoDesc": "开启后每天自动导出一次 JSON 备份，并同步生成 ZIP 压缩包副本。",
         "runNow": "立即备份",
         "running": "备份中...",
         "typeTitle": "备份类型",
@@ -609,14 +609,24 @@
         "directoryDesc": "备份固定保存到项目目录下的 backups 文件夹。",
         "openFolder": "打开目录",
         "listTitle": "备份列表",
-        "listDesc": "支持直接导入当前备份，或删除旧备份。",
+        "listDesc": "支持按平台查看账号内容，下载完整 JSON、ZIP 或单个平台 JSON。",
+        "platformFilterLabel": "平台",
+        "platformFilterAll": "全部平台",
         "openList": "打开列表",
         "emptyTitle": "暂无备份",
-        "emptyDesc": "开启自动备份或点击“立即备份”后，会在这里显示可恢复的 JSON 备份。",
+        "emptyDesc": "开启自动备份或点击“立即备份”后，会在这里显示可恢复的 JSON 与 ZIP 备份。",
+        "platformEmptyTitle": "无匹配备份",
+        "platformEmptyDesc": "当前平台没有可下载的账号备份。",
         "sourceAuto": "自动",
         "sourceManual": "手动",
         "fileTime": "时间：{{time}}",
         "fileSize": "大小：{{size}}",
+        "archiveTag": "ZIP",
+        "archiveSize": "压缩包：{{size}}",
+        "platformsTitle": "平台账号",
+        "platformDownloadAction": "下载平台 JSON",
+        "downloadJsonAction": "JSON",
+        "downloadZipAction": "ZIP",
         "importAction": "导入",
         "deleteAction": "删除",
         "deleteConfirm": "确认删除备份 {{name}}？",
@@ -631,7 +641,9 @@
           "saveSettingsFailed": "保存备份设置失败：{{error}}",
           "cleanupDone": "已清理 {{count}} 个过期备份",
           "cleanupFailed": "清理过期备份失败：{{error}}",
-          "openFolderFailed": "打开备份目录失败：{{error}}"
+          "openFolderFailed": "打开备份目录失败：{{error}}",
+          "downloadSuccess": "备份已下载到 {{path}}",
+          "downloadFailed": "下载备份失败：{{error}}"
         },
         "errors": {
           "invalidRetention": "保留天数需在 1 到 365 天之间"
@@ -1828,6 +1840,14 @@
         "weekly": "周",
         "monthly": "月"
       },
+      "quotaPool": {
+        "title": "额度池",
+        "hourlyShort": "5h",
+        "weeklyShort": "周",
+        "viewFull": "查看完整统计",
+        "modalTitle": "API 服务额度池",
+        "empty": "暂无额度统计"
+      },
       "memberTitle": "集合成员",
       "routingStrategy": {
         "auto": "自动（推荐）",
@@ -1864,6 +1884,7 @@
         "empty": "暂无可加入的 OAuth 账号",
         "selected": "已加入 API 服务",
         "available": "普通面板",
+        "manageMembers": "管理成员",
         "save": "保存集合"
       }
     },
@@ -1879,6 +1900,7 @@
       },
       "provider": {
         "label": "供应商",
+        "inlineLabel": "供应商：{{provider}}",
         "custom": "自定义",
         "endpoint": "供应商端点",
         "hint": "已自动填写兼容 Base URL，可继续手动调整。",
@@ -2079,6 +2101,7 @@
     "quota": {
       "hourly": "5小时配额",
       "weekly": "周配额",
+      "weeklyBlocksHourly": "周额度为 0，5小时额度已不可用",
       "reset": "重置"
     },
     "usage": {

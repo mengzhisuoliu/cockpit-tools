@@ -142,7 +142,10 @@
         "descTooltip": "Current: Descending. Click to switch to ascending",
         "toggleDirection": "Toggle sort direction",
         "credits": "By remaining credits",
-        "planEnd": "By cycle end time"
+        "planEnd": "By cycle end time",
+        "recommended": "Recommended",
+        "recommendedAscTooltip": "Recommended (least worthwhile first)",
+        "recommendedDescTooltip": "Recommended (most worthwhile first)"
       },
       "sortLabel": "Sort",
       "token": {
@@ -585,13 +588,13 @@
       "backup": {
         "title": "Backup Manager",
         "desc": "Manage scheduled backups, the backup folder, and backup files in one place.",
-        "modalDesc": "Configure automatic backups, browse files stored in the project backup folder, and restore or clean them up here.",
+        "modalDesc": "Configure automatic backups, browse files stored in the project backup folder, and restore, download, or clean them up here.",
         "statusEnabled": "Auto backup is on",
         "statusDisabled": "Auto backup is off",
         "lastRunLabel": "Last backup: {{time}}",
         "lastRunNever": "Not backed up yet",
         "autoTitle": "Scheduled Backup",
-        "autoDesc": "When enabled, one backup is exported per day and stays restorable with the current import flow.",
+        "autoDesc": "When enabled, one JSON backup is exported per day with a matching ZIP archive copy.",
         "runNow": "Back Up Now",
         "running": "Backing up...",
         "typeTitle": "Backup Type",
@@ -606,14 +609,24 @@
         "directoryDesc": "Backups are always saved in the project's backups folder.",
         "openFolder": "Open Folder",
         "listTitle": "Backup List",
-        "listDesc": "Import a backup directly or remove old files.",
+        "listDesc": "View account contents by platform, download the full JSON, ZIP, or one platform JSON.",
+        "platformFilterLabel": "Platform",
+        "platformFilterAll": "All platforms",
         "openList": "Open List",
         "emptyTitle": "No backups yet",
-        "emptyDesc": "Turn on auto backup or click \"Back Up Now\" to create restorable JSON backups here.",
+        "emptyDesc": "Turn on auto backup or click \"Back Up Now\" to create restorable JSON and ZIP backups here.",
+        "platformEmptyTitle": "No matching backups",
+        "platformEmptyDesc": "This platform has no downloadable account backup.",
         "sourceAuto": "Auto",
         "sourceManual": "Manual",
         "fileTime": "Time: {{time}}",
         "fileSize": "Size: {{size}}",
+        "archiveTag": "ZIP",
+        "archiveSize": "Archive: {{size}}",
+        "platformsTitle": "Platform accounts",
+        "platformDownloadAction": "Download platform JSON",
+        "downloadJsonAction": "JSON",
+        "downloadZipAction": "ZIP",
         "importAction": "Import",
         "deleteAction": "Delete",
         "deleteConfirm": "Delete backup {{name}}?",
@@ -628,7 +641,9 @@
           "saveSettingsFailed": "Failed to save backup settings: {{error}}",
           "cleanupDone": "Cleaned up {{count}} expired backup(s)",
           "cleanupFailed": "Failed to clean up expired backups: {{error}}",
-          "openFolderFailed": "Failed to open backup folder: {{error}}"
+          "openFolderFailed": "Failed to open backup folder: {{error}}",
+          "downloadSuccess": "Backup downloaded to {{path}}",
+          "downloadFailed": "Failed to download backup: {{error}}"
         },
         "errors": {
           "invalidRetention": "Retention must be between 1 and 365 days"
@@ -1825,6 +1840,14 @@
         "weekly": "Week",
         "monthly": "Month"
       },
+      "quotaPool": {
+        "title": "Quota Pool",
+        "hourlyShort": "5h",
+        "weeklyShort": "Week",
+        "viewFull": "View full stats",
+        "modalTitle": "API Service Quota Pool",
+        "empty": "No quota stats yet"
+      },
       "memberTitle": "Collection Members",
       "routingStrategy": {
         "auto": "Auto (Recommended)",
@@ -1861,6 +1884,7 @@
         "empty": "No OAuth accounts available",
         "selected": "In API Service",
         "available": "Regular Overview",
+        "manageMembers": "Manage Members",
         "save": "Save Collection"
       }
     },
@@ -1876,6 +1900,7 @@
       },
       "provider": {
         "label": "Provider",
+        "inlineLabel": "Provider: {{provider}}",
         "custom": "Custom",
         "endpoint": "Provider Endpoint",
         "hint": "A compatible Base URL has been filled in automatically. You can still edit it manually.",
@@ -2076,6 +2101,7 @@
     "quota": {
       "hourly": "5-hour quota",
       "weekly": "Weekly quota",
+      "weeklyBlocksHourly": "Weekly quota is 0, so the 5-hour quota is unavailable",
       "reset": "Reset"
     },
     "usage": {
@@ -2339,15 +2365,15 @@
     "sessionManager": {
       "title": "Session Manager",
       "desc": "Sync, visibility repair, cleanup, and restore live here together: use the top actions to sync sessions, repair history visibility, or restore from Trash, then expand each project to review and trash sessions.",
-    "actions": {
-      "moveToTrash": "Move to Trash",
-      "syncSessions": "Sync Sessions",
-      "repairVisibility": "Repair Visibility",
-      "restoreSessions": "Restore Sessions",
-      "copySessionId": "Copy Session ID",
-      "expand": "Expand",
-      "collapse": "Collapse"
-    },
+      "actions": {
+        "moveToTrash": "Move to Trash",
+        "syncSessions": "Sync Sessions",
+        "repairVisibility": "Repair Visibility",
+        "restoreSessions": "Restore Sessions",
+        "copySessionId": "Copy Session ID",
+        "expand": "Expand",
+        "collapse": "Collapse"
+      },
       "confirm": {
         "title": "Move to Trash",
         "message": "Selected sessions will be moved to Trash from their instances so they can be restored later. Running instances may need a restart before the change appears. Continue?",
@@ -2365,14 +2391,14 @@
         "repairVisibilitySkippedOnly": "No writable provider differences were found; skipped {{count}} invalid or corrupted state_5.sqlite file(s). Codex must regenerate them before their SQLite records can be repaired.",
         "repairVisibilitySkippedWithBase": "{{message}}; skipped {{count}} invalid or corrupted state_5.sqlite file(s). Codex must regenerate them before their SQLite records can be repaired."
       },
-    "groupCount": "{{count}} sessions",
-    "updatedAt": "Updated",
-    "labels": {
-      "sessionId": "Session ID",
-      "tokenUsage": "Token Usage"
-    },
-    "locationRunning": " (running)",
-    "untitled": "Untitled session",
+      "groupCount": "{{count}} sessions",
+      "updatedAt": "Updated",
+      "labels": {
+        "sessionId": "Session ID",
+        "tokenUsage": "Token Usage"
+      },
+      "locationRunning": " (running)",
+      "untitled": "Untitled session",
       "restoreModal": {
         "title": "Restore Sessions",
         "hint": "Restoring puts the rollout file, SQLite thread row, and session_index entry back into the original instance together.",

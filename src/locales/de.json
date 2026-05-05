@@ -135,7 +135,10 @@
         "descTooltip": "Absteigend (Klicken für Aufsteigend)",
         "toggleDirection": "Sortierrichtung ändern",
         "credits": "Nach Restguthaben",
-        "planEnd": "Nach Zyklusendzeit"
+        "planEnd": "Nach Zyklusendzeit",
+        "recommended": "Empfohlen",
+        "recommendedAscTooltip": "Empfohlen (am wenigsten lohnend zuerst)",
+        "recommendedDescTooltip": "Empfohlen (am lohnendsten zuerst)"
       },
       "sortLabel": "Sortieren",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Speichern der Backup-Einstellungen fehlgeschlagen: {{error}}",
           "cleanupDone": "{{count}} abgelaufene Backups bereinigt",
           "cleanupFailed": "Bereinigung abgelaufener Backups fehlgeschlagen: {{error}}",
-          "openFolderFailed": "Öffnen des Backup-Ordners fehlgeschlagen: {{error}}"
+          "openFolderFailed": "Öffnen des Backup-Ordners fehlgeschlagen: {{error}}",
+          "downloadSuccess": "Backup nach {{path}} heruntergeladen",
+          "downloadFailed": "Backup-Download fehlgeschlagen: {{error}}"
         },
         "errors": {
           "invalidRetention": "Die Aufbewahrung muss zwischen 1 und 365 Tagen liegen"
-        }
+        },
+        "platformFilterLabel": "Plattform",
+        "platformFilterAll": "Alle Plattformen",
+        "platformEmptyTitle": "Keine passenden Backups",
+        "platformEmptyDesc": "Für diese Plattform gibt es kein herunterladbares Konten-Backup.",
+        "archiveTag": "Archiv",
+        "archiveSize": "Archiv: {{size}}",
+        "platformsTitle": "Plattformkonten",
+        "platformDownloadAction": "Plattform-JSON laden",
+        "downloadJsonAction": "JSON-Datei",
+        "downloadZipAction": "ZIP-Archiv"
       },
       "exportTitle": "Datenexport",
       "exportDesc": "Exportieren Sie bei Bedarf Kontodaten, Konfigurationsdaten oder ein komplettes Migrationspaket.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Free-Konten sind eingeschränkt. Deaktiviere dies, um sie auszuwählen.",
         "freeNoticeUnstable": "Proxy für Free-Konten kann instabil sein. Vorsichtig verwenden.",
         "restrictFreeDisableConfirmTitle": "Free-Konten zulassen",
-        "restrictFreeDisableConfirmMessage": "Proxy für Free-Konten kann instabil sein. Wirklich verwenden?"
+        "restrictFreeDisableConfirmMessage": "Proxy für Free-Konten kann instabil sein. Wirklich verwenden?",
+        "manageMembers": "Mitglieder verwalten"
       },
       "entryAction": "Zum API-Dienst hinzufügen",
       "testAction": "API-Dienst testen",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "API-Port-URL",
       "modelId": "Modell-ID",
       "modelIdPlaceholder": "Modell-ID wählen",
-      "modelIdViewOnly": "Nur Ansicht"
+      "modelIdViewOnly": "Nur Ansicht",
+      "quotaPool": {
+        "title": "Kontingentpool",
+        "hourlyShort": "5h",
+        "weeklyShort": "Woche",
+        "viewFull": "Vollständige Statistik anzeigen",
+        "modalTitle": "Kontingentpool des API-Dienstes",
+        "empty": "Noch keine Kontingentstatistik"
+      }
     },
     "local": {
       "desc": "Aktuell eingeloggtes Konto aus ~/.codex/auth.json importieren",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "5-Stunden-Kontingent",
       "weekly": "Wöchentliches Kontingent",
-      "reset": "Zurücksetzen"
+      "reset": "Zurücksetzen",
+      "weeklyBlocksHourly": "Das Wochenkontingent ist 0, daher ist das 5-Stunden-Kontingent nicht verfügbar"
     },
     "quotaError": {
       "badge": "Kontingentfehler",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Anbieter",
+        "inlineLabel": "Anbieter: {{provider}}",
         "custom": "Benutzerdefiniert",
         "endpoint": "Anbieter-Endpunkt",
         "hint": "Eine kompatible Base URL wurde automatisch eingetragen. Sie können sie weiterhin manuell bearbeiten.",

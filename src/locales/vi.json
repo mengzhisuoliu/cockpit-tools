@@ -135,7 +135,10 @@
         "descTooltip": "Giảm dần (nhấn để chuyển Tăng dần)",
         "toggleDirection": "Đổi hướng sắp xếp",
         "credits": "Bằng số tín chỉ còn lại",
-        "planEnd": "Theo thời gian kết thúc chu kỳ"
+        "planEnd": "Theo thời gian kết thúc chu kỳ",
+        "recommended": "Đề xuất",
+        "recommendedAscTooltip": "Đề xuất (ít đáng chuyển trước)",
+        "recommendedDescTooltip": "Đề xuất (đáng chuyển nhất trước)"
       },
       "sortLabel": "Sắp xếp",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Lưu thiết lập sao lưu thất bại: {{error}}",
           "cleanupDone": "Đã dọn {{count}} bản sao lưu hết hạn",
           "cleanupFailed": "Dọn bản sao lưu hết hạn thất bại: {{error}}",
-          "openFolderFailed": "Mở thư mục sao lưu thất bại: {{error}}"
+          "openFolderFailed": "Mở thư mục sao lưu thất bại: {{error}}",
+          "downloadSuccess": "Đã tải bản sao lưu xuống {{path}}",
+          "downloadFailed": "Không thể tải bản sao lưu: {{error}}"
         },
         "errors": {
           "invalidRetention": "Thời gian lưu phải từ 1 đến 365 ngày"
-        }
+        },
+        "platformFilterLabel": "Nền tảng",
+        "platformFilterAll": "Tất cả nền tảng",
+        "platformEmptyTitle": "Không có bản sao phù hợp",
+        "platformEmptyDesc": "Nền tảng này không có bản sao tài khoản để tải xuống.",
+        "archiveTag": "Gói nén",
+        "archiveSize": "Gói nén: {{size}}",
+        "platformsTitle": "Tài khoản nền tảng",
+        "platformDownloadAction": "Tải JSON nền tảng",
+        "downloadJsonAction": "Tệp JSON",
+        "downloadZipAction": "Gói ZIP"
       },
       "exportTitle": "Xuất dữ liệu",
       "exportDesc": "Xuất dữ liệu tài khoản, dữ liệu cấu hình hoặc gói di chuyển đầy đủ tùy nhu cầu.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Tài khoản Free bị giới hạn. Tắt tùy chọn này để chọn chúng.",
         "freeNoticeUnstable": "Proxy tài khoản Free có thể không ổn định. Hãy dùng thận trọng.",
         "restrictFreeDisableConfirmTitle": "Cho phép tài khoản Free",
-        "restrictFreeDisableConfirmMessage": "Proxy tài khoản Free có thể không ổn định. Bạn có chắc muốn dùng không?"
+        "restrictFreeDisableConfirmMessage": "Proxy tài khoản Free có thể không ổn định. Bạn có chắc muốn dùng không?",
+        "manageMembers": "Quản lý thành viên"
       },
       "entryAction": "Thêm vào dịch vụ API",
       "testAction": "Kiểm tra dịch vụ API",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL cổng API",
       "modelId": "ID mô hình",
       "modelIdPlaceholder": "Chọn ID mô hình",
-      "modelIdViewOnly": "Chỉ xem"
+      "modelIdViewOnly": "Chỉ xem",
+      "quotaPool": {
+        "title": "Nhóm hạn mức",
+        "hourlyShort": "5h",
+        "weeklyShort": "Tuần",
+        "viewFull": "Xem thống kê đầy đủ",
+        "modalTitle": "Nhóm hạn mức dịch vụ API",
+        "empty": "Chưa có thống kê hạn mức"
+      }
     },
     "local": {
       "desc": "Nhập tài khoản hiện tại từ ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Hạn mức 5 giờ",
       "weekly": "Hạn mức tuần",
-      "reset": "Đặt lại"
+      "reset": "Đặt lại",
+      "weeklyBlocksHourly": "Hạn mức tuần là 0 nên hạn mức 5 giờ không khả dụng"
     },
     "quotaError": {
       "badge": "Lỗi quota",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Nhà cung cấp",
+        "inlineLabel": "Nhà cung cấp: {{provider}}",
         "custom": "Tùy chỉnh",
         "endpoint": "Điểm cuối nhà cung cấp",
         "hint": "Base URL tương thích đã được điền tự động. Bạn vẫn có thể chỉnh sửa thủ công.",

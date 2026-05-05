@@ -996,13 +996,6 @@ fn mark_account_requires_reauth(account: &mut CodexAccount, reason: &str) -> Res
     save_account(account)
 }
 
-fn should_force_refresh_token(message: &str) -> bool {
-    let lower = message.to_ascii_lowercase();
-    lower.contains("token_invalidated")
-        || lower.contains("your authentication token has been invalidated")
-        || lower.contains("401 unauthorized")
-}
-
 pub fn extract_chatgpt_account_id_from_access_token(access_token: &str) -> Option<String> {
     let payload = decode_jwt_payload_value(access_token)?;
     let auth_data = payload.get("https://api.openai.com/auth")?;
@@ -1413,22 +1406,7 @@ async fn refresh_account_profile_once(account_id: &str) -> Result<CodexAccount, 
     }
 
     let (account_name, account_structure, account_id_from_remote) =
-        match fetch_remote_account_profile(&account).await {
-            Ok(profile) => profile,
-            Err(err) if should_force_refresh_token(&err) => {
-                logger::log_warn(&format!(
-                    "Codex 账号资料请求检测到失效 Token，准备强制刷新后重试: account={}, error={}",
-                    account.email, err
-                ));
-
-                account = force_refresh_managed_account(&account.id, "账号资料接口返回 Token 失效")
-                    .await
-                    .map_err(|e| format!("账号资料接口返回 Token 失效，刷新 Token 失败: {}", e))?;
-
-                fetch_remote_account_profile(&account).await?
-            }
-            Err(err) => return Err(err),
-        };
+        fetch_remote_account_profile(&account).await?;
 
     let mut changed = false;
 
@@ -1462,12 +1440,7 @@ async fn refresh_account_profile_once(account_id: &str) -> Result<CodexAccount, 
 }
 
 pub async fn refresh_account_profile(account_id: &str) -> Result<CodexAccount, String> {
-    crate::modules::refresh_retry::retry_once_with_delay(
-        "Codex Profile Refresh",
-        account_id,
-        || async { refresh_account_profile_once(account_id).await },
-    )
-    .await
+    refresh_account_profile_once(account_id).await
 }
 
 /// 添加或更新账号

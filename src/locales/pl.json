@@ -135,7 +135,10 @@
         "descTooltip": "Malejąco (kliknij, aby zmienić na rosnąco)",
         "toggleDirection": "Zmień kierunek sortowania",
         "credits": "Przez pozostałe kredyty",
-        "planEnd": "Według czasu zakończenia cyklu"
+        "planEnd": "Według czasu zakończenia cyklu",
+        "recommended": "Polecane",
+        "recommendedAscTooltip": "Polecane (najmniej opłacalne najpierw)",
+        "recommendedDescTooltip": "Polecane (najbardziej opłacalne najpierw)"
       },
       "sortLabel": "Sortuj",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Nie udało się zapisać ustawień kopii: {{error}}",
           "cleanupDone": "Wyczyszczono {{count}} wygasłych kopii",
           "cleanupFailed": "Nie udało się wyczyścić wygasłych kopii: {{error}}",
-          "openFolderFailed": "Nie udało się otworzyć folderu kopii: {{error}}"
+          "openFolderFailed": "Nie udało się otworzyć folderu kopii: {{error}}",
+          "downloadSuccess": "Kopia zapasowa pobrana do {{path}}",
+          "downloadFailed": "Nie udało się pobrać kopii: {{error}}"
         },
         "errors": {
           "invalidRetention": "Czas przechowywania musi wynosić od 1 do 365 dni"
-        }
+        },
+        "platformFilterLabel": "Platforma",
+        "platformFilterAll": "Wszystkie platformy",
+        "platformEmptyTitle": "Brak pasujących kopii",
+        "platformEmptyDesc": "Ta platforma nie ma kopii kont do pobrania.",
+        "archiveTag": "Archiwum",
+        "archiveSize": "Archiwum: {{size}}",
+        "platformsTitle": "Konta platformy",
+        "platformDownloadAction": "Pobierz JSON platformy",
+        "downloadJsonAction": "Plik JSON",
+        "downloadZipAction": "Archiwum ZIP"
       },
       "exportTitle": "Eksport danych",
       "exportDesc": "Eksportuj dane kont, dane konfiguracji lub pełny pakiet migracyjny w zależności od potrzeb.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Konta Free są ograniczone. Wyłącz tę opcję, aby je wybrać.",
         "freeNoticeUnstable": "Proxy kont Free może być niestabilne. Używaj ostrożnie.",
         "restrictFreeDisableConfirmTitle": "Zezwól na konta Free",
-        "restrictFreeDisableConfirmMessage": "Proxy kont Free może być niestabilne. Na pewno ich użyć?"
+        "restrictFreeDisableConfirmMessage": "Proxy kont Free może być niestabilne. Na pewno ich użyć?",
+        "manageMembers": "Zarządzaj członkami"
       },
       "entryAction": "Dodaj do usługi API",
       "testAction": "Przetestuj usługę API",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL portu API",
       "modelId": "ID modelu",
       "modelIdPlaceholder": "Wybierz ID modelu",
-      "modelIdViewOnly": "Tylko podgląd"
+      "modelIdViewOnly": "Tylko podgląd",
+      "quotaPool": {
+        "title": "Pula limitów",
+        "hourlyShort": "5h",
+        "weeklyShort": "Tydzień",
+        "viewFull": "Pokaż pełne statystyki",
+        "modalTitle": "Pula limitów usługi API",
+        "empty": "Brak statystyk limitów"
+      }
     },
     "local": {
       "desc": "Importuj bieżące konto z ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Limit 5 godzin",
       "weekly": "Limit tygodniowy",
-      "reset": "Resetuj"
+      "reset": "Resetuj",
+      "weeklyBlocksHourly": "Limit tygodniowy wynosi 0, więc limit 5-godzinny jest niedostępny"
     },
     "quotaError": {
       "badge": "Błąd limitu",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Dostawca",
+        "inlineLabel": "Dostawca: {{provider}}",
         "custom": "Niestandardowy",
         "endpoint": "Punkt końcowy dostawcy",
         "hint": "Zgodny Base URL został uzupełniony automatycznie. Nadal możesz go edytować ręcznie.",

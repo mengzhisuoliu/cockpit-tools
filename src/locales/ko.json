@@ -135,7 +135,10 @@
         "descTooltip": "내림차순 (클릭하여 오름차순으로 전환)",
         "toggleDirection": "정렬 방향 전환",
         "credits": "남은 크레딧으로",
-        "planEnd": "사이클 종료 시간별"
+        "planEnd": "사이클 종료 시간별",
+        "recommended": "추천순",
+        "recommendedAscTooltip": "추천순(전환 우선도 낮은 항목 먼저)",
+        "recommendedDescTooltip": "추천순(전환 우선도 높은 항목 먼저)"
       },
       "sortLabel": "정렬",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "백업 설정을 저장하지 못했습니다: {{error}}",
           "cleanupDone": "만료된 백업 {{count}}개를 정리했습니다",
           "cleanupFailed": "만료된 백업 정리에 실패했습니다: {{error}}",
-          "openFolderFailed": "백업 폴더를 열지 못했습니다: {{error}}"
+          "openFolderFailed": "백업 폴더를 열지 못했습니다: {{error}}",
+          "downloadSuccess": "백업을 {{path}}에 다운로드했습니다",
+          "downloadFailed": "백업 다운로드 실패: {{error}}"
         },
         "errors": {
           "invalidRetention": "보관 기간은 1일에서 365일 사이여야 합니다"
-        }
+        },
+        "platformFilterLabel": "플랫폼",
+        "platformFilterAll": "모든 플랫폼",
+        "platformEmptyTitle": "일치하는 백업 없음",
+        "platformEmptyDesc": "이 플랫폼에는 다운로드 가능한 계정 백업이 없습니다.",
+        "archiveTag": "압축본",
+        "archiveSize": "압축본: {{size}}",
+        "platformsTitle": "플랫폼 계정",
+        "platformDownloadAction": "플랫폼 JSON 다운로드",
+        "downloadJsonAction": "JSON 파일",
+        "downloadZipAction": "ZIP 압축본"
       },
       "exportTitle": "데이터 내보내기",
       "exportDesc": "필요에 따라 계정 데이터, 설정 데이터 또는 전체 마이그레이션 묶음을 내보낼 수 있습니다.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Free 계정은 제한됩니다. 선택하려면 이 옵션을 끄세요.",
         "freeNoticeUnstable": "Free 계정 프록시는 불안정할 수 있습니다. 주의해서 사용하세요.",
         "restrictFreeDisableConfirmTitle": "Free 계정 허용",
-        "restrictFreeDisableConfirmMessage": "Free 계정 프록시는 불안정할 수 있습니다. 정말 사용하시겠습니까?"
+        "restrictFreeDisableConfirmMessage": "Free 계정 프록시는 불안정할 수 있습니다. 정말 사용하시겠습니까?",
+        "manageMembers": "멤버 관리"
       },
       "entryAction": "API 서비스에 추가",
       "testAction": "API 서비스 테스트",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "API 포트 URL",
       "modelId": "모델 ID",
       "modelIdPlaceholder": "모델 ID 선택",
-      "modelIdViewOnly": "보기 전용"
+      "modelIdViewOnly": "보기 전용",
+      "quotaPool": {
+        "title": "할당량 풀",
+        "hourlyShort": "5h",
+        "weeklyShort": "주",
+        "viewFull": "전체 통계 보기",
+        "modalTitle": "API 서비스 할당량 풀",
+        "empty": "할당량 통계가 아직 없습니다"
+      }
     },
     "local": {
       "desc": "~/.codex/auth.json에서 현재 로그인된 계정 가져오기",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "5시간 쿼터",
       "weekly": "주간 쿼터",
-      "reset": "재설정"
+      "reset": "재설정",
+      "weeklyBlocksHourly": "주간 할당량이 0이라 5시간 할당량을 사용할 수 없습니다"
     },
     "quotaError": {
       "badge": "할당량 오류",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "공급자",
+        "inlineLabel": "공급자: {{provider}}",
         "custom": "사용자 지정",
         "endpoint": "공급자 엔드포인트",
         "hint": "호환되는 Base URL이 자동으로 입력되었습니다. 필요하면 수동으로 수정할 수 있습니다.",

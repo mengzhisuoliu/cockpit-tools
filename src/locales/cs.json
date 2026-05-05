@@ -135,7 +135,10 @@
         "descTooltip": "Sestupně (kliknutím přepnete na vzestupně)",
         "toggleDirection": "Přepnout směr",
         "credits": "Zbývajícími kredity",
-        "planEnd": "Podle času konce cyklu"
+        "planEnd": "Podle času konce cyklu",
+        "recommended": "Doporučeno",
+        "recommendedAscTooltip": "Doporučeno (nejméně výhodné první)",
+        "recommendedDescTooltip": "Doporučeno (nejvýhodnější první)"
       },
       "sortLabel": "Seřadit",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Uložení nastavení záloh selhalo: {{error}}",
           "cleanupDone": "Bylo vyčištěno {{count}} starých záloh",
           "cleanupFailed": "Vyčištění starých záloh selhalo: {{error}}",
-          "openFolderFailed": "Otevření složky se zálohami selhalo: {{error}}"
+          "openFolderFailed": "Otevření složky se zálohami selhalo: {{error}}",
+          "downloadSuccess": "Záloha stažena do {{path}}",
+          "downloadFailed": "Stažení zálohy selhalo: {{error}}"
         },
         "errors": {
           "invalidRetention": "Doba uchování musí být mezi 1 a 365 dny"
-        }
+        },
+        "platformFilterLabel": "Platforma",
+        "platformFilterAll": "Všechny platformy",
+        "platformEmptyTitle": "Žádné odpovídající zálohy",
+        "platformEmptyDesc": "Tato platforma nemá stažitelnou zálohu účtů.",
+        "archiveTag": "Archiv",
+        "archiveSize": "Archiv: {{size}}",
+        "platformsTitle": "Účty platformy",
+        "platformDownloadAction": "Stáhnout JSON platformy",
+        "downloadJsonAction": "Soubor JSON",
+        "downloadZipAction": "Archiv ZIP"
       },
       "exportTitle": "Export dat",
       "exportDesc": "Podle potřeby exportujte data účtů, konfigurační data nebo celý migrační balíček.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Free účty jsou omezené. Vypněte tuto volbu, chcete-li je vybrat.",
         "freeNoticeUnstable": "Proxy pro Free účty může být nestabilní. Používejte opatrně.",
         "restrictFreeDisableConfirmTitle": "Povolit Free účty",
-        "restrictFreeDisableConfirmMessage": "Proxy pro Free účty může být nestabilní. Opravdu je chcete použít?"
+        "restrictFreeDisableConfirmMessage": "Proxy pro Free účty může být nestabilní. Opravdu je chcete použít?",
+        "manageMembers": "Spravovat členy"
       },
       "entryAction": "Přidat do API služby",
       "testAction": "Otestovat API službu",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL portu API",
       "modelId": "ID modelu",
       "modelIdPlaceholder": "Vyberte ID modelu",
-      "modelIdViewOnly": "Pouze zobrazení"
+      "modelIdViewOnly": "Pouze zobrazení",
+      "quotaPool": {
+        "title": "Fond kvóty",
+        "hourlyShort": "5h",
+        "weeklyShort": "Týden",
+        "viewFull": "Zobrazit úplné statistiky",
+        "modalTitle": "Fond kvóty služby API",
+        "empty": "Zatím žádné statistiky kvóty"
+      }
     },
     "local": {
       "desc": "Importovat aktuální účet z ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Kvóta 5 hodin",
       "weekly": "Týdenní kvóta",
-      "reset": "Reset"
+      "reset": "Reset",
+      "weeklyBlocksHourly": "Týdenní kvóta je 0, proto není 5hodinová kvóta dostupná"
     },
     "quotaError": {
       "badge": "Chyba kvóty",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Poskytovatel",
+        "inlineLabel": "Poskytovatel: {{provider}}",
         "custom": "Vlastní",
         "endpoint": "Koncový bod poskytovatele",
         "hint": "Kompatibilní Base URL byla vyplněna automaticky. Stále ji můžete upravit ručně.",

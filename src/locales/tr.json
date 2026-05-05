@@ -135,7 +135,10 @@
         "descTooltip": "Azalan (Artan için tıkla)",
         "toggleDirection": "Sıralama yönünü değiştir",
         "credits": "Kalan kredilere göre",
-        "planEnd": "Döngü bitiş zamanına göre"
+        "planEnd": "Döngü bitiş zamanına göre",
+        "recommended": "Önerilen",
+        "recommendedAscTooltip": "Önerilen (en az uygun önce)",
+        "recommendedDescTooltip": "Önerilen (en uygun önce)"
       },
       "sortLabel": "Sırala",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Yedek ayarları kaydedilemedi: {{error}}",
           "cleanupDone": "Süresi geçmiş {{count}} yedek temizlendi",
           "cleanupFailed": "Süresi geçmiş yedekler temizlenemedi: {{error}}",
-          "openFolderFailed": "Yedek klasörü açılamadı: {{error}}"
+          "openFolderFailed": "Yedek klasörü açılamadı: {{error}}",
+          "downloadSuccess": "Yedek {{path}} konumuna indirildi",
+          "downloadFailed": "Yedek indirilemedi: {{error}}"
         },
         "errors": {
           "invalidRetention": "Saklama süresi 1 ile 365 gün arasında olmalıdır"
-        }
+        },
+        "platformFilterLabel": "Platformu",
+        "platformFilterAll": "Tüm platformlar",
+        "platformEmptyTitle": "Eşleşen yedek yok",
+        "platformEmptyDesc": "Bu platformun indirilebilir hesap yedeği yok.",
+        "archiveTag": "Arşiv",
+        "archiveSize": "Arşiv: {{size}}",
+        "platformsTitle": "Platform hesapları",
+        "platformDownloadAction": "Platform JSON indir",
+        "downloadJsonAction": "JSON dosyası",
+        "downloadZipAction": "ZIP arşivi"
       },
       "exportTitle": "Veri dışa aktarımı",
       "exportDesc": "İhtiyaca göre hesap verilerini, yapılandırma verilerini veya tam taşıma paketini dışa aktarın.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Free hesaplar sınırlıdır. Seçmek için bunu kapatın.",
         "freeNoticeUnstable": "Free hesap proxy'si kararsız olabilir. Dikkatli kullanın.",
         "restrictFreeDisableConfirmTitle": "Free hesaplara izin ver",
-        "restrictFreeDisableConfirmMessage": "Free hesap proxy'si kararsız olabilir. Kullanmak istediğinizden emin misiniz?"
+        "restrictFreeDisableConfirmMessage": "Free hesap proxy'si kararsız olabilir. Kullanmak istediğinizden emin misiniz?",
+        "manageMembers": "Üyeleri yönet"
       },
       "entryAction": "API hizmetine ekle",
       "testAction": "API hizmetini test et",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "API Port URL",
       "modelId": "Model ID",
       "modelIdPlaceholder": "Model ID seçin",
-      "modelIdViewOnly": "Yalnızca görüntüle"
+      "modelIdViewOnly": "Yalnızca görüntüle",
+      "quotaPool": {
+        "title": "Kota havuzu",
+        "hourlyShort": "5h",
+        "weeklyShort": "Hafta",
+        "viewFull": "Tam istatistikleri gör",
+        "modalTitle": "API hizmeti kota havuzu",
+        "empty": "Henüz kota istatistiği yok"
+      }
     },
     "local": {
       "desc": "~/.codex/auth.json'dan mevcut hesabı içe aktar",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "5 saatlik kota",
       "weekly": "Haftalık kota",
-      "reset": "Sıfırla"
+      "reset": "Sıfırla",
+      "weeklyBlocksHourly": "Haftalık kota 0 olduğu için 5 saatlik kota kullanılamaz"
     },
     "quotaError": {
       "badge": "Kota hatası",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Sağlayıcı",
+        "inlineLabel": "Sağlayıcı: {{provider}}",
         "custom": "Özel",
         "endpoint": "Sağlayıcı uç noktası",
         "hint": "Uyumlu bir Base URL otomatik olarak dolduruldu. İsterseniz bunu yine de elle düzenleyebilirsiniz.",

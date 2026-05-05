@@ -7,6 +7,29 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.20] - 2026-05-06
+
+### Added
+- **Windsurf account management now supports the Devin Auth account system introduced for new 2026-04+ accounts**: email/password login, `auth1_` token import, refresh, and instance switching can use the Devin auth1 → session → one-time token → IDE token flow, while preserving Devin account/org IDs and user-status data needed by the IDE.
+- **Windsurf accounts now default to a recommended sort**: the account overview adds a Recommended sort option that scores accounts from saved daily/weekly quota, reset timing, and plan-cycle timing so accounts with more useful remaining capacity surface first.
+- **Backup Manager now produces and exports platform-aware archives**: scheduled/manual backups keep the restorable JSON file and a matching ZIP archive, show platform account counts, support platform filtering, and can download the full JSON, the ZIP, or one platform's JSON.
+- **Codex Local API Service now shows its quota pool on the account overview**: the API Service card summarizes member accounts by subscription tier with separate 5-hour and weekly quota totals, and exposes a full quota-pool dialog when there are more tiers to inspect.
+
+### Changed
+- **Codex account loading now accepts more portable managed-account files**: token/API-key detail files with portable JSON shapes can be recovered into the current account model, including API provider metadata, timestamps, account IDs, organization IDs, and subscription/plan fields.
+- **Codex account overview now treats the Local API Service as the current entry when it is active**: the current marker moves from the underlying account to the API Service card on this page, while the rest of the app keeps its existing current-account logic.
+- **Codex Local API Service cards now align with regular account cards**: the card keeps the same action-bar rhythm and hover styling as normal accounts while keeping member previews and quota-pool stats stacked in the body.
+- **Codex instance account selection now identifies API Key providers**: API Key accounts show their provider inline in instance quota previews and can be searched by provider name.
+- **File writes for account/config state now use a shared synced atomic path**: account indexes, OAuth pending state, `config.toml`, group/sync settings, OpenCode/OpenClaw auth files, and backup files write through temp-file replacement with validated backup restore behavior.
+- **Quota and token refreshes now use the primary refresh path directly**: provider refresh flows no longer wait on a hidden delayed retry before surfacing the actual failure.
+- **Homebrew Cask metadata has been caught up with the v0.22.19 release artifact**: the cask version and checksum now point to the 0.22.19 universal DMG.
+
+### Fixed
+- **Windsurf Devin accounts switch into instances with fresher IDE credentials**: instance launch pre-refreshes Devin accounts, writes stable installation/onboarding/sign-in/user fields, and includes Devin account/org/protobuf status data to avoid launch-time signed-out or permission-denied states.
+- **Account lists no longer disappear when storage temporarily returns an unexpected empty result**: shared account stores keep the current cached accounts/current account during abnormal empty reads, while still allowing real empty results after intentional deletion.
+- **Backup restore and retention now handle JSON/ZIP pairs consistently**: backup reads can fall back from a damaged or missing JSON file to its archive, and cleanup removes expired JSON and ZIP backups together.
+
+---
 ## [0.22.19] - 2026-05-05
 
 ### Added

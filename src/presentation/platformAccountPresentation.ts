@@ -37,6 +37,7 @@ import {
 import {
   formatCodexResetTime,
   getCodexCodeReviewQuotaMetric,
+  getCodexEffectiveQuotaPercentages,
   getCodexPlanBadgeClass,
   getCodexPlanBadgeLabel,
   getCodexQuotaClass,
@@ -142,6 +143,7 @@ export interface UnifiedQuotaMetric {
   used?: number;
   total?: number;
   left?: number;
+  hintText?: string;
 }
 
 export interface UnifiedAccountPresentation {
@@ -171,6 +173,7 @@ export interface QuotaPreviewLine {
   percentage: number;
   quotaClass: string;
   text: string;
+  title: string;
 }
 
 type AgQuotaDisplayItem = {
@@ -514,6 +517,13 @@ export function buildCodexAccountPresentation(
   const apiKeyDisplayName = account.account_name?.trim();
   const displayName =
     isCodexApiKeyAccount(account) && apiKeyDisplayName ? apiKeyDisplayName : account.email;
+  const effectiveQuota = getCodexEffectiveQuotaPercentages(account.quota);
+  const weeklyBlocksHourlyHint = effectiveQuota.weeklyBlocksHourly
+    ? t(
+        'codex.quota.weeklyBlocksHourly',
+        '周额度为 0，5小时额度已不可用',
+      )
+    : '';
   const quotaItems: UnifiedQuotaMetric[] = getCodexQuotaWindows(account.quota).map((window) => ({
     key: window.id,
     label: window.label,
@@ -522,6 +532,7 @@ export function buildCodexAccountPresentation(
     valueText: `${window.percentage}%`,
     resetText: window.resetTime ? formatCodexResetTime(window.resetTime, t) : '',
     resetAt: window.resetTime,
+    hintText: window.id === 'primary' && weeklyBlocksHourlyHint ? weeklyBlocksHourlyHint : undefined,
   }));
   const codeReviewMetric = getCodexCodeReviewQuotaMetric(account.quota);
   if (codeReviewMetric) {
@@ -1378,5 +1389,6 @@ export function buildQuotaPreviewLines(
     percentage: item.percentage,
     quotaClass: item.quotaClass,
     text: `${item.label} ${item.valueText}`,
+    title: item.hintText ? `${item.label} ${item.valueText} · ${item.hintText}` : `${item.label} ${item.valueText}`,
   }));
 }

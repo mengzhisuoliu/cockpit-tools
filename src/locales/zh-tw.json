@@ -135,7 +135,10 @@
         "descTooltip": "目前：降序，點擊切換為升序",
         "toggleDirection": "切換排序方向",
         "credits": "按剩餘學分",
-        "planEnd": "按週期結束時間"
+        "planEnd": "按週期結束時間",
+        "recommended": "依推薦",
+        "recommendedAscTooltip": "依推薦度升冪（較不值得切換的在前）",
+        "recommendedDescTooltip": "依推薦度降冪（最值得切換的在前）"
       },
       "sortLabel": "排序",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "儲存備份設定失敗：{{error}}",
           "cleanupDone": "已清理 {{count}} 個過期備份",
           "cleanupFailed": "清理過期備份失敗：{{error}}",
-          "openFolderFailed": "開啟備份資料夾失敗：{{error}}"
+          "openFolderFailed": "開啟備份資料夾失敗：{{error}}",
+          "downloadSuccess": "備份已下載到 {{path}}",
+          "downloadFailed": "下載備份失敗：{{error}}"
         },
         "errors": {
           "invalidRetention": "保留天數必須介於 1 到 365 天之間"
-        }
+        },
+        "platformFilterLabel": "平台",
+        "platformFilterAll": "全部平台",
+        "platformEmptyTitle": "沒有符合的備份",
+        "platformEmptyDesc": "目前平台沒有可下載的帳號備份。",
+        "archiveTag": "壓縮檔",
+        "archiveSize": "壓縮檔：{{size}}",
+        "platformsTitle": "平台帳號",
+        "platformDownloadAction": "下載平台 JSON",
+        "downloadJsonAction": "JSON 檔",
+        "downloadZipAction": "ZIP 檔"
       },
       "exportTitle": "資料匯出",
       "exportDesc": "可依需求匯出帳號資料、設定資料，或一次匯出完整遷移包。",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "已限制 Free 帳號，關閉後才可勾選。",
         "freeNoticeUnstable": "Free 帳號反代可能不穩定，請謹慎使用。",
         "restrictFreeDisableConfirmTitle": "確認允許 Free 帳號",
-        "restrictFreeDisableConfirmMessage": "Free 帳號反代可能不穩定，確定要使用嗎？"
+        "restrictFreeDisableConfirmMessage": "Free 帳號反代可能不穩定，確定要使用嗎？",
+        "manageMembers": "管理成員"
       },
       "entryAction": "加入 API 服務",
       "testAction": "測試 API 服務",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "API 連接埠 URL",
       "modelId": "模型 ID",
       "modelIdPlaceholder": "選擇模型 ID",
-      "modelIdViewOnly": "僅查看，無切換"
+      "modelIdViewOnly": "僅查看，無切換",
+      "quotaPool": {
+        "title": "額度池",
+        "hourlyShort": "5h",
+        "weeklyShort": "週",
+        "viewFull": "查看完整統計",
+        "modalTitle": "API 服務額度池",
+        "empty": "尚無額度統計"
+      }
     },
     "api": {
       "baseUrl": "基礎網址",
@@ -1821,6 +1845,7 @@
       },
       "provider": {
         "label": "供應商",
+        "inlineLabel": "供應商：{{provider}}",
         "custom": "自訂",
         "endpoint": "供應商端點",
         "hint": "已自動填入相容的 Base URL，你仍可手動編輯。",
@@ -1902,7 +1927,8 @@
     "quota": {
       "hourly": "5 小時配額",
       "weekly": "週配額",
-      "reset": "重置"
+      "reset": "重置",
+      "weeklyBlocksHourly": "週額度為 0，因此 5 小時額度已不可用"
     },
     "quotaError": {
       "badge": "配額異常",

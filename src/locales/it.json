@@ -135,7 +135,10 @@
         "descTooltip": "Decrescente (clicca per Ascendente)",
         "toggleDirection": "Inverti direzione",
         "credits": "Con i crediti rimanenti",
-        "planEnd": "Per ora di fine ciclo"
+        "planEnd": "Per ora di fine ciclo",
+        "recommended": "Consigliato",
+        "recommendedAscTooltip": "Consigliato (meno conveniente prima)",
+        "recommendedDescTooltip": "Consigliato (più conveniente prima)"
       },
       "sortLabel": "Ordina",
       "token": {
@@ -851,11 +854,23 @@
           "saveSettingsFailed": "Salvataggio delle impostazioni di backup non riuscito: {{error}}",
           "cleanupDone": "{{count}} backup scaduti rimossi",
           "cleanupFailed": "Pulizia dei backup scaduti non riuscita: {{error}}",
-          "openFolderFailed": "Apertura della cartella di backup non riuscita: {{error}}"
+          "openFolderFailed": "Apertura della cartella di backup non riuscita: {{error}}",
+          "downloadSuccess": "Backup scaricato in {{path}}",
+          "downloadFailed": "Download backup non riuscito: {{error}}"
         },
         "errors": {
           "invalidRetention": "La conservazione deve essere compresa tra 1 e 365 giorni"
-        }
+        },
+        "platformFilterLabel": "Piattaforma",
+        "platformFilterAll": "Tutte le piattaforme",
+        "platformEmptyTitle": "Nessun backup corrispondente",
+        "platformEmptyDesc": "Questa piattaforma non ha un backup account scaricabile.",
+        "archiveTag": "Archivio",
+        "archiveSize": "Archivio: {{size}}",
+        "platformsTitle": "Account piattaforma",
+        "platformDownloadAction": "Scarica JSON piattaforma",
+        "downloadJsonAction": "File JSON",
+        "downloadZipAction": "Archivio ZIP"
       },
       "exportTitle": "Esportazione dati",
       "exportDesc": "Esporta dati degli account, dati di configurazione o un pacchetto completo di migrazione secondo necessità.",
@@ -1709,7 +1724,8 @@
         "freeNoticeRestricted": "Gli account Free sono limitati. Disattiva questa opzione per selezionarli.",
         "freeNoticeUnstable": "Il proxy degli account Free può essere instabile. Usalo con cautela.",
         "restrictFreeDisableConfirmTitle": "Consenti account Free",
-        "restrictFreeDisableConfirmMessage": "Il proxy degli account Free può essere instabile. Vuoi usarli davvero?"
+        "restrictFreeDisableConfirmMessage": "Il proxy degli account Free può essere instabile. Vuoi usarli davvero?",
+        "manageMembers": "Gestisci membri"
       },
       "entryAction": "Aggiungi al servizio API",
       "testAction": "Testa il servizio API",
@@ -1802,7 +1818,15 @@
       "apiPortUrl": "URL porta API",
       "modelId": "ID modello",
       "modelIdPlaceholder": "Seleziona ID modello",
-      "modelIdViewOnly": "Solo vista"
+      "modelIdViewOnly": "Solo vista",
+      "quotaPool": {
+        "title": "Pool quota",
+        "hourlyShort": "5h",
+        "weeklyShort": "Settimana",
+        "viewFull": "Vedi statistiche complete",
+        "modalTitle": "Pool quota del servizio API",
+        "empty": "Nessuna statistica quota"
+      }
     },
     "local": {
       "desc": "Importa l'account attuale da ~/.codex/auth.json",
@@ -1816,7 +1840,8 @@
     "quota": {
       "hourly": "Quota di 5 ore",
       "weekly": "Quota settimanale",
-      "reset": "Reimposta"
+      "reset": "Reimposta",
+      "weeklyBlocksHourly": "La quota settimanale è 0, quindi la quota di 5 ore non è disponibile"
     },
     "quotaError": {
       "badge": "Errore quota",
@@ -2122,6 +2147,7 @@
       },
       "provider": {
         "label": "Provider",
+        "inlineLabel": "Fornitore: {{provider}}",
         "custom": "Personalizzato",
         "endpoint": "Endpoint del provider",
         "hint": "È stata compilata automaticamente una Base URL compatibile. Puoi comunque modificarla manualmente.",

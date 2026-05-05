@@ -135,7 +135,10 @@
         "descTooltip": "تنازلي (انقر للتبديل إلى تصاعدي)",
         "toggleDirection": "تبديل اتجاه الترتيب",
         "credits": "حسب الأرصدة المتبقية",
-        "planEnd": "حسب نهاية الدورة"
+        "planEnd": "حسب نهاية الدورة",
+        "recommended": "موصى به",
+        "recommendedAscTooltip": "موصى به (الأقل جدوى أولا)",
+        "recommendedDescTooltip": "موصى به (الأكثر جدوى أولا)"
       },
       "sortLabel": "ترتيب",
       "token": {
@@ -897,11 +900,23 @@
           "saveSettingsFailed": "فشل حفظ إعدادات النسخ الاحتياطي: {{error}}",
           "cleanupDone": "تم تنظيف {{count}} نسخة احتياطية منتهية",
           "cleanupFailed": "فشل تنظيف النسخ الاحتياطية المنتهية: {{error}}",
-          "openFolderFailed": "فشل فتح مجلد النسخ الاحتياطي: {{error}}"
+          "openFolderFailed": "فشل فتح مجلد النسخ الاحتياطي: {{error}}",
+          "downloadSuccess": "تم تنزيل النسخة الاحتياطية إلى {{path}}",
+          "downloadFailed": "فشل تنزيل النسخة الاحتياطية: {{error}}"
         },
         "errors": {
           "invalidRetention": "يجب أن تكون مدة الاحتفاظ بين 1 و365 يومًا"
-        }
+        },
+        "platformFilterLabel": "المنصة",
+        "platformFilterAll": "كل المنصات",
+        "platformEmptyTitle": "لا توجد نسخ مطابقة",
+        "platformEmptyDesc": "لا تحتوي هذه المنصة على نسخة حسابات قابلة للتنزيل.",
+        "archiveTag": "أرشيف",
+        "archiveSize": "الأرشيف: {{size}}",
+        "platformsTitle": "حسابات المنصة",
+        "platformDownloadAction": "تنزيل JSON للمنصة",
+        "downloadJsonAction": "ملف JSON",
+        "downloadZipAction": "أرشيف ZIP"
       },
       "exportTitle": "تصدير البيانات",
       "exportDesc": "صدّر بيانات الحسابات أو بيانات الإعدادات أو حزمة ترحيل كاملة حسب الحاجة.",
@@ -1755,7 +1770,8 @@
         "freeNoticeRestricted": "الحسابات المجانية مقيّدة. عطّل هذا الخيار لتحديدها.",
         "freeNoticeUnstable": "قد يكون وكيل الحسابات المجانية غير مستقر. استخدمه بحذر.",
         "restrictFreeDisableConfirmTitle": "السماح بالحسابات المجانية",
-        "restrictFreeDisableConfirmMessage": "قد يكون وكيل الحسابات المجانية غير مستقر. هل تريد المتابعة؟"
+        "restrictFreeDisableConfirmMessage": "قد يكون وكيل الحسابات المجانية غير مستقر. هل تريد المتابعة؟",
+        "manageMembers": "إدارة الأعضاء"
       },
       "entryAction": "إضافة إلى خدمة API",
       "testAction": "اختبار خدمة API",
@@ -1848,7 +1864,15 @@
       "apiPortUrl": "عنوان منفذ API",
       "modelId": "معرّف النموذج",
       "modelIdPlaceholder": "اختر معرّف النموذج",
-      "modelIdViewOnly": "عرض فقط"
+      "modelIdViewOnly": "عرض فقط",
+      "quotaPool": {
+        "title": "مجمع الحصة",
+        "hourlyShort": "5h",
+        "weeklyShort": "أسبوع",
+        "viewFull": "عرض الإحصاء الكامل",
+        "modalTitle": "مجمع حصة خدمة API",
+        "empty": "لا توجد إحصاءات حصة بعد"
+      }
     },
     "local": {
       "desc": "استيراد الحساب الحالي من ~/.codex/auth.json",
@@ -1862,7 +1886,8 @@
     "quota": {
       "hourly": "حصة 5 ساعات",
       "weekly": "الحصة الأسبوعية",
-      "reset": "إعادة ضبط"
+      "reset": "إعادة ضبط",
+      "weeklyBlocksHourly": "الحصة الأسبوعية 0، لذا حصة 5 ساعات غير متاحة"
     },
     "quotaError": {
       "badge": "خطأ في الحصة",
@@ -2168,6 +2193,7 @@
       },
       "provider": {
         "label": "المزوّد",
+        "inlineLabel": "المزوّد: {{provider}}",
         "custom": "مخصّص",
         "endpoint": "نقطة نهاية المزوّد",
         "hint": "تم ملء Base URL متوافق تلقائيًا، وما زال بإمكانك تعديله يدويًا.",
