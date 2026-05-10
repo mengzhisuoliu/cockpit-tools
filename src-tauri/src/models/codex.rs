@@ -76,6 +76,8 @@ pub struct CodexAccount {
     pub account_name: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub account_structure: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub account_note: Option<String>,
     pub tokens: CodexTokens,
     #[serde(default)]
     pub token_generation: u64,
@@ -265,6 +267,7 @@ impl CodexAccount {
             organization_id: None,
             account_name: None,
             account_structure: None,
+            account_note: None,
             tokens,
             token_generation: 0,
             token_updated_at: Some(now),

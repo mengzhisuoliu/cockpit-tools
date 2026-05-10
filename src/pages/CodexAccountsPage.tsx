@@ -25,6 +25,7 @@ import {
   RotateCw,
   Repeat,
   CircleAlert,
+  Info,
   Rows3,
   LayoutGrid,
   List,
@@ -170,6 +171,9 @@ const CODEX_TOKEN_SINGLE_EXAMPLE = `{
     "access_token": "eyJ...",
     "refresh_token": "rt_..."
   }
+}`;
+const CODEX_TOKEN_REFRESH_ONLY_EXAMPLE = `{
+  "refresh_token": "rt_..."
 }`;
 const CODEX_TOKEN_BATCH_EXAMPLE = `[
   {
@@ -481,6 +485,14 @@ export function CodexAccountsPage() {
   const store = useCodexAccountStore();
   const codexInstanceStore = useCodexInstanceStore();
   const [cliLaunchingAccountId, setCliLaunchingAccountId] = useState<string | null>(null);
+  const [editingAccountNoteId, setEditingAccountNoteId] = useState<string | null>(null);
+  const [editingAccountNoteValue, setEditingAccountNoteValue] = useState('');
+  const [savingAccountNote, setSavingAccountNote] = useState(false);
+  const {
+    message: accountNoteError,
+    scrollKey: accountNoteErrorScrollKey,
+    set: setAccountNoteError,
+  } = useModalErrorState();
 
   // Use the common hook WITHOUT oauthService since Codex uses Tauri event-based OAuth
   const page = useProviderAccountsPage<CodexAccount>({
@@ -1092,6 +1104,67 @@ export function CodexAccountsPage() {
     updateAccountName,
     updateApiKeyCredentials,
   } = store;
+
+  const editingAccountNoteAccount = useMemo(
+    () => accounts.find((account) => account.id === editingAccountNoteId) || null,
+    [accounts, editingAccountNoteId],
+  );
+
+  const openAccountNoteModal = useCallback((account: CodexAccount) => {
+    setEditingAccountNoteId(account.id);
+    setEditingAccountNoteValue(account.account_note || '');
+    setAccountNoteError(null);
+  }, [setAccountNoteError]);
+
+  const closeAccountNoteModal = useCallback(() => {
+    if (savingAccountNote) return;
+    setEditingAccountNoteId(null);
+    setEditingAccountNoteValue('');
+    setAccountNoteError(null);
+  }, [savingAccountNote, setAccountNoteError]);
+
+  const handleSubmitAccountNote = useCallback(async () => {
+    if (!editingAccountNoteId || savingAccountNote) return;
+    setSavingAccountNote(true);
+    setAccountNoteError(null);
+    try {
+      await store.updateAccountNote(editingAccountNoteId, editingAccountNoteValue);
+      setMessage({
+        text: t('codex.accountNote.saved', '账号备注已保存'),
+        tone: 'success',
+      });
+      setEditingAccountNoteId(null);
+      setEditingAccountNoteValue('');
+    } catch (error) {
+      setAccountNoteError(
+        t('codex.accountNote.saveFailed', {
+          error: String(error).replace(/^Error:\s*/, ''),
+          defaultValue: '保存账号备注失败：{{error}}',
+        }),
+      );
+    } finally {
+      setSavingAccountNote(false);
+    }
+  }, [editingAccountNoteId, editingAccountNoteValue, savingAccountNote, setAccountNoteError, setMessage, store, t]);
+
+  const renderAccountNoteButton = useCallback((account: CodexAccount, className = 'codex-account-note-chip') => {
+    const hasNote = Boolean(account.account_note?.trim());
+    return (
+      <button
+        type="button"
+        className={`${className} ${hasNote ? 'has-note' : 'empty-note'}`}
+        onClick={() => openAccountNoteModal(account)}
+        title={hasNote ? account.account_note : t('codex.accountNote.emptyTitle', '填写账号备注')}
+      >
+        <FileText size={12} />
+        <span>
+          {hasNote
+            ? t('codex.accountNote.short', '账号备注')
+            : t('codex.accountNote.addShort', '加备注')}
+        </span>
+      </button>
+    );
+  }, [openAccountNoteModal, t]);
 
   // ─── Codex-specific: OAuth via Tauri events ──────────────────────────
 
@@ -2588,13 +2661,22 @@ export function CodexAccountsPage() {
   // ─── Platform-specific: Presentation ─────────────────────────────────
 
   const resolveQuotaErrorMeta = useCallback((quotaError?: CodexQuotaErrorInfo) => {
-    if (!quotaError?.message) return { statusCode: '', errorCode: '', displayText: '', rawMessage: '' };
+    if (!quotaError?.message) {
+      return {
+        statusCode: '',
+        errorCode: '',
+        displayText: '',
+        rawMessage: '',
+        isRefreshRequestFailure: false,
+      };
+    }
     const rawMessage = quotaError.message;
     const normalizedRawMessage = rawMessage.trim();
     const lowerRawMessage = normalizedRawMessage.toLowerCase();
     const requestErrorIndex = lowerRawMessage.indexOf('error sending request');
+    const isRefreshRequestFailure = requestErrorIndex >= 0;
     const requestErrorMessage =
-      requestErrorIndex >= 0
+      isRefreshRequestFailure
         ? normalizedRawMessage.slice(requestErrorIndex).trim()
         : normalizedRawMessage;
     const statusCode = rawMessage.match(/API 返回错误\s+(\d{3})/i)?.[1] || rawMessage.match(/status[=: ]+(\d{3})/i)?.[1] || '';
@@ -2603,10 +2685,10 @@ export function CodexAccountsPage() {
     const displayText = authFailureText !== normalizedRawMessage
       ? authFailureText
       : errorCode
-      || (requestErrorIndex >= 0
+      || (isRefreshRequestFailure
         ? t('codex.quotaError.requestFailedManualRetry', { error: requestErrorMessage })
         : normalizedRawMessage);
-    return { statusCode, errorCode, displayText, rawMessage };
+    return { statusCode, errorCode, displayText, rawMessage, isRefreshRequestFailure };
   }, [formatCodexAuthFailureMessage, t]);
 
   const shouldOfferReauthorizeAction = useCallback(
@@ -3744,6 +3826,14 @@ export function CodexAccountsPage() {
             )}
           </div>
           <button
+            className={`codex-compact-note-btn ${account.account_note?.trim() ? 'has-note' : ''}`}
+            onClick={() => openAccountNoteModal(account)}
+            title={account.account_note?.trim() || t('codex.accountNote.emptyTitle', '填写账号备注')}
+            aria-label={t('codex.accountNote.title', '账号备注')}
+          >
+            <FileText size={13} />
+          </button>
+          <button
             className={`codex-compact-switch-btn ${!isCurrent ? 'success' : ''}`}
             onClick={() => handleSwitch(account.id)}
             disabled={!!switching}
@@ -3782,9 +3872,16 @@ export function CodexAccountsPage() {
       const quotaErrorMeta = resolveQuotaErrorMeta(account.quota_error);
       const accountIssueMeta = reauthErrorMeta.rawMessage ? reauthErrorMeta : quotaErrorMeta;
       const hasQuotaError = Boolean(accountIssueMeta.rawMessage);
+      const isQuotaRefreshNotice =
+        !reauthErrorMeta.rawMessage
+        && quotaErrorMeta.isRefreshRequestFailure
+        && !quotaErrorMeta.statusCode
+        && !quotaErrorMeta.errorCode;
       const accountIssueBadge = reauthErrorMeta.rawMessage
         ? t('codex.authError.badge', '授权异常')
-        : accountIssueMeta.statusCode || t('codex.quotaError.badge', '配额异常');
+        : isQuotaRefreshNotice
+          ? t('codex.quotaError.refreshFailedBadge', '刷新失败')
+          : accountIssueMeta.statusCode || t('codex.quotaError.badge', '配额异常');
       const showReauthorizeAction =
         !isApiKeyAccount && hasQuotaError && shouldOfferReauthorizeAction(accountIssueMeta);
       const accountIdText =
@@ -3835,19 +3932,30 @@ export function CodexAccountsPage() {
               </span>
             )}
             {isCurrent && <span className="current-tag">{t('codex.current', '当前')}</span>}
-            {hasQuotaError && (<span className="codex-status-pill quota-error" title={accountIssueMeta.rawMessage}><CircleAlert size={12} />{accountIssueBadge}</span>)}
+            {hasQuotaError && (
+              <span
+                className={`codex-status-pill ${isQuotaRefreshNotice ? 'quota-refresh' : 'quota-error'}`}
+                title={accountIssueMeta.rawMessage}
+              >
+                {isQuotaRefreshNotice ? <Info size={12} /> : <CircleAlert size={12} />}
+                {accountIssueBadge}
+              </span>
+            )}
             <span className={`tier-badge ${planClass}`}>{presentation.planLabel}</span>
           </div>
-          {meta.accountContextText && (
+          {(meta.accountContextText || isInLocalAccess || account.account_note?.trim()) && (
             <div className="account-sub-line">
-              <span className="codex-login-subline" title={meta.accountContextText}>
-                Team Name：{meta.accountContextText}
-              </span>
+              {meta.accountContextText && (
+                <span className="codex-login-subline" title={meta.accountContextText}>
+                  Team Name：{meta.accountContextText}
+                </span>
+              )}
               {isInLocalAccess && (
                 <span className="group-account-badge is-current">
                   {t('codex.localAccess.modal.selected', '已加入 API 服务')}
                 </span>
               )}
+              {renderAccountNoteButton(account)}
             </div>
           )}
           {!isApiKeyAccount && (
@@ -3891,8 +3999,11 @@ export function CodexAccountsPage() {
             ) : (
               <>
                 {hasQuotaError && (
-                  <div className="quota-error-inline" title={accountIssueMeta.rawMessage}>
-                    <CircleAlert size={14} />
+                  <div
+                    className={`quota-error-inline ${isQuotaRefreshNotice ? 'quota-refresh-notice' : ''}`}
+                    title={accountIssueMeta.rawMessage}
+                  >
+                    {isQuotaRefreshNotice ? <Info size={14} /> : <CircleAlert size={14} />}
                     <span>{accountIssueMeta.displayText}</span>
                     {showReauthorizeAction && (
                       <button
@@ -3950,6 +4061,14 @@ export function CodexAccountsPage() {
                   )}
                 </button>
                 <button className="card-action-btn" onClick={() => openTagModal(account.id)} title={t('accounts.editTags', '编辑标签')}><Tag size={14} /></button>
+                <button
+                  className={`card-action-btn ${account.account_note?.trim() ? 'active' : ''}`}
+                  onClick={() => openAccountNoteModal(account)}
+                  title={account.account_note?.trim() || t('codex.accountNote.emptyTitle', '填写账号备注')}
+                  aria-label={t('codex.accountNote.title', '账号备注')}
+                >
+                  <FileText size={14} />
+                </button>
                 {isApiKeyAccount && (
                   <button
                     className="card-action-btn"
@@ -4481,9 +4600,16 @@ export function CodexAccountsPage() {
       const quotaErrorMeta = resolveQuotaErrorMeta(account.quota_error);
       const accountIssueMeta = reauthErrorMeta.rawMessage ? reauthErrorMeta : quotaErrorMeta;
       const hasQuotaError = Boolean(accountIssueMeta.rawMessage);
+      const isQuotaRefreshNotice =
+        !reauthErrorMeta.rawMessage
+        && quotaErrorMeta.isRefreshRequestFailure
+        && !quotaErrorMeta.statusCode
+        && !quotaErrorMeta.errorCode;
       const accountIssueBadge = reauthErrorMeta.rawMessage
         ? t('codex.authError.badge', '授权异常')
-        : accountIssueMeta.statusCode || t('codex.quotaError.badge', '配额异常');
+        : isQuotaRefreshNotice
+          ? t('codex.quotaError.refreshFailedBadge', '刷新失败')
+          : accountIssueMeta.statusCode || t('codex.quotaError.badge', '配额异常');
       const showReauthorizeAction =
         !isApiKeyAccount && hasQuotaError && shouldOfferReauthorizeAction(accountIssueMeta);
       const accountIdText =
@@ -4529,16 +4655,19 @@ export function CodexAccountsPage() {
             </span>
           )}
             {isCurrent && <span className="mini-tag current">{t('codex.current', '当前')}</span>}</div>
-            {meta.accountContextText && (
+            {(meta.accountContextText || isInLocalAccess || account.account_note?.trim()) && (
               <div className="account-sub-line codex-account-meta-inline">
-                <span className="codex-login-subline" title={meta.accountContextText}>
-                  Team Name：{meta.accountContextText}
-                </span>
+                {meta.accountContextText && (
+                  <span className="codex-login-subline" title={meta.accountContextText}>
+                    Team Name：{meta.accountContextText}
+                  </span>
+                )}
                 {isInLocalAccess && (
                   <span className="group-account-badge is-current">
                     {t('codex.localAccess.modal.selected', '已加入 API 服务')}
                   </span>
                 )}
+                {renderAccountNoteButton(account)}
               </div>
             )}
             {!isApiKeyAccount && (
@@ -4573,7 +4702,17 @@ export function CodexAccountsPage() {
                 </div>
               </>
             )}
-            {hasQuotaError && (<div className="account-sub-line"><span className="codex-status-pill quota-error" title={accountIssueMeta.rawMessage}><CircleAlert size={12} />{accountIssueBadge}</span></div>)}</div></td>
+            {hasQuotaError && (
+              <div className="account-sub-line">
+                <span
+                  className={`codex-status-pill ${isQuotaRefreshNotice ? 'quota-refresh' : 'quota-error'}`}
+                  title={accountIssueMeta.rawMessage}
+                >
+                  {isQuotaRefreshNotice ? <Info size={12} /> : <CircleAlert size={12} />}
+                  {accountIssueBadge}
+                </span>
+              </div>
+            )}</div></td>
           <td><span className={`tier-badge ${planClass}`}>{presentation.planLabel}</span></td>
           <td>
             {isApiKeyAccount ? (
@@ -4609,8 +4748,11 @@ export function CodexAccountsPage() {
                   )}
                 </div>
                 {hasQuotaError && (
-                  <div className="quota-error-inline table" title={accountIssueMeta.rawMessage}>
-                    <CircleAlert size={12} />
+                  <div
+                    className={`quota-error-inline table ${isQuotaRefreshNotice ? 'quota-refresh-notice' : ''}`}
+                    title={accountIssueMeta.rawMessage}
+                  >
+                    {isQuotaRefreshNotice ? <Info size={12} /> : <CircleAlert size={12} />}
                     <span>{accountIssueMeta.displayText}</span>
                     {showReauthorizeAction && (
                       <button
@@ -4640,6 +4782,14 @@ export function CodexAccountsPage() {
               )}
             </button>
             <button className="action-btn" onClick={() => openTagModal(account.id)} title={t('accounts.editTags', '编辑标签')}><Tag size={14} /></button>
+            <button
+              className={`action-btn ${account.account_note?.trim() ? 'active' : ''}`}
+              onClick={() => openAccountNoteModal(account)}
+              title={account.account_note?.trim() || t('codex.accountNote.emptyTitle', '填写账号备注')}
+              aria-label={t('codex.accountNote.title', '账号备注')}
+            >
+              <FileText size={14} />
+            </button>
             {isApiKeyAccount && (
               <button
                 className="action-btn"
@@ -5418,12 +5568,13 @@ export function CodexAccountsPage() {
               </div>
             </div>)}
             {addTab === 'token' && (<div className="add-section">
-              <p className="section-desc">{t('codex.token.desc', '粘贴您的 Codex Access Token 或导出的 JSON 数据。')}</p>
-              <details className="token-format-collapse"><summary className="token-format-collapse-summary">必填字段与示例（点击展开）</summary>
-                <div className="token-format"><p className="token-format-required">必填字段：auth.json 需包含 tokens.id_token 与 tokens.access_token；账号数组需包含 id、email、tokens、created_at、last_used</p>
-                  <div className="token-format-group"><div className="token-format-label">单条示例（auth.json）</div><pre className="token-format-code">{CODEX_TOKEN_SINGLE_EXAMPLE}</pre></div>
-                  <div className="token-format-group"><div className="token-format-label">批量示例（账号数组）</div><pre className="token-format-code">{CODEX_TOKEN_BATCH_EXAMPLE}</pre></div></div></details>
-              <textarea className="token-input" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder={t('codex.token.placeholder', '粘贴 Token 或 JSON...')} />
+              <p className="section-desc">{t('codex.token.desc', '粘贴 auth.json、账号 JSON 或 refresh_token。')}</p>
+              <details className="token-format-collapse"><summary className="token-format-collapse-summary">{t('codex.token.formatSummary', '必填字段与示例（点击展开）')}</summary>
+                <div className="token-format"><p className="token-format-required">{t('codex.token.formatRequired', '支持完整 tokens（id_token + access_token）或仅 refresh_token。仅 refresh_token 会先联网换取完整凭据。')}</p>
+                  <div className="token-format-group"><div className="token-format-label">{t('codex.token.formatSingleLabel', '完整 tokens 示例')}</div><pre className="token-format-code">{CODEX_TOKEN_SINGLE_EXAMPLE}</pre></div>
+                  <div className="token-format-group"><div className="token-format-label">{t('codex.token.formatRefreshOnlyLabel', '仅 refresh_token 示例')}</div><pre className="token-format-code">{CODEX_TOKEN_REFRESH_ONLY_EXAMPLE}</pre></div>
+                  <div className="token-format-group"><div className="token-format-label">{t('codex.token.formatBatchLabel', '批量示例')}</div><pre className="token-format-code">{CODEX_TOKEN_BATCH_EXAMPLE}</pre></div></div></details>
+              <textarea className="token-input" value={tokenInput} onChange={(e) => setTokenInput(e.target.value)} placeholder={t('codex.token.placeholder', '示例：每行一个 refresh_token，或 {"refresh_token":"rt_..."}')} />
               <button className="btn btn-primary btn-full" onClick={handleTokenImport} disabled={importing || !tokenInput.trim()}>
                 {importing ? <RefreshCw size={16} className="loading-spinner" /> : <Download size={16} />}{t('common.shared.token.import', 'Import')}</button></div>)}
             {addTab === 'import' && (<div className="add-section">
@@ -6275,6 +6426,67 @@ export function CodexAccountsPage() {
 
         <TagEditModal isOpen={!!showTagModal} initialTags={accounts.find((a) => a.id === showTagModal)?.tags || []} availableTags={availableTags}
           onClose={() => setShowTagModal(null)} onSave={handleSaveTags} />
+
+        {editingAccountNoteAccount && (
+          <div className="modal-overlay" onClick={closeAccountNoteModal}>
+            <div className="modal codex-account-note-modal" onClick={(event) => event.stopPropagation()}>
+              <div className="modal-header">
+                <h2>{t('codex.accountNote.title', '账号备注')}</h2>
+                <button
+                  className="modal-close"
+                  onClick={closeAccountNoteModal}
+                  aria-label={t('common.close', '关闭')}
+                  disabled={savingAccountNote}
+                >
+                  <X />
+                </button>
+              </div>
+              <div className="modal-body">
+                <ModalErrorMessage
+                  message={accountNoteError}
+                  scrollKey={accountNoteErrorScrollKey}
+                />
+                <p className="codex-account-note-desc">
+                  {t('codex.accountNote.desc', {
+                    account: maskAccountText(resolvePresentation(editingAccountNoteAccount).displayName),
+                    defaultValue: '给 {{account}} 填写单独展示的账号备注。',
+                  })}
+                </p>
+                <label className="codex-account-note-field">
+                  <span>{t('codex.accountNote.label', '账号备注')}</span>
+                  <textarea
+                    className="codex-account-note-textarea"
+                    value={editingAccountNoteValue}
+                    onChange={(event) => {
+                      setEditingAccountNoteValue(event.target.value);
+                      setAccountNoteError(null);
+                    }}
+                    placeholder={t('codex.accountNote.placeholder', '例如邮箱、密码、辅助邮箱或其他交付备注')}
+                    disabled={savingAccountNote}
+                    rows={5}
+                    autoFocus
+                  />
+                </label>
+              </div>
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={closeAccountNoteModal}
+                  disabled={savingAccountNote}
+                >
+                  {t('common.cancel', '取消')}
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={() => void handleSubmitAccountNote()}
+                  disabled={savingAccountNote}
+                >
+                  {savingAccountNote ? t('common.saving', '保存中...') : t('common.save', '保存')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <CodexGroupAccountPickerModal
           isOpen={!!groupQuickAddGroupId}

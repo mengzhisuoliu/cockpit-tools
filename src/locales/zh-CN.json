@@ -85,7 +85,7 @@
         "titleCodex": "Codex 批量导入",
         "statusReceiving": "正在接收导入请求...",
         "statusFetching": "正在获取导入包...",
-        "statusParsing": "正在解析 Codex JSON...",
+        "statusParsing": "正在解析 Codex 导入内容...",
         "statusImporting": "正在导入第 {{current}} / {{total}} 个账号",
         "statusRefreshing": "正在刷新账号列表...",
         "statusSuccess": "导入完成",
@@ -96,14 +96,19 @@
         "failed": "失败",
         "stepReceive": "接收导入请求",
         "stepFetch": "获取导入包",
-        "stepParse": "解析 Codex JSON",
+        "stepParse": "解析导入内容",
         "stepImport": "导入账号",
         "stepRefresh": "刷新账号列表",
         "errorsTitle": "失败项",
         "viewAccounts": "查看 Codex 账号",
         "copyErrors": "复制错误",
         "copied": "已复制",
-        "unknownItem": "第 {{index}} 个 JSON"
+        "unknownItem": "第 {{index}} 个导入项",
+        "versionUnsupportedTitle": "应用版本过低",
+        "versionUnsupportedDesc": "暂不支持此方式，请下载最新版。",
+        "checkUpdate": "检查更新",
+        "rawLineNoRefreshToken": "第 {{line}} 行没有匹配到 refresh_token",
+        "rawLineMultipleRefreshTokens": "第 {{line}} 行匹配到多个 refresh_token，请只保留一个"
       },
       "instances": {
         "unsupported": {
@@ -1734,8 +1739,13 @@
       "timeoutRetry": "刷新授权链接"
     },
     "token": {
-      "desc": "粘贴 auth.json 内容或账号 JSON 数据",
-      "placeholder": "示例：{\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "粘贴 auth.json、账号 JSON 或 refresh_token。",
+      "placeholder": "示例：每行一个 refresh_token，或 {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "必填字段与示例（点击展开）",
+      "formatRequired": "支持完整 tokens（id_token + access_token）、单个 refresh_token，或每行一个 refresh_token。仅 refresh_token 会先联网换取完整凭据。",
+      "formatSingleLabel": "完整 tokens 示例",
+      "formatRefreshOnlyLabel": "仅 refresh_token 示例",
+      "formatBatchLabel": "批量示例"
     },
     "exportFormat": {
       "label": "导出格式",
@@ -1746,6 +1756,17 @@
       "cpaCardTitle": "账号 {{index}}",
       "savedFolder": "保存目录",
       "savedPath": "保存路径"
+    },
+    "accountNote": {
+      "title": "账号备注",
+      "label": "账号备注",
+      "desc": "给 {{account}} 填写单独展示的账号备注。",
+      "placeholder": "例如邮箱、密码、辅助邮箱或其他交付备注",
+      "emptyTitle": "填写账号备注",
+      "short": "账号备注",
+      "addShort": "加备注",
+      "saved": "账号备注已保存",
+      "saveFailed": "保存账号备注失败：{{error}}"
     },
     "localAccess": {
       "title": "API 服务",
@@ -2114,9 +2135,10 @@
     },
     "quotaError": {
       "badge": "配额异常",
+      "refreshFailedBadge": "刷新失败",
       "generic": "配额刷新失败，请稍后重试",
       "deactivatedWorkspace": "工作区已停用，请切换账号或重新授权",
-      "requestFailedManualRetry": "额度刷新失败，未能获取最新额度；账号状态不受影响，请重新刷新"
+      "requestFailedManualRetry": "请检查网络，未获取到最新额度。可刷新重试。"
     },
     "plan": {
       "free": "FREE",

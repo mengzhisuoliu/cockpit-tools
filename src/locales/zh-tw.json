@@ -78,7 +78,7 @@
         "titleCodex": "Codex 批次匯入",
         "statusReceiving": "正在接收匯入請求...",
         "statusFetching": "正在取得匯入包...",
-        "statusParsing": "正在解析 Codex JSON...",
+        "statusParsing": "正在解析 Codex 匯入內容...",
         "statusImporting": "正在匯入第 {{current}} / {{total}} 個帳號",
         "statusRefreshing": "正在重新整理帳號列表...",
         "statusSuccess": "匯入完成",
@@ -89,14 +89,19 @@
         "failed": "失敗",
         "stepReceive": "接收匯入請求",
         "stepFetch": "取得匯入包",
-        "stepParse": "解析 Codex JSON",
+        "stepParse": "解析匯入內容",
         "stepImport": "匯入帳號",
         "stepRefresh": "重新整理帳號列表",
         "errorsTitle": "失敗項",
         "viewAccounts": "查看 Codex 帳號",
         "copyErrors": "複製錯誤",
         "copied": "已複製",
-        "unknownItem": "第 {{index}} 個 JSON"
+        "unknownItem": "第 {{index}} 個匯入項目",
+        "versionUnsupportedTitle": "應用程式版本過低",
+        "versionUnsupportedDesc": "暫不支援此方式，請下載最新版。",
+        "checkUpdate": "檢查更新",
+        "rawLineNoRefreshToken": "第 {{line}} 行未匹配到 refresh_token",
+        "rawLineMultipleRefreshTokens": "第 {{line}} 行匹配到多個 refresh_token，請只保留一個"
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "更新驗證連結"
     },
     "token": {
-      "desc": "貼上 auth.json 內容或帳號 JSON 資料",
-      "placeholder": "範例：{\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "貼上 auth.json、帳號 JSON 或 refresh_token。",
+      "placeholder": "範例：每行一個 refresh_token，或 {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "必填欄位與範例（點擊展開）",
+      "formatRequired": "支援完整 tokens（id_token + access_token）、單個 refresh_token，或每行一個 refresh_token。僅 refresh_token 會先連線換取完整憑證。",
+      "formatSingleLabel": "完整 tokens 範例",
+      "formatRefreshOnlyLabel": "僅 refresh_token 範例",
+      "formatBatchLabel": "批次範例"
     },
     "exportFormat": {
       "label": "匯出格式",
@@ -1932,9 +1942,10 @@
     },
     "quotaError": {
       "badge": "配額異常",
+      "refreshFailedBadge": "重新整理失敗",
       "generic": "配額重新整理失敗，請稍後再試",
       "deactivatedWorkspace": "工作區已停用，請切換帳號或重新授權",
-      "requestFailedManualRetry": "請求失敗，請手動重試：{{error}}"
+      "requestFailedManualRetry": "請檢查網路，未取得最新配額。可重新整理重試。"
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "API 服務",
         "account": "帳號"
       }
+    },
+    "accountNote": {
+      "title": "帳號備註",
+      "label": "帳號備註",
+      "desc": "為 {{account}} 填寫單獨顯示的帳號備註。",
+      "placeholder": "例如信箱、密碼、輔助信箱或其他交付備註",
+      "emptyTitle": "填寫帳號備註",
+      "short": "帳號備註",
+      "addShort": "加備註",
+      "saved": "帳號備註已儲存",
+      "saveFailed": "儲存帳號備註失敗：{{error}}"
     }
   },
   "githubCopilot": {

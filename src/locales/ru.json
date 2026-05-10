@@ -78,7 +78,7 @@
         "titleCodex": "Пакетный импорт Codex",
         "statusReceiving": "Получение запроса на импорт...",
         "statusFetching": "Получение пакета импорта...",
-        "statusParsing": "Разбор JSON Codex...",
+        "statusParsing": "Разбор содержимого импорта Codex...",
         "statusImporting": "Импорт аккаунта {{current}} / {{total}}",
         "statusRefreshing": "Обновление списка аккаунтов...",
         "statusSuccess": "Импорт завершен",
@@ -89,14 +89,19 @@
         "failed": "Ошибки",
         "stepReceive": "Получить запрос",
         "stepFetch": "Получить пакет",
-        "stepParse": "Разобрать JSON Codex",
+        "stepParse": "Разобрать содержимое",
         "stepImport": "Импортировать аккаунты",
         "stepRefresh": "Обновить список",
         "errorsTitle": "Ошибочные элементы",
         "viewAccounts": "Показать аккаунты Codex",
         "copyErrors": "Копировать ошибки",
         "copied": "Скопировано",
-        "unknownItem": "JSON № {{index}}"
+        "unknownItem": "Элемент №{{index}}",
+        "versionUnsupportedTitle": "Версия приложения слишком старая",
+        "versionUnsupportedDesc": "Этот способ пока не поддерживается. Скачайте последнюю версию.",
+        "checkUpdate": "Проверить обновления",
+        "rawLineNoRefreshToken": "Строка {{line}} не содержит refresh_token",
+        "rawLineMultipleRefreshTokens": "Строка {{line}} содержит несколько refresh_token. Оставьте только один."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Обновить ссылку аутентификации"
     },
     "token": {
-      "desc": "Вставьте содержимое auth.json или JSON данных аккаунта",
-      "placeholder": "Пример: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Вставьте auth.json, JSON аккаунта или refresh_token.",
+      "placeholder": "Пример: один refresh_token в строке или {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Обязательные поля и примеры",
+      "formatRequired": "Поддерживаются полные tokens (id_token + access_token), один refresh_token или один refresh_token в строке. При импорте только refresh_token он сначала обменивается онлайн на полные учетные данные.",
+      "formatSingleLabel": "Полные tokens",
+      "formatRefreshOnlyLabel": "Только refresh_token",
+      "formatBatchLabel": "Пакетный пример"
     },
     "exportFormat": {
       "label": "Формат экспорта",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Ошибка квоты",
+      "refreshFailedBadge": "Сбой обновления",
       "generic": "Не удалось обновить квоту, попробуйте позже",
       "deactivatedWorkspace": "Рабочее пространство деактивировано, переключите аккаунт или авторизуйтесь заново",
-      "requestFailedManualRetry": "Не удалось выполнить запрос, повторите вручную: {{error}}"
+      "requestFailedManualRetry": "Проверьте сеть. Не удалось получить актуальную квоту. Обновите, чтобы повторить попытку."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Сервис API",
         "account": "Аккаунт"
       }
+    },
+    "accountNote": {
+      "title": "Заметка аккаунта",
+      "label": "Заметка аккаунта",
+      "desc": "Добавьте отдельную заметку для {{account}}.",
+      "placeholder": "Почта, пароль, резервная почта или заметки к выдаче",
+      "emptyTitle": "Добавить заметку аккаунта",
+      "short": "Заметка",
+      "addShort": "Добавить",
+      "saved": "Заметка аккаунта сохранена",
+      "saveFailed": "Не удалось сохранить заметку аккаунта: {{error}}"
     }
   },
   "githubCopilot": {

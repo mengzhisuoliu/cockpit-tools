@@ -7,6 +7,21 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.22.21] - 2026-05-10
+
+### Added
+- **Official Linux release artifacts are back in the release pipeline**: CI builds Ubuntu x86_64 and ARM64 targets, publishes AppImage/deb/rpm updater metadata, and README install guidance lists Linux packages again.
+- **Codex accounts now support standalone account notes**: account notes can be saved manually from the account overview and are stored with each Codex account record.
+
+### Changed
+- **Codex quota refresh network failures are now presented as retryable refresh notices**: request-send failures show a lighter refresh-failed badge and manual retry copy instead of implying a full quota or authorization error.
+- **Codex account cards and tables now expose note editing inline**: accounts with API Service membership show the note action beside the service badge, while every account also has a note action in its row/card controls.
+
+### Fixed
+- **Codex Local API Service now handles upstream `response.done` SSE completion events**: chat, image, and Responses adapters can read named SSE events, capture usage including cached tokens, and convert completed responses when upstream omits the `type` field in the data payload.
+- **Streaming `/v1/responses` requests now stay passthrough**: stream requests keep their upstream streaming adapter instead of being converted through the non-streaming response parser.
+
+---
 ## [0.22.20] - 2026-05-06
 
 ### Added

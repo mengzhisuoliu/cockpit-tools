@@ -3213,7 +3213,99 @@ fn import_account_struct(account: CodexAccount) -> Result<CodexAccount, String> 
     Ok(imported)
 }
 
-fn import_account_from_json_value(
+enum CodexJsonImportCandidate {
+    FullToken {
+        tokens: CodexTokens,
+        account_id_hint: Option<String>,
+        account_note: Option<String>,
+    },
+    RefreshToken {
+        refresh_token: String,
+        account_note: Option<String>,
+    },
+}
+
+fn extract_account_note_from_value(value: &serde_json::Value) -> Option<String> {
+    let obj = value.as_object()?;
+    ["account_note", "accountInfo", "account_info", "note", "notes", "remark"]
+        .iter()
+        .find_map(|key| {
+            obj.get(*key)
+                .and_then(|value| value.as_str())
+                .and_then(|value| normalize_optional_ref(Some(value)))
+        })
+}
+
+fn extract_refresh_token_only_from_value(value: &serde_json::Value) -> Option<String> {
+    match value {
+        serde_json::Value::String(raw) => normalize_optional_ref(Some(raw)),
+        serde_json::Value::Object(obj) => obj
+            .get("refresh_token")
+            .and_then(|value| value.as_str())
+            .and_then(|value| normalize_optional_ref(Some(value)))
+            .or_else(|| {
+                obj.get("tokens")
+                    .and_then(|value| value.as_object())
+                    .and_then(|tokens| tokens.get("refresh_token"))
+                    .and_then(|value| value.as_str())
+                    .and_then(|value| normalize_optional_ref(Some(value)))
+            }),
+        _ => None,
+    }
+}
+
+fn extract_codex_import_candidate_from_value(
+    value: &serde_json::Value,
+) -> Option<CodexJsonImportCandidate> {
+    if let Some((tokens, account_id_hint)) = extract_codex_tokens_from_value(value) {
+        return Some(CodexJsonImportCandidate::FullToken {
+            tokens,
+            account_id_hint,
+            account_note: extract_account_note_from_value(value),
+        });
+    }
+
+    extract_refresh_token_only_from_value(value).map(|refresh_token| {
+        CodexJsonImportCandidate::RefreshToken {
+            refresh_token,
+            account_note: extract_account_note_from_value(value),
+        }
+    })
+}
+
+async fn upsert_account_from_refresh_token(
+    refresh_token: String,
+    account_note: Option<String>,
+) -> Result<CodexAccount, String> {
+    let tokens = codex_oauth::refresh_access_token(&refresh_token).await?;
+    let mut account = upsert_account(tokens)?;
+    if account_note.is_some() {
+        account.account_note = account_note;
+        save_account(&account)?;
+    }
+    Ok(account)
+}
+
+async fn import_accounts_from_refresh_token_lines(
+    content: &str,
+) -> Result<Vec<CodexAccount>, String> {
+    let refresh_tokens: Vec<String> = content
+        .lines()
+        .filter_map(|line| normalize_optional_ref(Some(line)))
+        .collect();
+
+    if refresh_tokens.is_empty() {
+        return Err("refresh_token 不能为空".to_string());
+    }
+
+    let mut accounts = Vec::with_capacity(refresh_tokens.len());
+    for refresh_token in refresh_tokens {
+        accounts.push(upsert_account_from_refresh_token(refresh_token, None).await?);
+    }
+    Ok(accounts)
+}
+
+async fn import_account_from_json_value(
     value: serde_json::Value,
 ) -> Result<Option<CodexAccount>, String> {
     if is_auth_mode_apikey(
@@ -3243,12 +3335,27 @@ fn import_account_from_json_value(
         }
     }
 
-    if let Some((tokens, account_id_hint)) = extract_codex_tokens_from_value(&value) {
-        return Ok(Some(upsert_account_with_hints(
-            tokens,
-            account_id_hint,
-            None,
-        )?));
+    if let Some(candidate) = extract_codex_import_candidate_from_value(&value) {
+        return match candidate {
+            CodexJsonImportCandidate::FullToken {
+                tokens,
+                account_id_hint,
+                account_note,
+            } => {
+                let mut account = upsert_account_with_hints(tokens, account_id_hint, None)?;
+                if account_note.is_some() {
+                    account.account_note = account_note;
+                    save_account(&account)?;
+                }
+                Ok(Some(account))
+            }
+            CodexJsonImportCandidate::RefreshToken {
+                refresh_token,
+                account_note,
+            } => Ok(Some(
+                upsert_account_from_refresh_token(refresh_token, account_note).await?,
+            )),
+        };
     }
 
     if let Ok(account) = serde_json::from_value::<CodexAccount>(value) {
@@ -3292,8 +3399,14 @@ fn parse_line_delimited_json_values(
 }
 
 /// 从 JSON 字符串导入账号
-pub fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, String> {
+pub async fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, String> {
     ensure_storage_writable_for_import()?;
+    if !json_content.trim().is_empty()
+        && !json_content.trim_start().starts_with('{')
+        && !json_content.trim_start().starts_with('[')
+    {
+        return import_accounts_from_refresh_token_lines(json_content).await;
+    }
 
     // 尝试解析为 auth.json 格式
     if let Ok(auth_file) = serde_json::from_str::<CodexAuthFile>(json_content) {
@@ -3341,7 +3454,7 @@ pub fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, String>
     if let Ok(parsed) = serde_json::from_str::<serde_json::Value>(json_content) {
         match parsed {
             serde_json::Value::Object(_) => {
-                if let Some(account) = import_account_from_json_value(parsed)? {
+                if let Some(account) = import_account_from_json_value(parsed).await? {
                     return Ok(vec![account]);
                 }
             }
@@ -3349,7 +3462,7 @@ pub fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, String>
                 let mut result = Vec::new();
 
                 for item in items {
-                    if let Some(account) = import_account_from_json_value(item)? {
+                    if let Some(account) = import_account_from_json_value(item).await? {
                         result.push(account);
                     }
                 }
@@ -3366,9 +3479,14 @@ pub fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, String>
         let mut result = Vec::new();
 
         for (index, item) in items.into_iter().enumerate() {
-            match import_account_from_json_value(item)? {
+            match import_account_from_json_value(item).await? {
                 Some(account) => result.push(account),
-                None => return Err(format!("第 {} 行未找到有效的 Codex Token", index + 1)),
+                None => {
+                    return Err(format!(
+                        "第 {} 行未找到有效的 Codex Token 或 refresh_token",
+                        index + 1
+                    ))
+                }
             }
         }
 
@@ -4307,7 +4425,7 @@ mod tests {
 }
 
 /// 从本地文件导入 Codex 账号（支持多种 JSON 格式）
-pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResult, String> {
+pub async fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResult, String> {
     use std::path::Path;
 
     if file_paths.is_empty() {
@@ -4320,8 +4438,10 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
         file_paths.len()
     ));
 
-    // 收集所有候选: (CodexTokens, account_id_hint, label, auth_file_plan_type)
+    // 原有文件导入候选: (CodexTokens, account_id_hint, label, auth_file_plan_type)
     let mut candidates: Vec<(CodexTokens, Option<String>, String, Option<String>)> = Vec::new();
+    // 旧规则未识别到账号时，才用 Token/JSON 粘贴框的解析逻辑处理整个文件内容。
+    let mut fallback_files: Vec<(String, String, Option<String>)> = Vec::new();
 
     for file_path in &file_paths {
         let path = Path::new(file_path);
@@ -4344,17 +4464,25 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
         let parsed: serde_json::Value = match serde_json::from_str(&content) {
             Ok(v) => v,
             Err(e) => {
-                logger::log_error(&format!("解析 JSON 失败 {:?}: {}", file_path, e));
+                logger::log_warn(&format!(
+                    "Codex 文件旧规则 JSON 解析失败，将尝试 Token/JSON 导入逻辑 {:?}: {}",
+                    file_path, e
+                ));
+                fallback_files.push((content, filename_label, auth_file_plan_type));
                 continue;
             }
         };
 
+        let before_count = candidates.len();
         match &parsed {
             serde_json::Value::Object(_) => {
                 if let Some((tokens, hint)) = extract_codex_tokens_from_value(&parsed) {
-                    candidates.push((tokens, hint, filename_label, auth_file_plan_type.clone()));
-                } else {
-                    logger::log_error(&format!("未找到有效 Token {:?}", file_path));
+                    candidates.push((
+                        tokens,
+                        hint,
+                        filename_label.clone(),
+                        auth_file_plan_type.clone(),
+                    ));
                 }
             }
             serde_json::Value::Array(arr) => {
@@ -4369,35 +4497,44 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
                     }
                 }
             }
-            _ => {
-                logger::log_error(&format!("不支持的 JSON 格式 {:?}", file_path));
-            }
+            _ => {}
+        }
+
+        if candidates.len() == before_count {
+            logger::log_info(&format!(
+                "Codex 文件旧规则未找到账号，将尝试 Token/JSON 导入逻辑 {:?}",
+                file_path
+            ));
+            fallback_files.push((content, filename_label, auth_file_plan_type));
         }
     }
 
-    if candidates.is_empty() {
-        return Err("未找到有效的 Codex Token（需要 id_token 和 access_token）".to_string());
+    if candidates.is_empty() && fallback_files.is_empty() {
+        return Err(
+            "未找到有效的 Codex Token（需要 id_token + access_token，或 refresh_token）"
+                .to_string(),
+        );
     }
 
     logger::log_info(&format!(
-        "Codex: 发现 {} 个候选账号，开始导入...",
-        candidates.len()
+        "Codex: 发现 {} 个旧格式候选账号，{} 个文件待尝试 Token/JSON 导入逻辑...",
+        candidates.len(),
+        fallback_files.len()
     ));
 
     let mut imported = Vec::new();
     let mut failed: Vec<CodexFileImportFailure> = Vec::new();
-    let total = candidates.len();
+    let total = candidates.len() + fallback_files.len();
+    let mut progress_index = 0usize;
 
-    for (index, (tokens, account_id_hint, label, auth_file_plan_type)) in
-        candidates.into_iter().enumerate()
-    {
-        // 发送进度事件
+    for (tokens, account_id_hint, label, auth_file_plan_type) in candidates {
+        progress_index += 1;
         if let Some(app_handle) = crate::get_app_handle() {
             use tauri::Emitter;
             let _ = app_handle.emit(
                 "codex:file-import-progress",
                 serde_json::json!({
-                    "current": index + 1,
+                    "current": progress_index,
                     "total": total,
                     "email": &label,
                 }),
@@ -4411,6 +4548,53 @@ pub fn import_from_files(file_paths: Vec<String>) -> Result<CodexFileImportResul
                 }
                 logger::log_info(&format!("Codex 导入成功: {}", account.email));
                 imported.push(account);
+            }
+            Err(e) => {
+                if is_disk_full_error_message(&e) {
+                    logger::log_error(&format!(
+                        "Codex 导入因磁盘空间不足终止: label={}, imported={}, error={}",
+                        label,
+                        imported.len(),
+                        e
+                    ));
+                    return Err(format!(
+                        "磁盘空间不足，已终止导入（已成功 {} 个）。{}",
+                        imported.len(),
+                        e
+                    ));
+                }
+                logger::log_error(&format!("Codex 导入失败 {}: {}", label, e));
+                failed.push(CodexFileImportFailure {
+                    email: label,
+                    error: e,
+                });
+            }
+        }
+    }
+
+    for (content, label, auth_file_plan_type) in fallback_files {
+        progress_index += 1;
+        if let Some(app_handle) = crate::get_app_handle() {
+            use tauri::Emitter;
+            let _ = app_handle.emit(
+                "codex:file-import-progress",
+                serde_json::json!({
+                    "current": progress_index,
+                    "total": total,
+                    "email": &label,
+                }),
+            );
+        }
+
+        match import_from_json(&content).await {
+            Ok(accounts) => {
+                for mut account in accounts {
+                    if apply_auth_file_plan_type(&mut account, auth_file_plan_type.clone()) {
+                        save_account(&account)?;
+                    }
+                    logger::log_info(&format!("Codex 导入成功: {}", account.email));
+                    imported.push(account);
+                }
             }
             Err(e) => {
                 if is_disk_full_error_message(&e) {
@@ -4449,6 +4633,16 @@ pub fn update_account_tags(account_id: &str, tags: Vec<String>) -> Result<CodexA
         load_account(account_id).ok_or_else(|| format!("账号不存在: {}", account_id))?;
 
     account.tags = Some(tags);
+    save_account(&account)?;
+
+    Ok(account)
+}
+
+pub fn update_account_note(account_id: &str, note: String) -> Result<CodexAccount, String> {
+    let mut account =
+        load_account(account_id).ok_or_else(|| format!("账号不存在: {}", account_id))?;
+
+    account.account_note = normalize_optional_value(Some(note));
     save_account(&account)?;
 
     Ok(account)

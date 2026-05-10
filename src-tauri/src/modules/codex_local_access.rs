@@ -45,7 +45,6 @@ const PREPARED_ACCOUNT_CACHE_TTL_MS: i64 = 30 * 1000;
 const DAY_WINDOW_MS: i64 = 24 * 60 * 60 * 1000;
 const WEEK_WINDOW_MS: i64 = 7 * DAY_WINDOW_MS;
 const MONTH_WINDOW_MS: i64 = 30 * DAY_WINDOW_MS;
-const MAX_RECENT_USAGE_EVENTS: usize = 5_000;
 const GATEWAY_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 const UPSTREAM_CODEX_BASE_URL: &str = "https://chatgpt.com/backend-api/codex";
 const DEFAULT_CODEX_USER_AGENT: &str =
@@ -1023,6 +1022,10 @@ fn is_chat_completions_request(target: &str) -> bool {
     path == CHAT_COMPLETIONS_PATH || path.ends_with("/chat/completions")
 }
 
+fn is_responses_completion_event(event_type: &str) -> bool {
+    matches!(event_type, "response.completed" | "response.done")
+}
+
 fn response_text_type_for_role(role: &str) -> &'static str {
     if role.eq_ignore_ascii_case("assistant") {
         "output_text"
@@ -1974,9 +1977,17 @@ impl ChatCompletionStreamTransformer {
         }
 
         let text = String::from_utf8_lossy(frame);
+        let mut event_name: Option<String> = None;
         let mut data_lines = Vec::new();
         for raw_line in text.lines() {
             let line = raw_line.trim();
+            if let Some(rest) = line.strip_prefix("event:") {
+                let value = rest.trim();
+                if !value.is_empty() {
+                    event_name = Some(value.to_string());
+                }
+                continue;
+            }
             if let Some(rest) = line.strip_prefix("data:") {
                 let payload = rest.trim();
                 if !payload.is_empty() {
@@ -2010,7 +2021,11 @@ impl ChatCompletionStreamTransformer {
             self.response_capture.response_id = extract_response_id(&event);
         }
 
-        let event_type = event.get("type").and_then(Value::as_str).unwrap_or("");
+        let event_type = event
+            .get("type")
+            .and_then(Value::as_str)
+            .or(event_name.as_deref())
+            .unwrap_or("");
 
         if event_type == "response.created" {
             if let Some(response) = event.get("response").and_then(Value::as_object) {
@@ -2152,7 +2167,7 @@ impl ChatCompletionStreamTransformer {
                 }]);
                 push_sse_payload(stream_body, template);
             }
-            "response.completed" => {
+            event_type if is_responses_completion_event(event_type) => {
                 let finish_reason = if self.state.function_call_index >= 0 {
                     "tool_calls"
                 } else {
@@ -2613,10 +2628,6 @@ fn sort_usage_accounts(accounts: &mut [CodexLocalAccessAccountStats]) {
 fn trim_recent_events(events: &mut Vec<CodexLocalAccessUsageEvent>, month_since: i64) {
     events.retain(|event| event.timestamp > 0 && event.timestamp >= month_since);
     events.sort_by_key(|event| event.timestamp);
-    if events.len() > MAX_RECENT_USAGE_EVENTS {
-        let remove = events.len().saturating_sub(MAX_RECENT_USAGE_EVENTS);
-        events.drain(0..remove);
-    }
 }
 
 fn append_usage_event(
@@ -4353,9 +4364,17 @@ fn parse_responses_payload_from_upstream(body_bytes: &[u8]) -> Result<Value, Str
             return;
         }
         let text = String::from_utf8_lossy(frame);
+        let mut event_name: Option<String> = None;
         let mut data_lines = Vec::new();
         for raw_line in text.lines() {
             let line = raw_line.trim();
+            if let Some(rest) = line.strip_prefix("event:") {
+                let value = rest.trim();
+                if !value.is_empty() {
+                    event_name = Some(value.to_string());
+                }
+                continue;
+            }
             if let Some(rest) = line.strip_prefix("data:") {
                 let payload = rest.trim();
                 if !payload.is_empty() {
@@ -4380,7 +4399,12 @@ fn parse_responses_payload_from_upstream(body_bytes: &[u8]) -> Result<Value, Str
         let Ok(value) = serde_json::from_str::<Value>(&payload) else {
             return;
         };
-        match value.get("type").and_then(Value::as_str).unwrap_or("") {
+        match value
+            .get("type")
+            .and_then(Value::as_str)
+            .or(event_name.as_deref())
+            .unwrap_or("")
+        {
             "response.output_text.delta" => {
                 if let Some(delta) = value.get("delta").and_then(Value::as_str) {
                     output_text.push_str(delta);
@@ -4398,7 +4422,7 @@ fn parse_responses_payload_from_upstream(body_bytes: &[u8]) -> Result<Value, Str
                     output_items.push(item.clone());
                 }
             }
-            "response.completed" => {
+            event_type if is_responses_completion_event(event_type) => {
                 if let Some(response) = value.get("response") {
                     completed_response = Some(response.clone());
                 } else {
@@ -4422,7 +4446,10 @@ fn parse_responses_payload_from_upstream(body_bytes: &[u8]) -> Result<Value, Str
     }
 
     let Some(response_value) = completed_response else {
-        return Err("解析上游 responses 响应失败: 非 JSON 且未捕获 response.completed".to_string());
+        return Err(
+            "解析上游 responses 响应失败: 非 JSON 且未捕获 response.completed/response.done"
+                .to_string(),
+        );
     };
 
     let mut root = Map::new();
@@ -4681,9 +4708,17 @@ impl ImageStreamTransformer {
         }
 
         let text = String::from_utf8_lossy(frame);
+        let mut event_name: Option<String> = None;
         let mut data_lines = Vec::new();
         for raw_line in text.lines() {
             let line = raw_line.trim();
+            if let Some(rest) = line.strip_prefix("event:") {
+                let value = rest.trim();
+                if !value.is_empty() {
+                    event_name = Some(value.to_string());
+                }
+                continue;
+            }
             if let Some(rest) = line.strip_prefix("data:") {
                 let payload = rest.trim();
                 if !payload.is_empty() {
@@ -4716,7 +4751,12 @@ impl ImageStreamTransformer {
             self.response_capture.response_id = extract_response_id(&event);
         }
 
-        match event.get("type").and_then(Value::as_str).unwrap_or("") {
+        match event
+            .get("type")
+            .and_then(Value::as_str)
+            .or(event_name.as_deref())
+            .unwrap_or("")
+        {
             "response.image_generation_call.partial_image" => {
                 let Some(b64) = event
                     .get("partial_image_b64")
@@ -4751,7 +4791,7 @@ impl ImageStreamTransformer {
                 }
                 push_named_sse_payload(stream_body, &event_name, Value::Object(data));
             }
-            "response.completed" => {
+            event_type if is_responses_completion_event(event_type) => {
                 let (results, _, usage, _) = extract_images_from_responses_payload(&event);
                 if results.is_empty() {
                     push_named_sse_payload(
@@ -5653,10 +5693,11 @@ mod tests {
     use super::{
         build_chat_completion_payload, build_chat_completion_stream_body, build_images_api_payload,
         build_local_models_response, build_ordered_account_ids, build_request_routing_hint,
-        extract_usage_capture, parse_codex_retry_after, parse_responses_payload_from_upstream,
-        prepare_gateway_request, resolve_supported_model_alias,
-        should_retry_single_account_upstream_status, should_treat_response_as_stream,
-        should_try_next_account, GatewayResponseAdapter, ParsedRequest, ResponseUsageCollector,
+        extract_usage_capture, is_responses_completion_event, parse_codex_retry_after,
+        parse_responses_payload_from_upstream, prepare_gateway_request,
+        resolve_supported_model_alias, should_retry_single_account_upstream_status,
+        should_treat_response_as_stream, should_try_next_account, GatewayResponseAdapter,
+        ParsedRequest, ResponseUsageCollector,
     };
     use reqwest::StatusCode;
     use serde_json::{json, Value};
@@ -5688,6 +5729,36 @@ mod tests {
         assert_eq!(usage.cached_tokens, 3);
         assert_eq!(usage.reasoning_tokens, 2);
         assert_eq!(usage.total_tokens, 21);
+    }
+
+    #[test]
+    fn extracts_usage_from_codex_response_done_payload() {
+        assert!(is_responses_completion_event("response.done"));
+
+        let payload = json!({
+            "type": "response.done",
+            "response": {
+                "id": "resp_123",
+                "usage": {
+                    "input_tokens": 32,
+                    "input_tokens_details": {
+                        "cached_tokens": 9
+                    },
+                    "output_tokens": 6,
+                    "output_tokens_details": {
+                        "reasoning_tokens": 3
+                    },
+                    "total_tokens": 41
+                }
+            }
+        });
+
+        let usage = extract_usage_capture(&payload).expect("usage should be parsed");
+        assert_eq!(usage.input_tokens, 32);
+        assert_eq!(usage.output_tokens, 6);
+        assert_eq!(usage.cached_tokens, 9);
+        assert_eq!(usage.reasoning_tokens, 3);
+        assert_eq!(usage.total_tokens, 41);
     }
 
     #[test]
@@ -6111,6 +6182,26 @@ data: {"type":"response.completed","response":{"id":"resp_123","usage":{"input_t
     }
 
     #[test]
+    fn responses_stream_requests_stay_passthrough() {
+        let request = ParsedRequest {
+            method: "POST".to_string(),
+            target: "/v1/responses".to_string(),
+            headers: HashMap::from([("accept".to_string(), "text/event-stream".to_string())]),
+            body: br#"{"model":"gpt-5.4","stream":true,"input":"hello"}"#.to_vec(),
+        };
+
+        let (prepared, adapter) = prepare_gateway_request(request).expect("request should map");
+        assert_eq!(prepared.target, "/v1/responses");
+
+        match adapter {
+            GatewayResponseAdapter::Passthrough { request_is_stream } => {
+                assert!(request_is_stream);
+            }
+            _ => panic!("expected responses stream passthrough adapter"),
+        }
+    }
+
+    #[test]
     fn injects_image_generation_tool_for_responses_requests() {
         let request = ParsedRequest {
             method: "POST".to_string(),
@@ -6461,13 +6552,15 @@ data: {"type":"response.completed","response":{"id":"resp_123","usage":{"input_t
 
 data: {"type":"response.output_text.delta","delta":"stream-body"}
 
-data: {"type":"response.completed","response":{"id":"resp_1","created_at":123,"model":"gpt-5.4","status":"completed","usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}
+event: response.done
+data: {"response":{"id":"resp_1","created_at":123,"model":"gpt-5.4","status":"completed","usage":{"input_tokens":1,"input_tokens_details":{"cached_tokens":1},"output_tokens":1,"total_tokens":2}}}
 
 "#;
 
         let stream_body = build_chat_completion_stream_body(upstream_sse, br#"{}"#, "gpt-5.4");
         assert!(stream_body.contains("chat.completion.chunk"));
         assert!(stream_body.contains("stream-body"));
+        assert!(stream_body.contains("\"cached_tokens\":1"));
         assert!(stream_body.contains("data: [DONE]"));
     }
 
@@ -6500,6 +6593,35 @@ data: [DONE]
                 .and_then(|value| value.get("output_text"))
                 .and_then(Value::as_str),
             Some("hello world")
+        );
+    }
+
+    #[test]
+    fn parses_response_done_sse_payload_to_json() {
+        let sse = br#"event: response.output_text.delta
+data: {"type":"response.output_text.delta","delta":"done body"}
+
+event: response.done
+data: {"response":{"id":"resp_done","model":"gpt-5.4","status":"completed","usage":{"input_tokens":3,"input_tokens_details":{"cached_tokens":2},"output_tokens":1,"total_tokens":4}}}
+
+"#;
+
+        let parsed = parse_responses_payload_from_upstream(sse).expect("sse should be parsed");
+        assert_eq!(
+            parsed
+                .get("response")
+                .and_then(|value| value.get("id"))
+                .and_then(Value::as_str),
+            Some("resp_done")
+        );
+        assert_eq!(
+            parsed
+                .get("response")
+                .and_then(|value| value.get("usage"))
+                .and_then(|value| value.get("input_tokens_details"))
+                .and_then(|value| value.get("cached_tokens"))
+                .and_then(Value::as_u64),
+            Some(2)
         );
     }
 }

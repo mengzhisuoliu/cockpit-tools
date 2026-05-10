@@ -78,7 +78,7 @@
         "titleCodex": "استيراد Codex دفعة واحدة",
         "statusReceiving": "جارٍ استلام طلب الاستيراد...",
         "statusFetching": "جارٍ جلب حزمة الاستيراد...",
-        "statusParsing": "جارٍ تحليل JSON الخاص بـ Codex...",
+        "statusParsing": "جارٍ تحليل محتوى استيراد Codex...",
         "statusImporting": "جارٍ استيراد الحساب {{current}} / {{total}}",
         "statusRefreshing": "جارٍ تحديث قائمة الحسابات...",
         "statusSuccess": "اكتمل الاستيراد",
@@ -89,14 +89,19 @@
         "failed": "فشل",
         "stepReceive": "استلام الطلب",
         "stepFetch": "جلب الحزمة",
-        "stepParse": "تحليل JSON الخاص بـ Codex",
+        "stepParse": "تحليل المحتوى",
         "stepImport": "استيراد الحسابات",
         "stepRefresh": "تحديث القائمة",
         "errorsTitle": "العناصر الفاشلة",
         "viewAccounts": "عرض حسابات Codex",
         "copyErrors": "نسخ الأخطاء",
         "copied": "تم النسخ",
-        "unknownItem": "JSON رقم {{index}}"
+        "unknownItem": "عنصر رقم {{index}}",
+        "versionUnsupportedTitle": "إصدار التطبيق منخفض جدًا",
+        "versionUnsupportedDesc": "هذه الطريقة غير مدعومة مؤقتًا. يرجى تنزيل أحدث إصدار.",
+        "checkUpdate": "التحقق من التحديثات",
+        "rawLineNoRefreshToken": "لا يحتوي السطر {{line}} على refresh_token",
+        "rawLineMultipleRefreshTokens": "يحتوي السطر {{line}} على عدة refresh_token. أبقِ واحدًا فقط."
       },
       "instances": {
         "unsupported": {
@@ -1720,8 +1725,13 @@
       "timeoutRetry": "تحديث رابط المصادقة"
     },
     "token": {
-      "desc": "الصق محتوى auth.json أو بيانات JSON للحساب",
-      "placeholder": "مثال: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "الصق auth.json أو JSON للحساب أو refresh_token.",
+      "placeholder": "مثال: refresh_token واحد في كل سطر، أو {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "الحقول المطلوبة والأمثلة",
+      "formatRequired": "يدعم tokens كاملة (id_token + access_token)، أو refresh_token واحداً، أو refresh_token واحداً في كل سطر. عند استخدام refresh_token فقط يتم استبداله عبر الإنترنت ببيانات اعتماد كاملة أولاً.",
+      "formatSingleLabel": "مثال tokens كاملة",
+      "formatRefreshOnlyLabel": "مثال refresh_token فقط",
+      "formatBatchLabel": "مثال دفعي"
     },
     "exportFormat": {
       "label": "تنسيق التصدير",
@@ -1891,9 +1901,10 @@
     },
     "quotaError": {
       "badge": "خطأ في الحصة",
+      "refreshFailedBadge": "فشل التحديث",
       "generic": "فشل تحديث الحصة، يرجى المحاولة لاحقا",
       "deactivatedWorkspace": "تم تعطيل مساحة العمل، بدّل الحساب أو أعد التفويض",
-      "requestFailedManualRetry": "فشل الطلب، يُرجى إعادة المحاولة يدويًا: {{error}}"
+      "requestFailedManualRetry": "تحقّق من الشبكة. لم يتم جلب أحدث حصة. حدّث للمحاولة مجددًا."
     },
     "plan": {
       "free": "FREE",
@@ -2409,6 +2420,17 @@
         "apiService": "خدمة API",
         "account": "حساب"
       }
+    },
+    "accountNote": {
+      "title": "ملاحظة الحساب",
+      "label": "ملاحظة الحساب",
+      "desc": "أضف ملاحظة حساب مستقلة لـ {{account}}.",
+      "placeholder": "البريد، كلمة المرور، بريد الاسترداد أو ملاحظات التسليم",
+      "emptyTitle": "إضافة ملاحظة حساب",
+      "short": "ملاحظة",
+      "addShort": "أضف ملاحظة",
+      "saved": "تم حفظ ملاحظة الحساب",
+      "saveFailed": "فشل حفظ ملاحظة الحساب: {{error}}"
     }
   },
   "githubCopilot": {

@@ -185,3 +185,7 @@ export async function closeCodexOAuthPort(): Promise<number> {
 export async function updateCodexAccountTags(accountId: string, tags: string[]): Promise<CodexAccount> {
   return await invoke('update_codex_account_tags', { accountId, tags });
 }
+
+export async function updateCodexAccountNote(accountId: string, note: string): Promise<CodexAccount> {
+  return await invoke('update_codex_account_note', { accountId, note });
+}

@@ -78,7 +78,7 @@
         "titleCodex": "Codex Toplu İçe Aktarma",
         "statusReceiving": "İçe aktarma isteği alınıyor...",
         "statusFetching": "İçe aktarma paketi alınıyor...",
-        "statusParsing": "Codex JSON ayrıştırılıyor...",
+        "statusParsing": "Codex içe aktarma içeriği ayrıştırılıyor...",
         "statusImporting": "{{current}} / {{total}} hesabı içe aktarılıyor",
         "statusRefreshing": "Hesap listesi yenileniyor...",
         "statusSuccess": "İçe aktarma tamamlandı",
@@ -89,14 +89,19 @@
         "failed": "Başarısız",
         "stepReceive": "İsteği al",
         "stepFetch": "Paketi al",
-        "stepParse": "Codex JSON ayrıştır",
+        "stepParse": "İçeriği ayrıştır",
         "stepImport": "Hesapları içe aktar",
         "stepRefresh": "Listeyi yenile",
         "errorsTitle": "Başarısız öğeler",
         "viewAccounts": "Codex hesaplarını görüntüle",
         "copyErrors": "Hataları kopyala",
         "copied": "Kopyalandı",
-        "unknownItem": "{{index}}. JSON"
+        "unknownItem": "#{{index}} öğe",
+        "versionUnsupportedTitle": "Uygulama sürümü çok eski",
+        "versionUnsupportedDesc": "Bu yöntem henüz desteklenmiyor. Lütfen en son sürümü indirin.",
+        "checkUpdate": "Güncellemeleri Kontrol Et",
+        "rawLineNoRefreshToken": "{{line}}. satırda refresh_token yok",
+        "rawLineMultipleRefreshTokens": "{{line}}. satırda birden fazla refresh_token var. Yalnızca birini bırakın."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Kimlik Doğrulama Bağlantısını Yenile"
     },
     "token": {
-      "desc": "auth.json içeriğini veya hesap JSON verisini yapıştırın",
-      "placeholder": "Örnek: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "auth.json, hesap JSON’u veya refresh_token yapıştırın.",
+      "placeholder": "Örnek: satır başına bir refresh_token veya {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Zorunlu alanlar ve örnekler",
+      "formatRequired": "Tam tokens (id_token + access_token), tek bir refresh_token veya satır başına bir refresh_token desteklenir. Yalnızca refresh_token içe aktarımı önce çevrimiçi olarak tam kimlik bilgilerine dönüştürür.",
+      "formatSingleLabel": "Tam tokens",
+      "formatRefreshOnlyLabel": "Yalnızca refresh_token",
+      "formatBatchLabel": "Toplu örnek"
     },
     "exportFormat": {
       "label": "Dışa aktarma biçimi",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Kota hatası",
+      "refreshFailedBadge": "Yenileme başarısız",
       "generic": "Kota yenileme başarısız, lütfen daha sonra tekrar deneyin",
       "deactivatedWorkspace": "Çalışma alanı devre dışı, hesap değiştirin veya yeniden yetkilendirin",
-      "requestFailedManualRetry": "İstek başarısız oldu, lütfen manuel olarak yeniden deneyin: {{error}}"
+      "requestFailedManualRetry": "Ağı kontrol edin. En güncel kota alınamadı. Yenileyip tekrar deneyin."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "API Hizmeti",
         "account": "Hesap"
       }
+    },
+    "accountNote": {
+      "title": "Hesap Notu",
+      "label": "Hesap Notu",
+      "desc": "{{account}} için ayrı bir hesap notu ekleyin.",
+      "placeholder": "E-posta, parola, kurtarma e-postası veya teslim notları",
+      "emptyTitle": "Hesap notu ekle",
+      "short": "Not",
+      "addShort": "Ekle",
+      "saved": "Hesap notu kaydedildi",
+      "saveFailed": "Hesap notu kaydedilemedi: {{error}}"
     }
   },
   "githubCopilot": {

@@ -78,7 +78,7 @@
         "titleCodex": "Codex-Stapelimport",
         "statusReceiving": "Importanfrage wird empfangen...",
         "statusFetching": "Importpaket wird geladen...",
-        "statusParsing": "Codex JSON wird analysiert...",
+        "statusParsing": "Codex-Importinhalt wird analysiert...",
         "statusImporting": "Konto {{current}} / {{total}} wird importiert",
         "statusRefreshing": "Kontoliste wird aktualisiert...",
         "statusSuccess": "Import abgeschlossen",
@@ -89,14 +89,19 @@
         "failed": "Fehlgeschlagen",
         "stepReceive": "Anfrage empfangen",
         "stepFetch": "Paket laden",
-        "stepParse": "Codex JSON analysieren",
+        "stepParse": "Inhalt analysieren",
         "stepImport": "Konten importieren",
         "stepRefresh": "Liste aktualisieren",
         "errorsTitle": "Fehlgeschlagene Einträge",
         "viewAccounts": "Codex-Konten anzeigen",
         "copyErrors": "Fehler kopieren",
         "copied": "Kopiert",
-        "unknownItem": "JSON Nr. {{index}}"
+        "unknownItem": "Eintrag #{{index}}",
+        "versionUnsupportedTitle": "App-Version zu niedrig",
+        "versionUnsupportedDesc": "Diese Methode wird derzeit nicht unterstützt. Bitte lade die neueste Version herunter.",
+        "checkUpdate": "Auf Updates prüfen",
+        "rawLineNoRefreshToken": "Zeile {{line}} enthält kein refresh_token",
+        "rawLineMultipleRefreshTokens": "Zeile {{line}} enthält mehrere refresh_tokens. Behalte nur einen."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Authentifizierungslink aktualisieren"
     },
     "token": {
-      "desc": "auth.json-Inhalt oder Konto-JSON einfügen",
-      "placeholder": "Beispiel: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "auth.json, Konto-JSON oder refresh_token einfügen.",
+      "placeholder": "Beispiel: ein refresh_token pro Zeile oder {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Pflichtfelder und Beispiele",
+      "formatRequired": "Unterstützt vollständige tokens (id_token + access_token), einen einzelnen refresh_token oder einen refresh_token pro Zeile. Bei refresh_token-only werden zuerst online vollständige Zugangsdaten abgerufen.",
+      "formatSingleLabel": "Vollständige tokens",
+      "formatRefreshOnlyLabel": "Nur refresh_token",
+      "formatBatchLabel": "Batch-Beispiel"
     },
     "exportFormat": {
       "label": "Exportformat",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Kontingentfehler",
+      "refreshFailedBadge": "Aktualisierung fehlgeschlagen",
       "generic": "Kontingent-Aktualisierung fehlgeschlagen, bitte später erneut versuchen",
       "deactivatedWorkspace": "Workspace ist deaktiviert, bitte Konto wechseln oder neu autorisieren",
-      "requestFailedManualRetry": "Anfrage fehlgeschlagen, bitte manuell erneut versuchen: {{error}}"
+      "requestFailedManualRetry": "Netzwerk prüfen. Das neueste Kontingent wurde nicht abgerufen. Zum Wiederholen aktualisieren."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "API-Dienst",
         "account": "Konto"
       }
+    },
+    "accountNote": {
+      "title": "Kontonotiz",
+      "label": "Kontonotiz",
+      "desc": "Fügen Sie eine separate Kontonotiz für {{account}} hinzu.",
+      "placeholder": "E-Mail, Passwort, Wiederherstellungs-E-Mail oder Lieferhinweise",
+      "emptyTitle": "Kontonotiz hinzufügen",
+      "short": "Notiz",
+      "addShort": "Notiz",
+      "saved": "Kontonotiz gespeichert",
+      "saveFailed": "Kontonotiz konnte nicht gespeichert werden: {{error}}"
     }
   },
   "githubCopilot": {

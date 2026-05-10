@@ -18,7 +18,7 @@
 
 🇺🇸 English · 🇨🇳 简体中文 · 繁體中文 · 🇯🇵 日本語 · 🇩🇪 Deutsch · 🇪🇸 Español · 🇫🇷 Français · 🇮🇹 Italiano · 🇰🇷 한국어 · 🇧🇷 Português · 🇷🇺 Русский · 🇹🇷 Türkçe · 🇵🇱 Polski · 🇨🇿 Čeština · 🇸🇦 العربية · 🇻🇳 Tiếng Việt · 🇮🇩 Bahasa Indonesia
 
-**官方支持平台**：macOS、Windows。后续版本不再提供 Linux/Ubuntu 官方安装包，也不承诺 Linux/Ubuntu 兼容性维护。
+**官方支持平台**：macOS、Windows、Linux。
 
 ---
 
@@ -292,8 +292,7 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 
 *   **macOS**: `.dmg` (Apple Silicon & Intel)
 *   **Windows**: `.msi` (推荐) 或 `.exe`
-
-> Linux/Ubuntu 不再作为官方发布目标；Release 页面不会再提供 `.deb`、`.rpm` 或 `.AppImage` 安装包。
+*   **Linux**: `.deb` (Debian/Ubuntu)、`.rpm` 或 `.AppImage` (通用)
 
 ### 选项 B: Homebrew 安装 (macOS)
 

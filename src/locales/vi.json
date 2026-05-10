@@ -78,7 +78,7 @@
         "titleCodex": "Nhập hàng loạt Codex",
         "statusReceiving": "Đang nhận yêu cầu nhập...",
         "statusFetching": "Đang lấy gói nhập...",
-        "statusParsing": "Đang phân tích JSON Codex...",
+        "statusParsing": "Đang phân tích nội dung nhập Codex...",
         "statusImporting": "Đang nhập tài khoản {{current}} / {{total}}",
         "statusRefreshing": "Đang làm mới danh sách tài khoản...",
         "statusSuccess": "Nhập hoàn tất",
@@ -89,14 +89,19 @@
         "failed": "Thất bại",
         "stepReceive": "Nhận yêu cầu",
         "stepFetch": "Lấy gói",
-        "stepParse": "Phân tích JSON Codex",
+        "stepParse": "Phân tích nội dung",
         "stepImport": "Nhập tài khoản",
         "stepRefresh": "Làm mới danh sách",
         "errorsTitle": "Mục thất bại",
         "viewAccounts": "Xem tài khoản Codex",
         "copyErrors": "Sao chép lỗi",
         "copied": "Đã sao chép",
-        "unknownItem": "JSON số {{index}}"
+        "unknownItem": "Mục #{{index}}",
+        "versionUnsupportedTitle": "Phiên bản ứng dụng quá thấp",
+        "versionUnsupportedDesc": "Cách này chưa được hỗ trợ. Vui lòng tải phiên bản mới nhất.",
+        "checkUpdate": "Kiểm tra cập nhật",
+        "rawLineNoRefreshToken": "Dòng {{line}} không có refresh_token",
+        "rawLineMultipleRefreshTokens": "Dòng {{line}} có nhiều refresh_token. Chỉ giữ lại một."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Làm mới link xác thực"
     },
     "token": {
-      "desc": "Dán nội dung auth.json hoặc dữ liệu JSON tài khoản",
-      "placeholder": "Ví dụ: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Dán auth.json, JSON tài khoản hoặc refresh_token.",
+      "placeholder": "Ví dụ: mỗi dòng một refresh_token hoặc {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Trường bắt buộc và ví dụ",
+      "formatRequired": "Hỗ trợ tokens đầy đủ (id_token + access_token), một refresh_token hoặc mỗi dòng một refresh_token. Khi chỉ có refresh_token, hệ thống sẽ đổi trực tuyến sang thông tin xác thực đầy đủ trước.",
+      "formatSingleLabel": "Tokens đầy đủ",
+      "formatRefreshOnlyLabel": "Chỉ refresh_token",
+      "formatBatchLabel": "Ví dụ hàng loạt"
     },
     "exportFormat": {
       "label": "Định dạng xuất",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Lỗi quota",
+      "refreshFailedBadge": "Làm mới thất bại",
       "generic": "Làm mới quota thất bại, vui lòng thử lại sau",
       "deactivatedWorkspace": "Workspace đã bị vô hiệu hoá, hãy đổi tài khoản hoặc cấp quyền lại",
-      "requestFailedManualRetry": "Yêu cầu thất bại, vui lòng thử lại thủ công: {{error}}"
+      "requestFailedManualRetry": "Kiểm tra mạng. Chưa lấy được quota mới nhất. Làm mới để thử lại."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Dịch vụ API",
         "account": "Tài khoản"
       }
+    },
+    "accountNote": {
+      "title": "Ghi chú tài khoản",
+      "label": "Ghi chú tài khoản",
+      "desc": "Thêm ghi chú tài khoản riêng cho {{account}}.",
+      "placeholder": "Email, mật khẩu, email khôi phục hoặc ghi chú bàn giao",
+      "emptyTitle": "Thêm ghi chú tài khoản",
+      "short": "Ghi chú",
+      "addShort": "Thêm",
+      "saved": "Đã lưu ghi chú tài khoản",
+      "saveFailed": "Không thể lưu ghi chú tài khoản: {{error}}"
     }
   },
   "githubCopilot": {

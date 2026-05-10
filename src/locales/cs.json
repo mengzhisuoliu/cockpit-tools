@@ -78,7 +78,7 @@
         "titleCodex": "Hromadný import Codex",
         "statusReceiving": "Přijímá se požadavek na import...",
         "statusFetching": "Načítá se importní balíček...",
-        "statusParsing": "Analyzuje se Codex JSON...",
+        "statusParsing": "Analyzuje se obsah importu Codex...",
         "statusImporting": "Importuje se účet {{current}} / {{total}}",
         "statusRefreshing": "Obnovuje se seznam účtů...",
         "statusSuccess": "Import dokončen",
@@ -89,14 +89,19 @@
         "failed": "Selhalo",
         "stepReceive": "Přijmout požadavek",
         "stepFetch": "Načíst balíček",
-        "stepParse": "Analyzovat Codex JSON",
+        "stepParse": "Analyzovat obsah",
         "stepImport": "Importovat účty",
         "stepRefresh": "Obnovit seznam",
         "errorsTitle": "Neúspěšné položky",
         "viewAccounts": "Zobrazit účty Codex",
         "copyErrors": "Kopírovat chyby",
         "copied": "Zkopírováno",
-        "unknownItem": "JSON č. {{index}}"
+        "unknownItem": "Položka č. {{index}}",
+        "versionUnsupportedTitle": "Verze aplikace je příliš nízká",
+        "versionUnsupportedDesc": "Tento způsob zatím není podporován. Stáhněte si nejnovější verzi.",
+        "checkUpdate": "Zkontrolovat aktualizace",
+        "rawLineNoRefreshToken": "Řádek {{line}} neobsahuje refresh_token",
+        "rawLineMultipleRefreshTokens": "Řádek {{line}} obsahuje více refresh_token. Ponechte jen jeden."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Aktualizovat odkaz pro ověření"
     },
     "token": {
-      "desc": "Vložte obsah auth.json nebo JSON dat účtu",
-      "placeholder": "Příklad: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Vložte auth.json, JSON účtu nebo refresh_token.",
+      "placeholder": "Příklad: jeden refresh_token na řádek nebo {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Povinná pole a příklady",
+      "formatRequired": "Podporuje úplné tokens (id_token + access_token), jeden refresh_token nebo jeden refresh_token na řádek. Import pouze s refresh_token jej nejprve online vymění za úplné přihlašovací údaje.",
+      "formatSingleLabel": "Úplné tokens",
+      "formatRefreshOnlyLabel": "Jen refresh_token",
+      "formatBatchLabel": "Dávkový příklad"
     },
     "exportFormat": {
       "label": "Formát exportu",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Chyba kvóty",
+      "refreshFailedBadge": "Obnovení selhalo",
       "generic": "Obnovení kvóty se nezdařilo, zkuste to prosím později",
       "deactivatedWorkspace": "Pracovní prostor je deaktivovaný, přepněte účet nebo znovu autorizujte",
-      "requestFailedManualRetry": "Požadavek selhal, zkuste to prosím znovu ručně: {{error}}"
+      "requestFailedManualRetry": "Zkontrolujte síť. Nejnovější kvóta nebyla načtena. Obnovte a zkuste to znovu."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Služba API",
         "account": "Účet"
       }
+    },
+    "accountNote": {
+      "title": "Poznámka účtu",
+      "label": "Poznámka účtu",
+      "desc": "Přidejte samostatnou poznámku k účtu {{account}}.",
+      "placeholder": "E-mail, heslo, obnovovací e-mail nebo poznámky k předání",
+      "emptyTitle": "Přidat poznámku účtu",
+      "short": "Poznámka",
+      "addShort": "Přidat",
+      "saved": "Poznámka účtu uložena",
+      "saveFailed": "Uložení poznámky účtu selhalo: {{error}}"
     }
   },
   "githubCopilot": {

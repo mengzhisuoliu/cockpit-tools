@@ -78,7 +78,7 @@
         "titleCodex": "Importação em lote do Codex",
         "statusReceiving": "Recebendo solicitação de importação...",
         "statusFetching": "Obtendo pacote de importação...",
-        "statusParsing": "Analisando JSON do Codex...",
+        "statusParsing": "Analisando o conteúdo de importação do Codex...",
         "statusImporting": "Importando conta {{current}} / {{total}}",
         "statusRefreshing": "Atualizando lista de contas...",
         "statusSuccess": "Importação concluída",
@@ -89,14 +89,19 @@
         "failed": "Falhas",
         "stepReceive": "Receber solicitação",
         "stepFetch": "Obter pacote",
-        "stepParse": "Analisar JSON do Codex",
+        "stepParse": "Analisar conteúdo",
         "stepImport": "Importar contas",
         "stepRefresh": "Atualizar lista",
         "errorsTitle": "Itens com falha",
         "viewAccounts": "Ver contas do Codex",
         "copyErrors": "Copiar erros",
         "copied": "Copiado",
-        "unknownItem": "JSON nº {{index}}"
+        "unknownItem": "Item nº {{index}}",
+        "versionUnsupportedTitle": "Versão do app muito antiga",
+        "versionUnsupportedDesc": "Este método ainda não é compatível. Baixe a versão mais recente.",
+        "checkUpdate": "Verificar atualizações",
+        "rawLineNoRefreshToken": "A linha {{line}} não contém refresh_token",
+        "rawLineMultipleRefreshTokens": "A linha {{line}} contém vários refresh_tokens. Mantenha apenas um."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Atualizar link de autenticação"
     },
     "token": {
-      "desc": "Cole o conteúdo do auth.json ou dados JSON da conta",
-      "placeholder": "Exemplo: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Cole auth.json, JSON da conta ou refresh_token.",
+      "placeholder": "Exemplo: um refresh_token por linha ou {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Campos obrigatórios e exemplos",
+      "formatRequired": "Aceita tokens completos (id_token + access_token), um refresh_token único ou um refresh_token por linha. Com apenas refresh_token, a importação troca primeiro online por credenciais completas.",
+      "formatSingleLabel": "Tokens completos",
+      "formatRefreshOnlyLabel": "Só refresh_token",
+      "formatBatchLabel": "Exemplo em lote"
     },
     "exportFormat": {
       "label": "Formato de exportação",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Erro de cota",
+      "refreshFailedBadge": "Falha ao atualizar",
       "generic": "Falha ao atualizar a cota, tente novamente mais tarde",
       "deactivatedWorkspace": "Workspace desativado, troque de conta ou reautorize",
-      "requestFailedManualRetry": "Falha na solicitação, tente novamente manualmente: {{error}}"
+      "requestFailedManualRetry": "Verifique a rede. A cota mais recente não foi obtida. Atualize para tentar novamente."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Serviço API",
         "account": "Conta"
       }
+    },
+    "accountNote": {
+      "title": "Nota da conta",
+      "label": "Nota da conta",
+      "desc": "Adicione uma nota separada para {{account}}.",
+      "placeholder": "E-mail, senha, e-mail de recuperação ou notas de entrega",
+      "emptyTitle": "Adicionar nota da conta",
+      "short": "Nota",
+      "addShort": "Adicionar",
+      "saved": "Nota da conta salva",
+      "saveFailed": "Falha ao salvar a nota da conta: {{error}}"
     }
   },
   "githubCopilot": {

@@ -78,7 +78,7 @@
         "titleCodex": "Import zbiorczy Codex",
         "statusReceiving": "Odbieranie żądania importu...",
         "statusFetching": "Pobieranie pakietu importu...",
-        "statusParsing": "Analizowanie JSON Codex...",
+        "statusParsing": "Analizowanie zawartości importu Codex...",
         "statusImporting": "Importowanie konta {{current}} / {{total}}",
         "statusRefreshing": "Odświeżanie listy kont...",
         "statusSuccess": "Import zakończony",
@@ -89,14 +89,19 @@
         "failed": "Nieudane",
         "stepReceive": "Odbierz żądanie",
         "stepFetch": "Pobierz pakiet",
-        "stepParse": "Analizuj JSON Codex",
+        "stepParse": "Analizuj zawartość",
         "stepImport": "Importuj konta",
         "stepRefresh": "Odśwież listę",
         "errorsTitle": "Nieudane elementy",
         "viewAccounts": "Pokaż konta Codex",
         "copyErrors": "Kopiuj błędy",
         "copied": "Skopiowano",
-        "unknownItem": "JSON nr {{index}}"
+        "unknownItem": "Element nr {{index}}",
+        "versionUnsupportedTitle": "Wersja aplikacji jest zbyt stara",
+        "versionUnsupportedDesc": "Ta metoda nie jest jeszcze obsługiwana. Pobierz najnowszą wersję.",
+        "checkUpdate": "Sprawdź aktualizacje",
+        "rawLineNoRefreshToken": "Wiersz {{line}} nie zawiera refresh_token",
+        "rawLineMultipleRefreshTokens": "Wiersz {{line}} zawiera wiele refresh_token. Zostaw tylko jeden."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Odśwież link uwierzytelniania"
     },
     "token": {
-      "desc": "Wklej zawartość auth.json lub dane JSON konta",
-      "placeholder": "Przykład: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Wklej auth.json, JSON konta albo refresh_token.",
+      "placeholder": "Przykład: jeden refresh_token w wierszu albo {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Wymagane pola i przykłady",
+      "formatRequired": "Obsługuje pełne tokens (id_token + access_token), pojedynczy refresh_token albo jeden refresh_token w każdym wierszu. Import z samym refresh_token najpierw wymieni go online na pełne dane logowania.",
+      "formatSingleLabel": "Pełne tokens",
+      "formatRefreshOnlyLabel": "Tylko refresh_token",
+      "formatBatchLabel": "Przykład zbiorczy"
     },
     "exportFormat": {
       "label": "Format eksportu",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Błąd limitu",
+      "refreshFailedBadge": "Odświeżenie nieudane",
       "generic": "Odświeżenie limitu nie powiodło się, spróbuj ponownie później",
       "deactivatedWorkspace": "Obszar roboczy jest wyłączony, przełącz konto lub ponownie autoryzuj",
-      "requestFailedManualRetry": "Żądanie nie powiodło się, spróbuj ponownie ręcznie: {{error}}"
+      "requestFailedManualRetry": "Sprawdź sieć. Nie pobrano najnowszego limitu. Odśwież i spróbuj ponownie."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Usługa API",
         "account": "Konto"
       }
+    },
+    "accountNote": {
+      "title": "Notatka konta",
+      "label": "Notatka konta",
+      "desc": "Dodaj osobną notatkę konta dla {{account}}.",
+      "placeholder": "E-mail, hasło, e-mail odzyskiwania lub notatki dostawy",
+      "emptyTitle": "Dodaj notatkę konta",
+      "short": "Notatka",
+      "addShort": "Dodaj",
+      "saved": "Notatka konta zapisana",
+      "saveFailed": "Nie udało się zapisać notatki konta: {{error}}"
     }
   },
   "githubCopilot": {

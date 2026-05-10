@@ -78,7 +78,7 @@
         "titleCodex": "Import groupé Codex",
         "statusReceiving": "Réception de la demande d'import...",
         "statusFetching": "Récupération du paquet d'import...",
-        "statusParsing": "Analyse du JSON Codex...",
+        "statusParsing": "Analyse du contenu d’import Codex...",
         "statusImporting": "Import du compte {{current}} / {{total}}",
         "statusRefreshing": "Actualisation de la liste des comptes...",
         "statusSuccess": "Import terminé",
@@ -89,14 +89,19 @@
         "failed": "Échecs",
         "stepReceive": "Recevoir la demande",
         "stepFetch": "Récupérer le paquet",
-        "stepParse": "Analyser le JSON Codex",
+        "stepParse": "Analyser le contenu",
         "stepImport": "Importer les comptes",
         "stepRefresh": "Actualiser la liste",
         "errorsTitle": "Éléments échoués",
         "viewAccounts": "Voir les comptes Codex",
         "copyErrors": "Copier les erreurs",
         "copied": "Copié",
-        "unknownItem": "JSON n° {{index}}"
+        "unknownItem": "Élément n° {{index}}",
+        "versionUnsupportedTitle": "Version de l’app trop ancienne",
+        "versionUnsupportedDesc": "Cette méthode n’est pas encore prise en charge. Veuillez télécharger la dernière version.",
+        "checkUpdate": "Vérifier les mises à jour",
+        "rawLineNoRefreshToken": "La ligne {{line}} ne contient pas de refresh_token",
+        "rawLineMultipleRefreshTokens": "La ligne {{line}} contient plusieurs refresh_tokens. Gardez-en un seul."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "Actualiser le lien d'authentification"
     },
     "token": {
-      "desc": "Collez le contenu auth.json ou les données JSON du compte",
-      "placeholder": "Exemple : {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Collez auth.json, un JSON de compte ou refresh_token.",
+      "placeholder": "Exemple : un refresh_token par ligne ou {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Champs requis et exemples",
+      "formatRequired": "Prend en charge les tokens complets (id_token + access_token), un refresh_token unique ou un refresh_token par ligne. Avec refresh_token seul, l’import l’échange d’abord en ligne contre des identifiants complets.",
+      "formatSingleLabel": "Tokens complets",
+      "formatRefreshOnlyLabel": "refresh_token seul",
+      "formatBatchLabel": "Exemple groupé"
     },
     "exportFormat": {
       "label": "Format d’export",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "Erreur de quota",
+      "refreshFailedBadge": "Échec de l’actualisation",
       "generic": "Échec de l’actualisation du quota, veuillez réessayer plus tard",
       "deactivatedWorkspace": "L’espace de travail est désactivé, changez de compte ou réautorisez",
-      "requestFailedManualRetry": "Échec de la requête, veuillez réessayer manuellement : {{error}}"
+      "requestFailedManualRetry": "Vérifiez le réseau. Le quota le plus récent n’a pas été récupéré. Actualisez pour réessayer."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "Service API",
         "account": "Compte"
       }
+    },
+    "accountNote": {
+      "title": "Note de compte",
+      "label": "Note de compte",
+      "desc": "Ajoutez une note de compte distincte pour {{account}}.",
+      "placeholder": "E-mail, mot de passe, e-mail de récupération ou notes de livraison",
+      "emptyTitle": "Ajouter une note de compte",
+      "short": "Note",
+      "addShort": "Ajouter",
+      "saved": "Note de compte enregistrée",
+      "saveFailed": "Échec de l’enregistrement de la note de compte : {{error}}"
     }
   },
   "githubCopilot": {

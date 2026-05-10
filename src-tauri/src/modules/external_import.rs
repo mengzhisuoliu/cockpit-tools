@@ -17,6 +17,8 @@ pub struct ExternalProviderImportPayload {
     pub token: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub import_url: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub min_app_version: Option<String>,
     pub auto_import: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<String>,
@@ -193,6 +195,16 @@ fn parse_external_import_url_with_reason(
         return Err("内容参数不能同时包含 token/payload 与 import_url".to_string());
     }
     let token = token.trim().to_string();
+    let min_app_version = query
+        .get("min_app_version")
+        .or_else(|| query.get("minappversion"))
+        .map(|value| {
+            value
+                .trim()
+                .trim_start_matches(|ch| ch == 'v' || ch == 'V')
+                .to_string()
+        })
+        .filter(|value| !value.is_empty());
 
     let auto_import = parse_boolean_like(
         query
@@ -207,6 +219,7 @@ fn parse_external_import_url_with_reason(
         page: page.to_string(),
         token,
         import_url,
+        min_app_version,
         auto_import,
         source: None,
         raw_url: None,
@@ -348,6 +361,7 @@ mod tests {
         assert_eq!(payload.page, "codex");
         assert_eq!(payload.token, "abc123");
         assert_eq!(payload.import_url, None);
+        assert_eq!(payload.min_app_version, None);
         assert!(!payload.auto_import);
     }
 
@@ -360,6 +374,7 @@ mod tests {
         assert_eq!(payload.page, "codebuddy-cn");
         assert_eq!(payload.token, "{}");
         assert_eq!(payload.import_url, None);
+        assert_eq!(payload.min_app_version, None);
         assert!(payload.auto_import);
     }
 
@@ -371,6 +386,7 @@ mod tests {
         assert_eq!(payload.page, "overview");
         assert_eq!(payload.token, "1//0gTokenDemo");
         assert_eq!(payload.import_url, None);
+        assert_eq!(payload.min_app_version, None);
         assert!(!payload.auto_import);
     }
 
@@ -385,6 +401,15 @@ mod tests {
             payload.import_url,
             Some("https://example.com/user/api/toolsImport/fetch?id=abc&token=def".to_string())
         );
+        assert_eq!(payload.min_app_version, None);
         assert!(payload.auto_import);
+    }
+
+    #[test]
+    fn parse_min_app_version() {
+        let raw = "cockpit-tools://import?provider=codex&token=abc123&min_app_version=v0.22.21";
+        let payload = parse_external_import_url(raw).expect("payload");
+        assert_eq!(payload.provider_id, "codex");
+        assert_eq!(payload.min_app_version, Some("0.22.21".to_string()));
     }
 }

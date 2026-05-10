@@ -58,6 +58,7 @@ import { loadWakeupOfficialLsVersionMode } from './utils/wakeupOfficialLsVersion
 import {
   dispatchExternalProviderImportEvent,
   normalizeExternalProviderImportPayload,
+  type ExternalProviderImportPayload,
 } from './utils/externalProviderImport';
 import { runAutoBackupCycle } from './services/scheduledBackupService';
 import { prepareCodexLocalAccessForRestart } from './services/codexLocalAccessService';
@@ -280,6 +281,7 @@ function buildExternalImportDedupeKey(payload: {
   page: string;
   token: string;
   importUrl?: string | null;
+  minAppVersion?: string | null;
   rawUrl?: string | null;
 }): string {
   return [
@@ -287,8 +289,36 @@ function buildExternalImportDedupeKey(payload: {
     payload.page,
     payload.rawUrl ?? '',
     payload.importUrl ?? '',
+    payload.minAppVersion ?? '',
     payload.token,
   ].join('|');
+}
+
+function parseVersionParts(value: string | null | undefined): number[] {
+  if (!value) return [];
+  return value
+    .trim()
+    .replace(/^v/i, '')
+    .split(/[^\d]+/)
+    .filter(Boolean)
+    .map((part) => Number.parseInt(part, 10))
+    .filter((part) => Number.isFinite(part) && part >= 0);
+}
+
+function isVersionLowerThan(currentVersion: string, minimumVersion: string): boolean {
+  const currentParts = parseVersionParts(currentVersion);
+  const minimumParts = parseVersionParts(minimumVersion);
+  if (currentParts.length === 0 || minimumParts.length === 0) {
+    return false;
+  }
+  const maxLength = Math.max(currentParts.length, minimumParts.length);
+  for (let index = 0; index < maxLength; index += 1) {
+    const current = currentParts[index] ?? 0;
+    const minimum = minimumParts[index] ?? 0;
+    if (current < minimum) return true;
+    if (current > minimum) return false;
+  }
+  return false;
 }
 
 function normalizeQuotaAlertPlatform(platform: string | undefined): QuotaAlertPlatform {
@@ -519,11 +549,67 @@ function MainApp() {
     setHasBreakoutSession(true);
     setShowBreakout(true);
   }, []);
-  const handleExternalProviderImportRawPayload = useCallback((rawPayload: unknown) => {
+  const ensureExternalImportVersionCompatible = useCallback(
+    async (payload: ExternalProviderImportPayload): Promise<boolean> => {
+      const requiredVersion = payload.minAppVersion?.trim().replace(/^v/i, '');
+      if (!requiredVersion) return true;
+
+      let currentVersion = '';
+      try {
+        currentVersion = await getVersion();
+      } catch (error) {
+        console.warn('[ExternalImport][App] 读取当前应用版本失败，已终止外部导入', error);
+      }
+
+      if (currentVersion && !isVersionLowerThan(currentVersion, requiredVersion)) {
+        return true;
+      }
+
+      showModal({
+        title: t('common.shared.externalImport.versionUnsupportedTitle', '应用版本过低'),
+        description: t(
+          'common.shared.externalImport.versionUnsupportedDesc',
+          '暂不支持此方式，请下载最新版。',
+        ),
+        width: 'sm',
+        actions: [
+          {
+            id: 'check-update',
+            label: t('common.shared.externalImport.checkUpdate', '检查更新'),
+            variant: 'primary',
+            onClick: () => {
+              window.dispatchEvent(
+                new CustomEvent('update-check-requested', {
+                  detail: { source: 'manual' satisfies UpdateCheckSource },
+                }),
+              );
+            },
+          },
+          {
+            id: 'close',
+            label: t('common.close', '关闭'),
+            variant: 'secondary',
+          },
+        ],
+      });
+      console.warn('[ExternalImport][App] 当前版本不支持外部导入方式，已终止导入', {
+        currentVersion: currentVersion || null,
+        requiredVersion,
+        providerId: payload.providerId,
+      });
+      return false;
+    },
+    [showModal, t],
+  );
+
+  const handleExternalProviderImportRawPayload = useCallback(async (rawPayload: unknown) => {
     console.info('[ExternalImport][App] 收到原始 payload:', rawPayload);
     const normalized = normalizeExternalProviderImportPayload(rawPayload);
     if (!normalized) {
       console.warn('[ExternalImport][App] payload 归一化失败，已忽略');
+      return;
+    }
+    if (!(await ensureExternalImportVersionCompatible(normalized))) {
       return;
     }
     const now = Date.now();
@@ -544,6 +630,7 @@ function MainApp() {
       autoImport: normalized.autoImport,
       tokenLength: normalized.token.length,
       hasImportUrl: Boolean(normalized.importUrl),
+      minAppVersion: normalized.minAppVersion ?? null,
       source: normalized.source ?? null,
     });
     setPage(normalized.page);
@@ -551,7 +638,7 @@ function MainApp() {
       console.info('[ExternalImport][App] 分发前端外部导入事件');
       dispatchExternalProviderImportEvent(normalized);
     }, 0);
-  }, []);
+  }, [ensureExternalImportVersionCompatible]);
   const handleBreakoutMinimize = useCallback(() => {
     setShowBreakout(false);
   }, []);
@@ -2678,7 +2765,7 @@ function MainApp() {
     let unlisten: UnlistenFn | undefined;
     listen('external:provider-import', (event) => {
       console.info('[ExternalImport][App] 收到 Tauri 事件 external:provider-import');
-      handleExternalProviderImportRawPayload(event.payload);
+      void handleExternalProviderImportRawPayload(event.payload);
     }).then((fn) => {
       unlisten = fn;
     });
@@ -2700,7 +2787,7 @@ function MainApp() {
           return;
         }
         console.info('[ExternalImport][App] 启动时读取到待处理导入 payload');
-        handleExternalProviderImportRawPayload(payload);
+        void handleExternalProviderImportRawPayload(payload);
       })
       .catch((error) => {
         console.warn('[ExternalImport] 读取待处理导入请求失败:', error);

@@ -85,7 +85,7 @@
         "titleCodex": "Impor Massal Codex",
         "statusReceiving": "Menerima permintaan impor...",
         "statusFetching": "Mengambil paket impor...",
-        "statusParsing": "Mengurai JSON Codex...",
+        "statusParsing": "Mengurai konten impor Codex...",
         "statusImporting": "Mengimpor akun {{current}} / {{total}}",
         "statusRefreshing": "Memperbarui daftar akun...",
         "statusSuccess": "Impor selesai",
@@ -96,14 +96,19 @@
         "failed": "Gagal",
         "stepReceive": "Terima permintaan",
         "stepFetch": "Ambil paket",
-        "stepParse": "Urai JSON Codex",
+        "stepParse": "Urai konten",
         "stepImport": "Impor akun",
         "stepRefresh": "Segarkan daftar",
         "errorsTitle": "Item gagal",
         "viewAccounts": "Lihat Akun Codex",
         "copyErrors": "Salin error",
         "copied": "Disalin",
-        "unknownItem": "JSON ke-{{index}}"
+        "unknownItem": "Item #{{index}}",
+        "versionUnsupportedTitle": "Versi aplikasi terlalu rendah",
+        "versionUnsupportedDesc": "Metode ini belum didukung. Silakan unduh versi terbaru.",
+        "checkUpdate": "Periksa Pembaruan",
+        "rawLineNoRefreshToken": "Baris {{line}} tidak berisi refresh_token",
+        "rawLineMultipleRefreshTokens": "Baris {{line}} berisi beberapa refresh_token. Sisakan satu saja."
       },
       "instances": {
         "unsupported": {
@@ -1723,8 +1728,13 @@
       "timeoutRetry": "Perbarui Link Auth"
     },
     "token": {
-      "desc": "Tempel konten auth.json atau data JSON akun",
-      "placeholder": "Contoh: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Tempel auth.json, JSON akun, atau refresh_token.",
+      "placeholder": "Contoh: satu refresh_token per baris, atau {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Kolom wajib dan contoh",
+      "formatRequired": "Mendukung tokens lengkap (id_token + access_token), satu refresh_token, atau satu refresh_token per baris. Impor refresh_token saja akan menukarnya secara online menjadi kredensial lengkap terlebih dahulu.",
+      "formatSingleLabel": "Tokens lengkap",
+      "formatRefreshOnlyLabel": "Hanya refresh_token",
+      "formatBatchLabel": "Contoh batch"
     },
     "exportFormat": {
       "label": "Format ekspor",
@@ -1989,9 +1999,10 @@
     },
     "quotaError": {
       "badge": "Kesalahan kuota",
+      "refreshFailedBadge": "Gagal menyegarkan",
       "generic": "Penyegaran kuota gagal, silakan coba lagi nanti",
       "deactivatedWorkspace": "Workspace dinonaktifkan, ganti akun atau otorisasi ulang",
-      "requestFailedManualRetry": "Permintaan gagal, silakan coba lagi secara manual: {{error}}"
+      "requestFailedManualRetry": "Periksa jaringan. Kuota terbaru belum diambil. Segarkan untuk mencoba lagi."
     },
     "plan": {
       "free": "FREE",
@@ -2409,6 +2420,17 @@
         "apiService": "Layanan API",
         "account": "Akun"
       }
+    },
+    "accountNote": {
+      "title": "Catatan Akun",
+      "label": "Catatan Akun",
+      "desc": "Tambahkan catatan akun terpisah untuk {{account}}.",
+      "placeholder": "Email, kata sandi, email pemulihan, atau catatan pengiriman",
+      "emptyTitle": "Tambah catatan akun",
+      "short": "Catatan",
+      "addShort": "Tambah",
+      "saved": "Catatan akun disimpan",
+      "saveFailed": "Gagal menyimpan catatan akun: {{error}}"
     }
   },
   "codebuddy": {

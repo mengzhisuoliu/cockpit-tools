@@ -85,7 +85,7 @@
         "titleCodex": "Codex Batch Import",
         "statusReceiving": "Receiving import request...",
         "statusFetching": "Getting import bundle...",
-        "statusParsing": "Parsing Codex JSON...",
+        "statusParsing": "Parsing Codex import content...",
         "statusImporting": "Importing account {{current}} / {{total}}",
         "statusRefreshing": "Refreshing account list...",
         "statusSuccess": "Import complete",
@@ -96,14 +96,19 @@
         "failed": "Failed",
         "stepReceive": "Receive request",
         "stepFetch": "Get bundle",
-        "stepParse": "Parse Codex JSON",
+        "stepParse": "Parse content",
         "stepImport": "Import accounts",
         "stepRefresh": "Refresh list",
         "errorsTitle": "Failed items",
         "viewAccounts": "View Codex Accounts",
         "copyErrors": "Copy errors",
         "copied": "Copied",
-        "unknownItem": "JSON #{{index}}"
+        "unknownItem": "Item #{{index}}",
+        "versionUnsupportedTitle": "App version too low",
+        "versionUnsupportedDesc": "This method is not supported yet. Please download the latest version.",
+        "checkUpdate": "Check Updates",
+        "rawLineNoRefreshToken": "Line {{line}} does not contain a refresh_token",
+        "rawLineMultipleRefreshTokens": "Line {{line}} contains multiple refresh_tokens. Keep only one."
       },
       "instances": {
         "unsupported": {
@@ -1734,8 +1739,13 @@
       "timeoutRetry": "Refresh Auth Link"
     },
     "token": {
-      "desc": "Paste auth.json content or account JSON data",
-      "placeholder": "Example: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "Paste auth.json, account JSON, or refresh_token.",
+      "placeholder": "Example: one refresh_token per line, or {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "Required fields and examples",
+      "formatRequired": "Supports full tokens (id_token + access_token), a single refresh_token, or one refresh_token per line. refresh_token-only import exchanges it online for full credentials first.",
+      "formatSingleLabel": "Full tokens",
+      "formatRefreshOnlyLabel": "refresh_token only",
+      "formatBatchLabel": "Batch example"
     },
     "exportFormat": {
       "label": "Export Format",
@@ -1746,6 +1756,17 @@
       "cpaCardTitle": "Account {{index}}",
       "savedFolder": "Saved Folder",
       "savedPath": "Saved Path"
+    },
+    "accountNote": {
+      "title": "Account Note",
+      "label": "Account Note",
+      "desc": "Add a standalone account note for {{account}}.",
+      "placeholder": "Email, password, recovery email, or delivery notes",
+      "emptyTitle": "Add account note",
+      "short": "Note",
+      "addShort": "Add Note",
+      "saved": "Account note saved",
+      "saveFailed": "Failed to save account note: {{error}}"
     },
     "localAccess": {
       "title": "API Service",
@@ -2114,9 +2135,10 @@
     },
     "quotaError": {
       "badge": "Quota error",
+      "refreshFailedBadge": "Refresh failed",
       "generic": "Quota refresh failed, please try again later",
       "deactivatedWorkspace": "Workspace is deactivated, switch account or re-authorize",
-      "requestFailedManualRetry": "Quota refresh failed, and the latest quota could not be fetched; the account status is not affected. Please refresh again."
+      "requestFailedManualRetry": "Check your network. The latest quota was not fetched. Refresh to try again."
     },
     "plan": {
       "free": "FREE",

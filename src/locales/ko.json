@@ -78,7 +78,7 @@
         "titleCodex": "Codex 일괄 가져오기",
         "statusReceiving": "가져오기 요청을 받는 중...",
         "statusFetching": "가져오기 패키지를 가져오는 중...",
-        "statusParsing": "Codex JSON을 분석하는 중...",
+        "statusParsing": "Codex 가져오기 내용을 분석 중...",
         "statusImporting": "{{current}} / {{total}}번째 계정 가져오는 중",
         "statusRefreshing": "계정 목록 새로 고치는 중...",
         "statusSuccess": "가져오기 완료",
@@ -89,14 +89,19 @@
         "failed": "실패",
         "stepReceive": "요청 받기",
         "stepFetch": "패키지 가져오기",
-        "stepParse": "Codex JSON 분석",
+        "stepParse": "내용 분석",
         "stepImport": "계정 가져오기",
         "stepRefresh": "목록 새로 고침",
         "errorsTitle": "실패 항목",
         "viewAccounts": "Codex 계정 보기",
         "copyErrors": "오류 복사",
         "copied": "복사됨",
-        "unknownItem": "{{index}}번째 JSON"
+        "unknownItem": "{{index}}번째 항목",
+        "versionUnsupportedTitle": "앱 버전이 너무 낮습니다",
+        "versionUnsupportedDesc": "이 방식은 아직 지원되지 않습니다. 최신 버전을 다운로드하세요.",
+        "checkUpdate": "업데이트 확인",
+        "rawLineNoRefreshToken": "{{line}}번째 줄에 refresh_token이 없습니다",
+        "rawLineMultipleRefreshTokens": "{{line}}번째 줄에 refresh_token이 여러 개 있습니다. 하나만 남겨 주세요."
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "인증 링크 새로고침"
     },
     "token": {
-      "desc": "auth.json 내용 또는 계정 JSON 데이터를 붙여넣으세요",
-      "placeholder": "예시: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "auth.json, 계정 JSON 또는 refresh_token을 붙여넣으세요.",
+      "placeholder": "예: 줄마다 refresh_token 하나 또는 {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "필수 필드와 예시",
+      "formatRequired": "전체 tokens(id_token + access_token), 단일 refresh_token 또는 줄마다 refresh_token 하나를 지원합니다. refresh_token만 가져오면 먼저 온라인에서 전체 인증 정보로 교환합니다.",
+      "formatSingleLabel": "전체 tokens",
+      "formatRefreshOnlyLabel": "refresh_token만",
+      "formatBatchLabel": "일괄 예시"
     },
     "exportFormat": {
       "label": "내보내기 형식",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "할당량 오류",
+      "refreshFailedBadge": "새로고침 실패",
       "generic": "할당량 새로고침에 실패했습니다. 나중에 다시 시도하세요",
       "deactivatedWorkspace": "워크스페이스가 비활성화되었습니다. 계정을 전환하거나 다시 인증하세요",
-      "requestFailedManualRetry": "요청에 실패했습니다. 수동으로 다시 시도하세요: {{error}}"
+      "requestFailedManualRetry": "네트워크를 확인하세요. 최신 할당량을 가져오지 못했습니다. 새로고침해 다시 시도하세요."
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "API 서비스",
         "account": "계정"
       }
+    },
+    "accountNote": {
+      "title": "계정 메모",
+      "label": "계정 메모",
+      "desc": "{{account}}에 별도 계정 메모를 추가합니다.",
+      "placeholder": "이메일, 비밀번호, 복구 이메일 또는 전달 메모",
+      "emptyTitle": "계정 메모 추가",
+      "short": "메모",
+      "addShort": "추가",
+      "saved": "계정 메모를 저장했습니다",
+      "saveFailed": "계정 메모 저장 실패: {{error}}"
     }
   },
   "githubCopilot": {

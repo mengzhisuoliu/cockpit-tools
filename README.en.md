@@ -17,7 +17,7 @@ A **universal AI IDE account management tool**, currently supporting **Antigravi
 
 🇺🇸 English · 🇨🇳 简体中文 · 繁體中文 · 🇯🇵 日本語 · 🇩🇪 Deutsch · 🇪🇸 Español · 🇫🇷 Français · 🇮🇹 Italiano · 🇰🇷 한국어 · 🇧🇷 Português · 🇷🇺 Русский · 🇹🇷 Türkçe · 🇵🇱 Polski · 🇨🇿 Čeština · 🇸🇦 العربية · 🇻🇳 Tiếng Việt · 🇮🇩 Bahasa Indonesia
 
-**Officially supported platforms**: macOS and Windows. Future versions no longer provide official Linux/Ubuntu installers or Linux/Ubuntu compatibility maintenance.
+**Officially supported platforms**: macOS, Windows, and Linux.
 
 ---
 
@@ -295,8 +295,7 @@ Go to [GitHub Releases](https://github.com/jlcodes99/cockpit-tools/releases) to 
 
 *   **macOS**: `.dmg` (Apple Silicon & Intel)
 *   **Windows**: `.msi` (Recommended) or `.exe`
-
-> Linux/Ubuntu is no longer an official release target; the Releases page will no longer provide `.deb`, `.rpm`, or `.AppImage` installers.
+*   **Linux**: `.deb` (Debian/Ubuntu), `.rpm`, or `.AppImage` (Universal)
 
 ### Option B: Install with Homebrew (macOS)
 

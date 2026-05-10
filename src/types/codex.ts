@@ -25,6 +25,7 @@ export interface CodexAccount {
   organization_id?: string;
   account_name?: string;
   account_structure?: string;
+  account_note?: string;
   tokens: CodexTokens;
   token_generation?: number;
   token_updated_at?: number;

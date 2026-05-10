@@ -202,7 +202,11 @@ type ExternalImportBundleParseMessages = {
   empty: string;
   providerMismatch: string;
   noItems: string;
+  rawLineNoRefreshToken: (line: number) => string;
+  rawLineMultipleRefreshTokens: (line: number) => string;
 };
+
+const CODEX_REFRESH_TOKEN_PATTERN = /rt_[A-Za-z0-9._-]+/g;
 
 const readBundleMessage = (value: unknown): string | null => {
   if (typeof value !== 'string') return null;
@@ -247,13 +251,52 @@ const isCodexDirectImportItem = (value: unknown): boolean => {
   ) {
     return true;
   }
-  return Boolean(
-    tokens &&
-      typeof tokens === 'object' &&
-      !Array.isArray(tokens) &&
-      typeof (tokens as Record<string, unknown>).id_token === 'string' &&
-      typeof (tokens as Record<string, unknown>).access_token === 'string',
-  );
+  if (typeof payload.refresh_token === 'string' && payload.refresh_token.trim()) {
+    return true;
+  }
+  if (!tokens || typeof tokens !== 'object' || Array.isArray(tokens)) return false;
+  const tokenPayload = tokens as Record<string, unknown>;
+  const hasFullTokens =
+    typeof tokenPayload.id_token === 'string' &&
+    tokenPayload.id_token.trim() &&
+    typeof tokenPayload.access_token === 'string' &&
+    tokenPayload.access_token.trim();
+  const hasRefreshTokenOnly =
+    typeof tokenPayload.refresh_token === 'string' && tokenPayload.refresh_token.trim();
+  return Boolean(hasFullTokens || hasRefreshTokenOnly);
+};
+
+const parseCodexRawRefreshTokenItems = (
+  rawContent: string,
+  messages: ExternalImportBundleParseMessages,
+): unknown[] | null => {
+  const lines = rawContent
+    .split(/\r?\n/)
+    .map((line, index) => ({ line: line.trim(), lineNumber: index + 1 }))
+    .filter((item) => item.line.length > 0);
+
+  if (lines.length === 0) return null;
+
+  const items: unknown[] = [];
+  for (const item of lines) {
+    const matches = [...item.line.matchAll(CODEX_REFRESH_TOKEN_PATTERN)];
+    if (matches.length === 0) {
+      throw new Error(messages.rawLineNoRefreshToken(item.lineNumber));
+    }
+    if (matches.length > 1) {
+      throw new Error(messages.rawLineMultipleRefreshTokens(item.lineNumber));
+    }
+
+    const match = matches[0];
+    const refreshToken = match[0].trim();
+    const accountNote = item.line.slice(0, match.index ?? 0).trim();
+    items.push({
+      refresh_token: refreshToken,
+      ...(accountNote ? { account_note: accountNote } : {}),
+    });
+  }
+
+  return items.length > 0 ? items : null;
 };
 
 const resolveExternalImportBundleItems = (
@@ -265,10 +308,28 @@ const resolveExternalImportBundleItems = (
   try {
     parsed = JSON.parse(rawContent) as unknown;
   } catch {
-    const lineDelimitedItems = parseLineDelimitedJsonObjects(rawContent, messages.invalidJson);
-    if (lineDelimitedItems && lineDelimitedItems.length > 0) {
-      return lineDelimitedItems;
+    let lineDelimitedError: unknown = null;
+    try {
+      const lineDelimitedItems = parseLineDelimitedJsonObjects(rawContent, messages.invalidJson);
+      if (lineDelimitedItems && lineDelimitedItems.length > 0) {
+        return lineDelimitedItems;
+      }
+    } catch (error) {
+      lineDelimitedError = error;
     }
+
+    if (platformId === 'codex') {
+      try {
+        const rawRefreshTokenItems = parseCodexRawRefreshTokenItems(rawContent, messages);
+        if (rawRefreshTokenItems && rawRefreshTokenItems.length > 0) {
+          return rawRefreshTokenItems;
+        }
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    if (lineDelimitedError) throw lineDelimitedError;
     throw new Error(messages.invalidJson);
   }
 
@@ -1201,10 +1262,10 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     });
   }, []);
 
-  const runExternalImportFromUrl = useCallback(
+  const runExternalProviderImport = useCallback(
     (request: ExternalProviderImportPayload) => {
+      if (!platformId) return;
       const importUrl = request.importUrl?.trim();
-      if (!importUrl || !platformId) return;
       const runId = externalImportRunIdRef.current + 1;
       externalImportRunIdRef.current = runId;
 
@@ -1237,17 +1298,23 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
       void (async () => {
         try {
-          updateProgress({
-            status: 'fetching',
-            progress: 20,
-            message: t(
-              'common.shared.externalImport.statusFetching',
-              '正在获取导入包...',
-            ),
-          });
-          const content = await invoke<string>('external_import_fetch_import_url', {
-            importUrl,
-          });
+          let content = request.token.trim();
+          if (importUrl) {
+            updateProgress({
+              status: 'fetching',
+              progress: 20,
+              message: t(
+                'common.shared.externalImport.statusFetching',
+                '正在获取导入包...',
+              ),
+            });
+            content = await invoke<string>('external_import_fetch_import_url', {
+              importUrl,
+            });
+          }
+          if (!content.trim()) {
+            throw new Error(t('common.shared.externalImport.bundleEmpty', '导入包内容为空'));
+          }
 
           updateProgress({
             status: 'parsing',
@@ -1271,6 +1338,16 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
               'common.shared.externalImport.bundleNoItems',
               '导入包没有可导入内容',
             ),
+            rawLineNoRefreshToken: (line) =>
+              t('common.shared.externalImport.rawLineNoRefreshToken', {
+                line,
+                defaultValue: '第 {{line}} 行没有匹配到 refresh_token',
+              }),
+            rawLineMultipleRefreshTokens: (line) =>
+              t('common.shared.externalImport.rawLineMultipleRefreshTokens', {
+                line,
+                defaultValue: '第 {{line}} 行匹配到多个 refresh_token，请只保留一个',
+              }),
           });
 
           let success = 0;
@@ -1383,8 +1460,8 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     if (!platformId) return;
     const request = consumeQueuedExternalProviderImportForPlatform(platformId);
     if (!request) return;
-    if (request.importUrl) {
-      runExternalImportFromUrl(request);
+    if (request.importUrl || (platformId === 'codex' && request.token.trim())) {
+      runExternalProviderImport(request);
       return;
     }
 
@@ -1395,7 +1472,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     if (request.autoImport) {
       setExternalAutoImportNonce((value) => value + 1);
     }
-  }, [openAddModal, platformId, runExternalImportFromUrl]);
+  }, [openAddModal, platformId, runExternalProviderImport]);
 
   useEffect(() => {
     if (!platformId) return;

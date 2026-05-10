@@ -78,7 +78,7 @@
         "titleCodex": "Codex 一括インポート",
         "statusReceiving": "インポート要求を受信中...",
         "statusFetching": "インポートパッケージを取得中...",
-        "statusParsing": "Codex JSON を解析中...",
+        "statusParsing": "Codex インポート内容を解析中...",
         "statusImporting": "{{current}} / {{total}} 個目のアカウントをインポート中",
         "statusRefreshing": "アカウント一覧を更新中...",
         "statusSuccess": "インポート完了",
@@ -89,14 +89,19 @@
         "failed": "失敗",
         "stepReceive": "要求を受信",
         "stepFetch": "パッケージ取得",
-        "stepParse": "Codex JSON 解析",
+        "stepParse": "内容を解析",
         "stepImport": "アカウントをインポート",
         "stepRefresh": "一覧を更新",
         "errorsTitle": "失敗した項目",
         "viewAccounts": "Codex アカウントを表示",
         "copyErrors": "エラーをコピー",
         "copied": "コピーしました",
-        "unknownItem": "{{index}} 件目の JSON"
+        "unknownItem": "インポート項目 {{index}}",
+        "versionUnsupportedTitle": "アプリのバージョンが低すぎます",
+        "versionUnsupportedDesc": "この方式はまだサポートされていません。最新版をダウンロードしてください。",
+        "checkUpdate": "アップデートを確認",
+        "rawLineNoRefreshToken": "{{line}} 行目に refresh_token がありません",
+        "rawLineMultipleRefreshTokens": "{{line}} 行目に複数の refresh_token があります。1 つだけ残してください。"
       },
       "instances": {
         "unsupported": {
@@ -1674,8 +1679,13 @@
       "timeoutRetry": "認証リンクを更新"
     },
     "token": {
-      "desc": "auth.json の内容またはアカウント JSON を貼り付けてください",
-      "placeholder": "例: {\"tokens\":{\"id_token\":\"eyJ...\",\"access_token\":\"eyJ...\"}}"
+      "desc": "auth.json、アカウント JSON、または refresh_token を貼り付けます。",
+      "placeholder": "例: 1 行に 1 つの refresh_token、または {\"refresh_token\":\"rt_...\"}",
+      "formatSummary": "必須項目と例",
+      "formatRequired": "完全な tokens（id_token + access_token）、単一の refresh_token、または 1 行に 1 つの refresh_token をサポートします。refresh_token のみの場合は、先にオンラインで完全な認証情報に交換します。",
+      "formatSingleLabel": "完全な tokens",
+      "formatRefreshOnlyLabel": "refresh_token のみ",
+      "formatBatchLabel": "一括例"
     },
     "exportFormat": {
       "label": "エクスポート形式",
@@ -1845,9 +1855,10 @@
     },
     "quotaError": {
       "badge": "クォータエラー",
+      "refreshFailedBadge": "更新失敗",
       "generic": "クォータの更新に失敗しました。後でもう一度お試しください",
       "deactivatedWorkspace": "ワークスペースが無効です。アカウントを切り替えるか再認証してください",
-      "requestFailedManualRetry": "リクエストに失敗しました。手動で再試行してください: {{error}}"
+      "requestFailedManualRetry": "ネットワークを確認してください。最新のクォータを取得できませんでした。更新して再試行できます。"
     },
     "plan": {
       "free": "FREE",
@@ -2363,6 +2374,17 @@
         "apiService": "API サービス",
         "account": "アカウント"
       }
+    },
+    "accountNote": {
+      "title": "アカウントメモ",
+      "label": "アカウントメモ",
+      "desc": "{{account}} 用の個別メモを追加します。",
+      "placeholder": "メール、パスワード、復旧メール、受け渡しメモなど",
+      "emptyTitle": "アカウントメモを追加",
+      "short": "メモ",
+      "addShort": "追加",
+      "saved": "アカウントメモを保存しました",
+      "saveFailed": "アカウントメモの保存に失敗しました: {{error}}"
     }
   },
   "githubCopilot": {

@@ -296,7 +296,7 @@ pub async fn import_codex_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<CodexAccount>, String> {
-    let accounts = codex_account::import_from_json(&json_content)?;
+    let accounts = codex_account::import_from_json(&json_content).await?;
     Ok(refresh_imported_codex_accounts(&app, accounts).await)
 }
 
@@ -312,7 +312,7 @@ pub async fn import_codex_from_files(
     app: AppHandle,
     file_paths: Vec<String>,
 ) -> Result<codex_account::CodexFileImportResult, String> {
-    let result = codex_account::import_from_files(file_paths)?;
+    let result = codex_account::import_from_files(file_paths).await?;
     let imported = refresh_imported_codex_accounts(&app, result.imported).await;
     Ok(codex_account::CodexFileImportResult {
         imported,
@@ -526,6 +526,14 @@ pub async fn update_codex_account_tags(
     tags: Vec<String>,
 ) -> Result<CodexAccount, String> {
     codex_account::update_account_tags(&account_id, tags)
+}
+
+#[tauri::command]
+pub async fn update_codex_account_note(
+    account_id: String,
+    note: String,
+) -> Result<CodexAccount, String> {
+    codex_account::update_account_note(&account_id, note)
 }
 
 /// 检查 Codex OAuth 端口是否被占用
