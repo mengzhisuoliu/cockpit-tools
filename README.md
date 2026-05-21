@@ -1,6 +1,6 @@
 # Cockpit Tools
 
-[English](README.en.md) · 简体中文
+[English](README.en.md) · [Portuguese (BR)](README.pt-br.md) · 简体中文
 
 [![GitHub stars](https://img.shields.io/github/stars/jlcodes99/cockpit-tools?style=flat&color=gold)](https://github.com/jlcodes99/cockpit-tools)
 [![GitHub downloads](https://img.shields.io/github/downloads/jlcodes99/cockpit-tools/total?style=flat&color=blue)](https://github.com/jlcodes99/cockpit-tools/releases)
@@ -18,7 +18,7 @@
 
 🇺🇸 English · 🇨🇳 简体中文 · 繁體中文 · 🇯🇵 日本語 · 🇩🇪 Deutsch · 🇪🇸 Español · 🇫🇷 Français · 🇮🇹 Italiano · 🇰🇷 한국어 · 🇧🇷 Português · 🇷🇺 Русский · 🇹🇷 Türkçe · 🇵🇱 Polski · 🇨🇿 Čeština · 🇸🇦 العربية · 🇻🇳 Tiếng Việt · 🇮🇩 Bahasa Indonesia
 
-**当前支持版本**：macOS（Apple Silicon / Intel）、Windows 10 / Windows 11。Linux/Ubuntu 仅作为实验性或自用构建支持，当前验证环境为 Ubuntu 24.04 LTS；Ubuntu 20.04 因系统基础库过旧不支持，Ubuntu 26 尚未完成兼容性验证。
+**官方支持平台**：macOS、Windows、Linux。
 
 ---
 
@@ -293,7 +293,7 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 
 *   **macOS**: `.dmg` (Apple Silicon & Intel)
 *   **Windows**: `.msi` (推荐) 或 `.exe`
-*   **Linux**: 如 Release 页面提供 `.deb`、`.rpm` 或 `.AppImage`，仅作为实验性构建；当前验证环境为 Ubuntu 24.04 LTS。Ubuntu 20.04 不支持，Ubuntu 26 尚未完成兼容性验证。
+*   **Linux**: `.deb` (Debian/Ubuntu)、`.rpm` 或 `.AppImage` (通用)
 
 ### 选项 B: Homebrew 安装 (macOS)
 
