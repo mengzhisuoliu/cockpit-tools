@@ -45,6 +45,7 @@ import type { UpdateCheckResult, UpdateInfo } from './components/UpdateNotificat
 import type { Update as UpdaterUpdate } from '@tauri-apps/plugin-updater';
 import { parseUpdaterReleaseNotes, resolveUpdaterDownloadUrl } from './utils/updaterReleaseNotes';
 import { FloatingCardWindow } from './pages/FloatingCardWindow';
+import { initWakeupNotificationListener } from './utils/wakeupNotificationListener';
 import {
   createUpdaterCanceledError,
   isRetryableUpdaterError,
@@ -677,6 +678,11 @@ function MainApp() {
   
   // 启用自动刷新 hook
   useAutoRefresh();
+
+  // 初始化唤醒通知监听器
+  useEffect(() => {
+    initWakeupNotificationListener();
+  }, []);
 
   useEffect(() => {
     const handleRefreshShortcut = (event: KeyboardEvent) => {

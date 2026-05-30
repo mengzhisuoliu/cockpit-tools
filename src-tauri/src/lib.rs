@@ -439,6 +439,9 @@ pub fn run() {
             commands::wakeup::wakeup_verification_load_history,
             commands::wakeup::wakeup_verification_delete_history,
             commands::wakeup::wakeup_verification_run_batch,
+            commands::wakeup::confirm_wakeup_task,
+            commands::wakeup::cancel_wakeup_task,
+            commands::wakeup::check_wakeup_timeouts,
             // Update Commands
             commands::update::should_check_updates,
             commands::update::update_last_check_time,
