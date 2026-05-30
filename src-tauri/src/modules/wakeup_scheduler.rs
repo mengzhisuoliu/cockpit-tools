@@ -364,6 +364,13 @@ pub fn ensure_started(app: AppHandle) {
     tauri::async_runtime::spawn(async move {
         loop {
             run_scheduler_once(&app).await;
+            // 检查确认超时，避免因前端未调用导致确认任务堆积
+            if let Err(e) = check_and_handle_timeouts(&app).await {
+                modules::logger::log_warn(&format!(
+                    "[WakeupTasks] 超时检查失败: {}",
+                    e
+                ));
+            }
             sleep(Duration::from_secs(30)).await;
         }
     });
@@ -1089,7 +1096,7 @@ fn store_pending_confirmation(
     pending: PendingConfirmation,
     notification_id: u32,
 ) {
-    let mut lock = pending_confirmations().lock().unwrap();
+    let mut lock = lock_or_recover(pending_confirmations(), "pending confirmations lock");
     lock.insert(task_id.clone(), pending);
 
     // 发射事件通知前端建立映射
@@ -1114,7 +1121,7 @@ pub async fn execute_pending_confirmation(
     task_id: &str,
 ) -> Result<(), String> {
     let pending = {
-        let mut lock = pending_confirmations().lock().unwrap();
+        let mut lock = lock_or_recover(pending_confirmations(), "pending confirmations lock");
         lock.remove(task_id)
     };
 
@@ -1138,14 +1145,14 @@ pub async fn execute_pending_confirmation(
 }
 
 pub fn cancel_pending_confirmation(task_id: &str) -> Result<(), String> {
-    let mut lock = pending_confirmations().lock().unwrap();
+    let mut lock = lock_or_recover(pending_confirmations(), "pending confirmations lock");
     lock.remove(task_id);
     Ok(())
 }
 
 pub async fn check_and_handle_timeouts(app: &AppHandle) -> Result<(), String> {
     let timed_out_tasks: Vec<(String, PendingConfirmation)> = {
-        let mut lock = pending_confirmations().lock().unwrap();
+        let mut lock = lock_or_recover(pending_confirmations(), "pending confirmations lock");
         let now = chrono::Local::now().timestamp();
         let expired_ids: Vec<String> = lock
             .iter()
