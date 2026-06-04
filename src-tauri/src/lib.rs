@@ -162,6 +162,11 @@ pub fn run() {
                 modules::web_report::start_server().await;
             });
 
+            // Local browser UI. Keep it separate from web_report so report URLs stay unchanged.
+            tauri::async_runtime::spawn(async {
+                modules::web_console::start_server().await;
+            });
+
             tauri::async_runtime::spawn(async {
                 modules::codex_local_access::restore_local_access_gateway().await;
             });
