@@ -261,7 +261,10 @@ fn build_summary_message(
     }
 
     let index_suffix = if added_session_index_entry_count > 0 {
-        format!("，补写 {} 条 session_index 记录", added_session_index_entry_count)
+        format!(
+            "，补写 {} 条 session_index 记录",
+            added_session_index_entry_count
+        )
     } else {
         String::new()
     };
@@ -278,10 +281,7 @@ fn build_summary_message(
 
     format!(
         "已为 {} 个实例修复历史会话可见性：改写 {} 个 rollout 文件，更新 {} 条 SQLite 记录{}",
-        mutated_instance_count,
-        changed_rollout_file_count,
-        updated_sqlite_row_count,
-        index_suffix
+        mutated_instance_count, changed_rollout_file_count, updated_sqlite_row_count, index_suffix
     )
 }
 
@@ -624,9 +624,8 @@ fn load_sqlite_thread_index_rows(data_dir: &Path) -> Result<Vec<SqliteThreadInde
     } else {
         "NULL"
     };
-    let sql = format!(
-        "SELECT id, {title_expr}, {updated_at_expr} FROM threads ORDER BY updated_at DESC"
-    );
+    let sql =
+        format!("SELECT id, {title_expr}, {updated_at_expr} FROM threads ORDER BY updated_at DESC");
     let mut statement = connection.prepare(sql.as_str()).map_err(|error| {
         format!(
             "准备 SQLite 会话索引查询失败 ({}): {}",
@@ -1525,8 +1524,7 @@ mod tests {
             collect_rollout_provider_changes(&data_dir, "relay").expect("collect rollout changes");
         assert_eq!(changes.len(), 1);
 
-        repair_single_instance(&data_dir, "relay", &changes, false, false)
-            .expect("repair rollout");
+        repair_single_instance(&data_dir, "relay", &changes, false, false).expect("repair rollout");
 
         let content = fs::read_to_string(&rollout_path).expect("read repaired rollout");
         assert!(content.contains("\"model_provider\":\"relay\""));

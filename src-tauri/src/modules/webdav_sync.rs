@@ -282,7 +282,6 @@ impl WebdavSyncClient {
         Ok(deleted)
     }
 }
-
 pub fn normalize_base_url(raw: &str) -> Result<String, String> {
     let trimmed = raw.trim();
     if trimmed.is_empty() {
@@ -335,8 +334,8 @@ pub fn is_backup_file_name(file_name: &str) -> bool {
     if trimmed != file_name || trimmed.contains('/') || trimmed.contains('\\') {
         return false;
     }
-    let matches_prefix =
-        trimmed.starts_with("cockpit_auto_backup_") || trimmed.starts_with("cockpit_manual_backup_");
+    let matches_prefix = trimmed.starts_with("cockpit_auto_backup_")
+        || trimmed.starts_with("cockpit_manual_backup_");
     let matches_suffix = trimmed.ends_with(".json") || trimmed.ends_with(".zip");
     matches_prefix && matches_suffix
 }
@@ -373,7 +372,6 @@ pub fn connection_from_parts(
         remote_dir: normalized_remote_dir,
     })
 }
-
 pub async fn test_connection(settings: &WebdavConnectionSettings) -> Result<WebdavTestResult, String> {
     let client = WebdavSyncClient::new(settings)?;
     client.ensure_remote_dir().await?;

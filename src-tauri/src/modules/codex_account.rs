@@ -32,6 +32,7 @@ const CODEX_CONFIG_FILE_NAME: &str = "config.toml";
 const CODEX_CONFIG_OPENAI_BASE_URL_KEY: &str = "openai_base_url";
 const CODEX_CONFIG_MODEL_PROVIDER_KEY: &str = "model_provider";
 const CODEX_CONFIG_MODEL_PROVIDERS_KEY: &str = "model_providers";
+const CODEX_CONFIG_MODEL_CATALOG_JSON_KEY: &str = "model_catalog_json";
 const CODEX_CONFIG_EXPERIMENTAL_BEARER_TOKEN_KEY: &str = "experimental_bearer_token";
 const CODEX_CONFIG_MODEL_CONTEXT_WINDOW_KEY: &str = "model_context_window";
 const CODEX_CONFIG_MODEL_AUTO_COMPACT_TOKEN_LIMIT_KEY: &str = "model_auto_compact_token_limit";
@@ -321,11 +322,18 @@ fn normalize_api_model_catalog(models: Vec<String>) -> Vec<String> {
     values
 }
 
+fn normalize_api_wire_api(value: Option<String>) -> Option<String> {
+    value
+        .map(|item| item.trim().to_ascii_lowercase())
+        .filter(|item| item == "responses" || item == "chat_completions")
+}
+
 fn apply_api_key_fields(
     account: &mut CodexAccount,
     api_key: &str,
     provider_config: ApiProviderConfig,
     api_model_catalog: Vec<String>,
+    api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
 ) {
@@ -348,6 +356,7 @@ fn apply_api_key_fields(
     account.api_provider_id = provider_config.provider_id;
     account.api_provider_name = provider_config.provider_name;
     account.api_model_catalog = normalize_api_model_catalog(api_model_catalog);
+    account.api_wire_api = normalize_api_wire_api(api_wire_api);
     account.api_supports_vision = api_supports_vision;
     account.api_model_vision_support = normalize_api_model_vision_support(api_model_vision_support);
     account.email = build_api_key_email(api_key);
@@ -810,6 +819,14 @@ fn read_api_provider_from_config_toml(base_dir: &Path) -> ApiProviderConfig {
     );
 
     if let Some(provider_id) = model_provider {
+        if provider_id == CODEX_OPENAI_PROVIDER_ID {
+            return infer_api_provider_config(
+                openai_base_url.as_deref(),
+                Some(CodexApiProviderMode::OpenaiBuiltin),
+                None,
+                None,
+            );
+        }
         let provider_base_url = doc
             .get(CODEX_CONFIG_MODEL_PROVIDERS_KEY)
             .and_then(|item| item.get(provider_id.as_str()))
@@ -861,8 +878,14 @@ fn write_api_provider_to_config_toml(
 
     match provider_config.mode {
         CodexApiProviderMode::OpenaiBuiltin => {
+            let _ = doc.remove(CODEX_CONFIG_MODEL_CATALOG_JSON_KEY);
             let _ = doc.remove(CODEX_CONFIG_MODEL_PROVIDER_KEY);
             remove_managed_api_key_model_providers_from_doc(&mut doc);
+            #[cfg(target_os = "windows")]
+            {
+                write_windows_builtin_openai_provider_to_doc(&mut doc, normalized.as_deref())?;
+            }
+            #[cfg(not(target_os = "windows"))]
             match normalized.as_deref() {
                 Some(base_url) => {
                     doc[CODEX_CONFIG_OPENAI_BASE_URL_KEY] = value(base_url);
@@ -873,6 +896,7 @@ fn write_api_provider_to_config_toml(
             }
         }
         CodexApiProviderMode::Custom => {
+            let _ = doc.remove(CODEX_CONFIG_MODEL_CATALOG_JSON_KEY);
             let _ = doc.remove(CODEX_CONFIG_OPENAI_BASE_URL_KEY);
             let provider_id = provider_config
                 .provider_id
@@ -951,6 +975,34 @@ fn remove_managed_api_key_model_providers_from_doc(doc: &mut Document) {
     }
 }
 
+#[cfg(target_os = "windows")]
+fn write_windows_builtin_openai_provider_to_doc(
+    doc: &mut Document,
+    base_url: Option<&str>,
+) -> Result<(), String> {
+    doc[CODEX_CONFIG_MODEL_PROVIDER_KEY] = value(CODEX_OPENAI_PROVIDER_ID);
+    match base_url {
+        Some(base_url) if base_url != CODEX_DEFAULT_OPENAI_BASE_URL => {
+            doc[CODEX_CONFIG_OPENAI_BASE_URL_KEY] = value(base_url);
+        }
+        _ => {
+            let _ = doc.remove(CODEX_CONFIG_OPENAI_BASE_URL_KEY);
+        }
+    }
+    let should_remove_model_providers = doc
+        .get_mut(CODEX_CONFIG_MODEL_PROVIDERS_KEY)
+        .and_then(|item| item.as_table_mut())
+        .map(|model_providers| {
+            let _ = model_providers.remove(CODEX_OPENAI_PROVIDER_ID);
+            model_providers.is_empty()
+        })
+        .unwrap_or(false);
+    if should_remove_model_providers {
+        let _ = doc.remove(CODEX_CONFIG_MODEL_PROVIDERS_KEY);
+    }
+    Ok(())
+}
+
 fn write_api_key_provider_to_config_toml(
     base_dir: &Path,
     provider_config: &ApiProviderConfig,
@@ -979,6 +1031,7 @@ fn write_api_key_provider_to_config_toml(
     };
 
     let _ = doc.remove(CODEX_CONFIG_OPENAI_BASE_URL_KEY);
+    let _ = doc.remove(CODEX_CONFIG_MODEL_CATALOG_JSON_KEY);
     doc[CODEX_CONFIG_MODEL_PROVIDER_KEY] = value(CODEX_RUNTIME_MODEL_PROVIDER_ID);
     remove_managed_api_key_model_providers_from_doc(&mut doc);
     if doc.get(CODEX_CONFIG_MODEL_PROVIDERS_KEY).is_none() {
@@ -2155,6 +2208,7 @@ pub fn upsert_api_key_account(
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
     api_model_catalog: Vec<String>,
+    api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
     account_name: Option<String>,
@@ -2190,6 +2244,7 @@ pub fn upsert_api_key_account(
             &api_key,
             provider_config.clone(),
             api_model_catalog.clone(),
+            api_wire_api.clone(),
             api_supports_vision,
             api_model_vision_support.clone(),
         );
@@ -2216,6 +2271,7 @@ pub fn upsert_api_key_account(
         );
         acc.plan_type = Some(API_KEY_LOGIN_PLAN_TYPE.to_string());
         acc.account_name = account_name;
+        acc.api_wire_api = normalize_api_wire_api(api_wire_api.clone());
         acc.api_supports_vision = api_supports_vision;
         acc.api_model_vision_support = normalize_api_model_vision_support(api_model_vision_support);
         index.accounts.push(CodexAccountSummary {
@@ -3951,6 +4007,7 @@ pub fn import_from_local() -> Result<CodexAccount, String> {
             fallback_provider.provider_id.clone(),
             fallback_provider.provider_name.clone(),
             Vec::new(),
+            None,
             false,
             std::collections::HashMap::new(),
             None,
@@ -3969,6 +4026,7 @@ pub fn import_from_local() -> Result<CodexAccount, String> {
             fallback_provider.provider_id.clone(),
             fallback_provider.provider_name.clone(),
             Vec::new(),
+            None,
             false,
             std::collections::HashMap::new(),
             None,
@@ -3989,6 +4047,7 @@ fn import_account_struct(account: CodexAccount) -> Result<CodexAccount, String> 
             account.api_provider_id.clone(),
             account.api_provider_name.clone(),
             account.api_model_catalog.clone(),
+            account.api_wire_api.clone(),
             account.api_supports_vision,
             account.api_model_vision_support.clone(),
             account.account_name.clone(),
@@ -4508,6 +4567,7 @@ async fn import_account_from_json_value(
                     .and_then(|value| value.as_str())
                     .map(|value| value.to_string()),
                 Vec::new(),
+                None,
                 false,
                 std::collections::HashMap::new(),
                 None,
@@ -4607,6 +4667,7 @@ pub async fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, S
                 fallback_provider.provider_id.clone(),
                 fallback_provider.provider_name.clone(),
                 Vec::new(),
+                None,
                 false,
                 std::collections::HashMap::new(),
                 None,
@@ -4636,6 +4697,7 @@ pub async fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, S
                 fallback_provider.provider_id.clone(),
                 fallback_provider.provider_name.clone(),
                 Vec::new(),
+                None,
                 false,
                 std::collections::HashMap::new(),
                 None,
@@ -5962,6 +6024,7 @@ mod tests {
             &config_path,
             r#"model_provider = "codex_local_access"
 openai_base_url = "https://legacy.example.com/v1"
+model_catalog_json = "cockpit-provider-model-catalog.json"
 model_context_window = 1000000
 
 [model_providers.codex_local_access]
@@ -6008,6 +6071,7 @@ requires_openai_auth = false
         assert!(!content.contains("[model_providers.cockpit_api]"));
         assert!(!content.contains("[model_providers.openai_api_key]"));
         assert!(content.contains("[model_providers.user_manual_provider_not_managed]"));
+        assert!(!content.contains("model_catalog_json"));
         assert!(!content.contains("openai_base_url"));
         assert!(content.contains("model_context_window = 1000000"));
         assert_eq!(
@@ -6249,6 +6313,7 @@ requires_openai_auth = false
             &config_path,
             r#"model_provider = "mimo"
 openai_base_url = "https://legacy.example.com/v1"
+model_catalog_json = "cockpit-provider-model-catalog.json"
 model_context_window = 1000000
 
 [model_providers.mimo]
@@ -6281,6 +6346,7 @@ requires_openai_auth = true
         assert!(content.contains("[model_providers.codex_local_access]"));
         assert!(content.contains("[model_providers.mimo]"));
         assert!(content.contains("[model_providers.relay]"));
+        assert!(!content.contains("model_catalog_json"));
         assert!(!content.contains("openai_base_url"));
         assert!(content.contains("model_context_window = 1000000"));
 
@@ -6729,6 +6795,7 @@ pub fn update_api_key_credentials(
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
     api_model_catalog: Vec<String>,
+    api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
 ) -> Result<CodexAccount, String> {
@@ -6767,6 +6834,7 @@ pub fn update_api_key_credentials(
         &normalized_key,
         provider_config,
         api_model_catalog,
+        api_wire_api,
         api_supports_vision,
         api_model_vision_support,
     );

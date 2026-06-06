@@ -1617,7 +1617,8 @@ export function CodexModelProviderManager({
       try {
         const presetId = resolveCodexApiProviderPresetId(provider.baseUrl);
         const isOpenAIOfficial = presetId === "openai_official";
-        const enableMode = resolveGatewayModeByWireApi(resolveProviderWireApi(provider));
+        const wireApi = resolveProviderWireApi(provider);
+        const enableMode = resolveGatewayModeByWireApi(wireApi);
         const account = await addCodexAccountWithApiKey(
           apiKey.apiKey,
           provider.baseUrl,
@@ -1632,6 +1633,8 @@ export function CodexModelProviderManager({
               capability.supportsVision === true,
             ]),
           ),
+          undefined,
+          wireApi,
         );
         await updateCodexApiKeyBoundOAuthAccount(
           account.id,

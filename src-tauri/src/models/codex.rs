@@ -89,6 +89,8 @@ pub struct CodexAccount {
     pub api_provider_name: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub api_model_catalog: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub api_wire_api: Option<String>,
     #[serde(default)]
     pub api_supports_vision: bool,
     #[serde(default, skip_serializing_if = "HashMap::is_empty")]
@@ -301,6 +303,7 @@ impl CodexAccount {
             api_provider_id: None,
             api_provider_name: None,
             api_model_catalog: Vec::new(),
+            api_wire_api: None,
             api_supports_vision: false,
             api_model_vision_support: HashMap::new(),
             bound_oauth_account_id: None,
@@ -359,6 +362,7 @@ impl CodexAccount {
         account.api_provider_id = api_provider_id;
         account.api_provider_name = api_provider_name;
         account.api_model_catalog = api_model_catalog;
+        account.api_wire_api = None;
         account.api_supports_vision = false;
         account.api_model_vision_support = HashMap::new();
         account.plan_type = Some("API_KEY".to_string());

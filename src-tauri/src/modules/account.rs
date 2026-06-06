@@ -7,10 +7,7 @@ use std::sync::Mutex;
 use std::time::{Duration, Instant};
 use uuid::Uuid;
 
-use crate::models::{
-    Account, AccountIndex, AccountSummary, QuotaData,
-    QuotaErrorInfo, TokenData,
-};
+use crate::models::{Account, AccountIndex, AccountSummary, QuotaData, QuotaErrorInfo, TokenData};
 use crate::modules;
 
 static ACCOUNT_INDEX_LOCK: std::sync::LazyLock<Mutex<()>> =
@@ -507,7 +504,6 @@ pub fn delete_account(account_id: &str) -> Result<(), String> {
         .lock()
         .map_err(|e| format!("获取锁失败: {}", e))?;
     let mut index = load_account_index()?;
-
 
     let original_len = index.accounts.len();
     index.accounts.retain(|s| s.id != account_id);
@@ -2091,7 +2087,6 @@ pub async fn switch_account_local_no_restart(account_id: &str) -> Result<Account
             e
         ));
     }
-
 
     let default_dir = modules::instance::get_default_user_data_dir()?;
     modules::instance::inject_account_to_profile(&default_dir, account_id)?;

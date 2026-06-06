@@ -36,7 +36,6 @@ pub struct Account {
     pub last_used: i64,
 }
 
-
 impl Account {
     pub fn new(id: String, email: String, token: TokenData) -> Self {
         let now = chrono::Utc::now().timestamp();

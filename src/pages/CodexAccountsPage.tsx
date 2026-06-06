@@ -158,6 +158,7 @@ import {
   isCockpitApiProviderBaseUrl,
   resolveCodexApiProviderPresetId,
 } from "../utils/codexProviderPresets";
+import { resolveCodexProviderCapabilityProfile } from "../utils/codexProviderGateway";
 import {
   formatCodexQuotaPoolPercent,
   summarizeCodexQuotaPool,
@@ -2352,6 +2353,7 @@ export function CodexAccountsPage() {
       apiProviderId?: string;
       apiProviderName?: string;
       apiModelCatalog?: string[];
+      apiWireApi?: "responses" | "chat_completions";
       apiSupportsVision?: boolean;
       accountName?: string;
       sponsorTemplate?: SponsorApiProviderTemplate;
@@ -2380,6 +2382,7 @@ export function CodexAccountsPage() {
           apiProviderId: sponsorTemplate.id,
           apiProviderName: sponsorTemplate.name,
           apiModelCatalog: sponsorTemplate.modelCatalog,
+          apiWireApi: sponsorTemplate.wireApi ?? undefined,
           apiSupportsVision: sponsorTemplate.supportsVision,
           accountName: sponsorTemplate.name,
           sponsorTemplate,
@@ -2396,6 +2399,7 @@ export function CodexAccountsPage() {
           apiProviderId: managedProvider.id,
           apiProviderName: managedProvider.name,
           apiModelCatalog: managedProvider.modelCatalog,
+          apiWireApi: managedProvider.wireApi ?? undefined,
           apiSupportsVision: managedProvider.supportsVision,
           accountName: managedProvider.name,
         };
@@ -2408,6 +2412,11 @@ export function CodexAccountsPage() {
           apiProviderId: preset.id,
           apiProviderName: preset.name,
           apiModelCatalog: preset.modelCatalog,
+          apiWireApi: resolveCodexProviderCapabilityProfile({
+            presetId: preset.id,
+            baseUrl: normalizedBaseUrl,
+            wireApi: null,
+          }).wireApi,
           accountName: preset.name,
         };
       }
@@ -3878,6 +3887,14 @@ export function CodexAccountsPage() {
         "custom",
         selectedQuickSwitchProvider.id,
         selectedQuickSwitchProvider.name,
+        selectedQuickSwitchProvider.modelCatalog,
+        selectedQuickSwitchProvider.supportsVision,
+        Object.fromEntries(
+          Object.entries(selectedQuickSwitchProvider.modelCapabilities ?? {}).map(
+            ([model, capability]) => [model, capability.supportsVision === true],
+          ),
+        ),
+        selectedQuickSwitchProvider.wireApi ?? undefined,
       );
       setMessage({
         text: t("codex.quickSwitch.success", {
@@ -3970,6 +3987,7 @@ export function CodexAccountsPage() {
             apiProviderName: savedProvider.name,
             apiModelCatalog: savedProvider.modelCatalog,
             apiSupportsVision: savedProvider.supportsVision,
+            apiWireApi: savedProvider.wireApi ?? undefined,
             accountName: savedProvider.name,
           };
           try {
@@ -4010,6 +4028,7 @@ export function CodexAccountsPage() {
         finalProviderPayload.apiSupportsVision,
         undefined,
         finalProviderPayload.accountName,
+        finalProviderPayload.apiWireApi,
       );
       await fetchAccounts();
       await fetchCurrentAccount();
@@ -4929,6 +4948,9 @@ export function CodexAccountsPage() {
         providerPayload.apiProviderId,
         providerPayload.apiProviderName,
         providerPayload.apiModelCatalog,
+        providerPayload.apiSupportsVision,
+        undefined,
+        providerPayload.apiWireApi,
       );
       if (
         validation.apiBaseUrl &&
@@ -4947,7 +4969,7 @@ export function CodexAccountsPage() {
             supportsVision: providerPayload.sponsorTemplate?.supportsVision,
             website: providerPayload.sponsorTemplate?.website,
             apiKeyUrl: providerPayload.sponsorTemplate?.apiKeyUrl,
-            wireApi: providerPayload.sponsorTemplate?.wireApi,
+            wireApi: providerPayload.apiWireApi,
             integrationType: providerPayload.sponsorTemplate?.integrationType,
           });
           try {

@@ -12,8 +12,9 @@ use crate::models::codex_local_access::{
     CodexLocalAccessTimeouts, CodexLocalAccessUsageEventPage,
 };
 use crate::modules::{
-    account, codex_account, codex_local_access, codex_oauth, codex_quota, codex_speed,
-    codex_wakeup, codex_wakeup_scheduler, config, logger, openclaw_auth, opencode_auth, process,
+    account, codex_account, codex_local_access, codex_oauth, codex_quota,
+    codex_session_visibility, codex_speed, codex_wakeup, codex_wakeup_scheduler, config, logger,
+    openclaw_auth, opencode_auth, process,
 };
 use serde::Serialize;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -23,6 +24,46 @@ use tauri::Emitter;
 use tauri_plugin_opener::OpenerExt;
 
 static CODEX_POST_REFRESH_CHECK_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
+
+fn codex_launch_credential_kind_for_provider(provider: &str) -> &'static str {
+    if provider == "openai" {
+        "account"
+    } else {
+        "api"
+    }
+}
+
+fn repair_codex_session_visibility_after_provider_change(
+    context: &str,
+    before_provider: Option<String>,
+    after_provider: Option<String>,
+) -> Result<(), String> {
+    let (Some(before), Some(after)) = (before_provider, after_provider) else {
+        return Ok(());
+    };
+    if before == after {
+        return Ok(());
+    }
+    if codex_launch_credential_kind_for_provider(&before)
+        == codex_launch_credential_kind_for_provider(&after)
+    {
+        return Ok(());
+    }
+
+    let started = Instant::now();
+    let summary = codex_session_visibility::repair_session_visibility_across_instances()?;
+    logger::log_info(&format!(
+        "[Codex Session Visibility] {}: repaired after account switch, from_provider={}, to_provider={}, mutated_instances={}, rollout_files={}, sqlite_rows={}, elapsed_ms={}",
+        context,
+        before,
+        after,
+        summary.mutated_instance_count,
+        summary.changed_rollout_file_count,
+        summary.updated_sqlite_row_count,
+        started.elapsed().as_millis()
+    ));
+    Ok(())
+}
 
 fn restart_codex_specified_app_if_enabled(user_config: &config::UserConfig) {
     if !user_config.codex_restart_specified_app_on_switch {
@@ -162,8 +203,17 @@ pub async fn switch_codex_account(
     app: AppHandle,
     account_id: String,
 ) -> Result<CodexAccount, String> {
+    let codex_home = codex_account::get_codex_home();
+    let previous_provider =
+        codex_session_visibility::read_history_visibility_provider_for_dir(&codex_home).ok();
+
     // 切换账号（写入 auth.json）
     let account = codex_account::switch_account_managed(&account_id).await?;
+    repair_codex_session_visibility_after_provider_change(
+        "switch-codex-account",
+        previous_provider,
+        codex_session_visibility::read_history_visibility_provider_for_dir(&codex_home).ok(),
+    )?;
     let account_speed = account.app_speed.clone();
     codex_speed::write_official_app_speed(account_speed.clone())?;
 
@@ -578,6 +628,7 @@ pub fn add_codex_account_with_api_key(
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
     api_model_catalog: Option<Vec<String>>,
+    api_wire_api: Option<String>,
     api_supports_vision: Option<bool>,
     api_model_vision_support: Option<std::collections::HashMap<String, bool>>,
     account_name: Option<String>,
@@ -589,6 +640,7 @@ pub fn add_codex_account_with_api_key(
         api_provider_id,
         api_provider_name,
         api_model_catalog.unwrap_or_default(),
+        api_wire_api,
         api_supports_vision.unwrap_or(false),
         api_model_vision_support.unwrap_or_default(),
         account_name,
@@ -610,6 +662,7 @@ pub fn update_codex_api_key_credentials(
     api_provider_id: Option<String>,
     api_provider_name: Option<String>,
     api_model_catalog: Option<Vec<String>>,
+    api_wire_api: Option<String>,
     api_supports_vision: Option<bool>,
     api_model_vision_support: Option<std::collections::HashMap<String, bool>>,
 ) -> Result<CodexAccount, String> {
@@ -621,6 +674,7 @@ pub fn update_codex_api_key_credentials(
         api_provider_id,
         api_provider_name,
         api_model_catalog.unwrap_or_default(),
+        api_wire_api,
         api_supports_vision.unwrap_or(false),
         api_model_vision_support.unwrap_or_default(),
     )

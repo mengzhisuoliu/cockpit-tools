@@ -4,6 +4,7 @@ import {
   CodexApiProviderMode,
   CodexAppSpeed,
   CodexAppSpeedConfig,
+  CodexProviderWireApi,
   CodexQuickConfig,
   CodexQuota,
 } from '../types/codex';
@@ -181,6 +182,7 @@ export async function addCodexAccountWithApiKey(
   apiSupportsVision?: boolean,
   apiModelVisionSupport?: Record<string, boolean>,
   accountName?: string,
+  apiWireApi?: CodexProviderWireApi,
 ): Promise<CodexAccount> {
   return await invoke('add_codex_account_with_api_key', {
     apiKey,
@@ -189,6 +191,7 @@ export async function addCodexAccountWithApiKey(
     apiProviderId: apiProviderId ?? null,
     apiProviderName: apiProviderName ?? null,
     apiModelCatalog: apiModelCatalog ?? null,
+    apiWireApi: apiWireApi ?? null,
     apiSupportsVision: apiSupportsVision ?? false,
     apiModelVisionSupport: apiModelVisionSupport ?? {},
     accountName: accountName ?? null,
@@ -209,6 +212,7 @@ export async function updateCodexApiKeyCredentials(
   apiModelCatalog?: string[],
   apiSupportsVision?: boolean,
   apiModelVisionSupport?: Record<string, boolean>,
+  apiWireApi?: CodexProviderWireApi,
 ): Promise<CodexAccount> {
   return await invoke('update_codex_api_key_credentials', {
     accountId,
@@ -218,6 +222,7 @@ export async function updateCodexApiKeyCredentials(
     apiProviderId: apiProviderId ?? null,
     apiProviderName: apiProviderName ?? null,
     apiModelCatalog: apiModelCatalog ?? null,
+    apiWireApi: apiWireApi ?? null,
     apiSupportsVision: apiSupportsVision ?? false,
     apiModelVisionSupport: apiModelVisionSupport ?? {},
   });

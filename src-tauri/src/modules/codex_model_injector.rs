@@ -9,6 +9,9 @@ use tokio_tungstenite::tungstenite::Message;
 const MODEL_CATALOG_FILE: &str = "cockpit-provider-model-catalog.json";
 const CDP_POLL_ATTEMPTS: usize = 20;
 const CDP_POLL_INTERVAL: Duration = Duration::from_millis(500);
+const MODEL_CATALOG_POLL_ATTEMPTS: usize = 20;
+const MODEL_CATALOG_POLL_INTERVAL: Duration = Duration::from_millis(500);
+const CDP_INSTALL_OBSERVE_DURATION: Duration = Duration::from_secs(2);
 
 #[derive(Debug, Deserialize)]
 struct ModelCatalog {
@@ -83,7 +86,7 @@ pub fn inject_for_codex_home_later(codex_home: PathBuf) {
 }
 
 async fn inject_for_codex_home(codex_home: &Path) -> Result<(), String> {
-    let models = load_model_descriptors(codex_home)?;
+    let models = wait_for_model_descriptors(codex_home).await?;
     if models.is_empty() {
         crate::modules::logger::log_info(&format!(
             "[Codex Model Injector] skip injection: codex_home={}, reason=no_visible_models",
@@ -183,6 +186,30 @@ fn load_model_descriptors(codex_home: &Path) -> Result<Vec<ModelDescriptor>, Str
             .collect::<Vec<_>>()
             .join(",")
     ));
+    Ok(models)
+}
+
+async fn wait_for_model_descriptors(codex_home: &Path) -> Result<Vec<ModelDescriptor>, String> {
+    let mut models = Vec::new();
+    for attempt in 1..=MODEL_CATALOG_POLL_ATTEMPTS {
+        models = load_model_descriptors(codex_home)?;
+        if !models.is_empty() {
+            if attempt > 1 {
+                crate::modules::logger::log_info(&format!(
+                    "[Codex Model Injector] model catalog became ready: codex_home={}, attempt={}, models={}",
+                    codex_home.display(),
+                    attempt,
+                    models
+                        .iter()
+                        .map(|item| item.slug.as_str())
+                        .collect::<Vec<_>>()
+                        .join(",")
+                ));
+            }
+            return Ok(models);
+        }
+        sleep(MODEL_CATALOG_POLL_INTERVAL).await;
+    }
     Ok(models)
 }
 
@@ -306,7 +333,7 @@ async fn install_script(ws_url: &str, script: &str) -> Result<(), String> {
         json!({ "expression": script, "awaitPromise": true }),
     )
     .await?;
-    observe_cdp_events(&mut ws, ws_url, Duration::from_secs(180)).await;
+    observe_cdp_events(&mut ws, ws_url, CDP_INSTALL_OBSERVE_DURATION).await;
     let _ = ws.close(None).await;
     Ok(())
 }
@@ -493,13 +520,27 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     return changed;
   }}
 
+  function patchModelNameArray(value) {{
+    if (!Array.isArray(value) || !value.every((item) => typeof item === "string")) return false;
+    let changed = false;
+    for (const name of modelNames) {{
+      if (!value.includes(name)) {{
+        value.push(name);
+        changed = true;
+      }}
+    }}
+    return changed;
+  }}
+
   function patchContainer(value) {{
     if (!value || typeof value !== "object") return false;
     let changed = false;
     if (patchModelArray(value, true)) changed = true;
     if (patchModelArray(value.models, "defaultModel" in value || "availableModels" in value)) changed = true;
+    if (patchModelNameArray(value.models)) changed = true;
     if (patchModelArray(value.data, false)) changed = true;
     if (patchModelArray(value.result, false)) changed = true;
+    if (patchModelArray(value.pages?.[0]?.data, false)) changed = true;
     if (patchModelArray(value.result?.data, false)) changed = true;
     if (patchModelArray(value.result?.models, false)) changed = true;
     if (patchModelArray(value.message?.result?.data, false)) changed = true;
@@ -533,8 +574,61 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     if (("models" in value || "availableModels" in value || "available_models" in value) && value.defaultModel == null && defaultModel) {{
       value.defaultModel = descriptor(defaultModel);
       changed = true;
+    }} else if (typeof value.defaultModel === "string" && modelNames.includes(value.defaultModel) && value.model == null) {{
+      value.model = value.defaultModel;
+      changed = true;
     }}
     return changed;
+  }}
+
+  function patchObjectGraphForModels(root, visited, depth = 0) {{
+    if (!root || typeof root !== "object" || visited.has(root) || depth > 5) return false;
+    visited.add(root);
+    let changed = patchContainer(root);
+    if (root instanceof Element || root === window || root === document || root === document.body || root === document.documentElement) return changed;
+    for (const key of Object.keys(root)) {{
+      if (key === "ownerDocument" || key === "parentElement" || key === "parentNode" || key === "children" || key === "childNodes") continue;
+      let child;
+      try {{ child = root[key]; }} catch {{ continue; }}
+      if (child && typeof child === "object" && patchObjectGraphForModels(child, visited, depth + 1)) changed = true;
+    }}
+    return changed;
+  }}
+
+  function patchModelPayload(payload) {{
+    if (!payload || typeof payload !== "object") return payload;
+    try {{
+      patchContainer(payload);
+      patchObjectGraphForModels(payload, new WeakSet(), 0);
+    }} catch (error) {{
+      try {{ console.warn("[Cockpit Codex] model payload patch failed", error?.message || String(error)); }} catch {{}}
+    }}
+    return payload;
+  }}
+
+  function installResponseJsonPatch() {{
+    if (window.__cockpitModelResponseJsonPatched === "1") return;
+    const originalJson = Response.prototype.json;
+    if (typeof originalJson !== "function") return;
+    window.__cockpitModelResponseJsonPatched = "1";
+    Response.prototype.json = async function patchedCockpitModelResponseJson(...args) {{
+      const payload = await originalJson.apply(this, args);
+      return patchModelPayload(payload);
+    }};
+  }}
+
+  function reactFiberKeys(element) {{
+    return Object.keys(element || {{}}).filter((key) => key.startsWith("__reactFiber") || key.startsWith("__reactInternalInstance") || key.startsWith("__reactProps"));
+  }}
+
+  function patchReactModelState() {{
+    const visited = new WeakSet();
+    const nodes = [document.body, ...document.querySelectorAll("button, [role='menu'], [role='dialog'], [data-radix-popper-content-wrapper]")].filter(Boolean);
+    for (const node of nodes.slice(0, 220)) {{
+      for (const key of reactFiberKeys(node)) {{
+        patchObjectGraphForModels(node[key], visited, 0);
+      }}
+    }}
   }}
 
   function summarizeForLog(value, depth = 0) {{
@@ -613,7 +707,7 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
       try {{
         const result = await original(method, params, options);
         if (actualMethod === "list-models-for-host") {{
-          patchContainer(result);
+          patchModelPayload(result);
         }}
         if (shouldTrace) {{
           try {{ console.info("[Cockpit Codex] app-server response", actualMethod, stringifyForLog(result)); }} catch {{}}
@@ -642,8 +736,10 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
   }}
 
   function tick() {{
+    installResponseJsonPatch();
     patchStatsig();
     patchAppServerClient();
+    patchReactModelState();
   }}
   tick();
   setTimeout(tick, 300);

@@ -2704,23 +2704,57 @@ fn detect_codex_store_app_user_model_id() -> Option<String> {
 }
 
 #[cfg(target_os = "windows")]
-fn launch_codex_via_store_app_user_model_id(app_user_model_id: &str) -> Result<(), String> {
+fn powershell_single_quoted_array(values: &[String]) -> String {
+    if values.is_empty() {
+        return "@()".to_string();
+    }
+    format!(
+        "@({})",
+        values
+            .iter()
+            .map(|value| format!("'{}'", escape_powershell_single_quoted(value)))
+            .collect::<Vec<_>>()
+            .join(", ")
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn launch_codex_via_store_app_user_model_id(
+    app_user_model_id: &str,
+    codex_home: Option<&str>,
+    app_user_data_dir: Option<&str>,
+    extra_args: &[String],
+) -> Result<(), String> {
     let app_user_model_id = app_user_model_id.trim();
     if app_user_model_id.is_empty() {
         return Err("Codex AppUserModelId 为空".to_string());
     }
 
     let escaped = escape_powershell_single_quoted(app_user_model_id);
-    let env_lines = managed_proxy_env_pairs()
+    let mut env_pairs = managed_proxy_env_pairs();
+    if let Some(codex_home) = codex_home.map(str::trim).filter(|value| !value.is_empty()) {
+        env_pairs.push(("CODEX_HOME", codex_home.to_string()));
+    }
+    if let Some(app_user_data_dir) = app_user_data_dir
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        env_pairs.push((
+            "CODEX_ELECTRON_USER_DATA_PATH",
+            app_user_data_dir.to_string(),
+        ));
+    }
+    let env_lines = env_pairs
         .into_iter()
         .map(|(key, value)| format!("$env:{}='{}'", key, escape_powershell_single_quoted(&value)))
         .collect::<Vec<_>>()
         .join("\n");
+    let argument_list = powershell_single_quoted_array(extra_args);
     let script = format!(
         r#"{env_lines}
 $appId='{escaped}';
 $target='shell:AppsFolder\' + $appId
-Start-Process -FilePath $target -ErrorAction Stop | Out-Null"#
+Start-Process -FilePath $target -ArgumentList {argument_list} -ErrorAction Stop | Out-Null"#
     );
 
     let output = powershell_output(&["-Command", &script])
@@ -2730,6 +2764,56 @@ Start-Process -FilePath $target -ErrorAction Stop | Out-Null"#
         let stderr_head = stderr.trim().chars().take(400).collect::<String>();
         return Err(format!(
             "系统入口启动失败: status={}, stderr={}",
+            output.status,
+            if stderr_head.is_empty() {
+                "<empty>".to_string()
+            } else {
+                stderr_head
+            }
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn launch_codex_via_powershell_exec_path(
+    launch_path: &std::path::Path,
+    codex_home: &str,
+    app_user_data_dir: &std::path::Path,
+    extra_args: &[String],
+) -> Result<(), String> {
+    let launch_path = launch_path.to_string_lossy();
+    let launch_path = launch_path.trim();
+    if launch_path.is_empty() {
+        return Err("Codex 启动路径为空".to_string());
+    }
+
+    let mut env_pairs = managed_proxy_env_pairs();
+    env_pairs.push(("CODEX_HOME", codex_home.to_string()));
+    env_pairs.push((
+        "CODEX_ELECTRON_USER_DATA_PATH",
+        app_user_data_dir.to_string_lossy().to_string(),
+    ));
+    let env_lines = env_pairs
+        .into_iter()
+        .map(|(key, value)| format!("$env:{}='{}'", key, escape_powershell_single_quoted(&value)))
+        .collect::<Vec<_>>()
+        .join("\n");
+    let argument_list = powershell_single_quoted_array(extra_args);
+    let script = format!(
+        r#"{env_lines}
+$exe='{exe}';
+Start-Process -FilePath $exe -ArgumentList {argument_list} -ErrorAction Stop | Out-Null"#,
+        exe = escape_powershell_single_quoted(launch_path),
+    );
+
+    let output = powershell_output(&["-Command", &script])
+        .map_err(|e| format!("PowerShell 启动 Codex 失败: {}", e))?;
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stderr_head = stderr.trim().chars().take(400).collect::<String>();
+        return Err(format!(
+            "PowerShell 启动 Codex 失败: status={}, stderr={}",
             output.status,
             if stderr_head.is_empty() {
                 "<empty>".to_string()
@@ -7668,14 +7752,77 @@ pub fn start_codex_with_args(codex_home: &str, extra_args: &[String]) -> Result<
             app_user_data_dir.to_string_lossy()
         ));
 
-        let child =
-            spawn_command_with_trace(&mut cmd).map_err(|e| format!("启动 Codex 失败: {}", e))?;
+        let child = match spawn_command_with_trace(&mut cmd) {
+            Ok(child) => Some(child),
+            Err(err) => {
+                let launch_path_text = launch_path.to_string_lossy().to_ascii_lowercase();
+                if err.kind() == std::io::ErrorKind::PermissionDenied
+                    && launch_path_text.contains("\\windowsapps\\")
+                {
+                    let mut store_args = extra_args
+                        .iter()
+                        .map(|item| item.trim().to_string())
+                        .filter(|item| !item.is_empty())
+                        .collect::<Vec<_>>();
+                    if !crate::modules::codex_model_injector::has_remote_debugging_arg(extra_args) {
+                        store_args.push(
+                            crate::modules::codex_model_injector::remote_debugging_arg(
+                                codex_home_trimmed,
+                            ),
+                        );
+                    }
+                    store_args.push(format!(
+                        "--user-data-dir={}",
+                        app_user_data_dir.to_string_lossy()
+                    ));
+                    match launch_codex_via_powershell_exec_path(
+                        &launch_path,
+                        codex_home_trimmed,
+                        &app_user_data_dir,
+                        &store_args,
+                    ) {
+                        Ok(()) => {
+                            crate::modules::logger::log_warn(&format!(
+                                "[Codex Start] WindowsApps direct launch denied, PowerShell exec fallback succeeded: launch_path={} error={}",
+                                launch_path.to_string_lossy(),
+                                err
+                            ));
+                        }
+                        Err(ps_err) => {
+                            let app_user_model_id =
+                                detect_codex_store_app_user_model_id().ok_or_else(|| {
+                                    format!(
+                                        "启动 Codex 失败: {}; PowerShell fallback 失败: {}; 且未检测到 Codex Store AppUserModelID",
+                                        err, ps_err
+                                    )
+                                })?;
+                            crate::modules::logger::log_warn(&format!(
+                                "[Codex Start] WindowsApps direct launch denied, PowerShell exec fallback failed, fallback to Store AppUserModelID: app_id={} launch_path={} error={} powershell_error={}",
+                                app_user_model_id,
+                                launch_path.to_string_lossy(),
+                                err,
+                                ps_err
+                            ));
+                            launch_codex_via_store_app_user_model_id(
+                                &app_user_model_id,
+                                Some(codex_home_trimmed),
+                                Some(app_user_data_dir.to_string_lossy().as_ref()),
+                                &store_args,
+                            )?;
+                        }
+                    }
+                    None
+                } else {
+                    return Err(format!("启动 Codex 失败: {}", err));
+                }
+            }
+        };
         crate::modules::logger::log_info(&format!(
             "[Codex Start] Windows managed instance using --user-data-dir and CODEX_ELECTRON_USER_DATA_PATH; launch_path={} codex_home={} app_user_data_dir={} pid={}",
             launch_path.to_string_lossy(),
             summarize_text_for_process_log(codex_home_trimmed, 96),
             app_user_data_dir.to_string_lossy(),
-            child.id()
+            child.as_ref().map(|item| item.id().to_string()).unwrap_or_else(|| "store-app".to_string())
         ));
 
         let probe_started = Instant::now();
@@ -7686,11 +7833,21 @@ pub fn start_codex_with_args(codex_home: &str, extra_args: &[String]) -> Result<
             }
             thread::sleep(Duration::from_millis(250));
         }
-        crate::modules::logger::log_warn(&format!(
-            "[Codex Start] Windows 实例启动后 15s 内未匹配到实例 PID，回退 spawn pid={}",
-            child.id()
-        ));
-        Ok(child.id())
+        if let Some(child) = child {
+            crate::modules::logger::log_warn(&format!(
+                "[Codex Start] Windows 实例启动后 15s 内未匹配到实例 PID，回退 spawn pid={}",
+                child.id()
+            ));
+            Ok(child.id())
+        } else if let Some(pid) = resolve_codex_pid(None, None) {
+            crate::modules::logger::log_warn(&format!(
+                "[Codex Start] Windows Store fallback 启动后未匹配到 CODEX_HOME，回退 Codex pid={}",
+                pid
+            ));
+            Ok(pid)
+        } else {
+            Err("启动 Codex 失败: Store fallback 已调用但 15s 内未检测到 Codex 进程".to_string())
+        }
     }
 
     #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
