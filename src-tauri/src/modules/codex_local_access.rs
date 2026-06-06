@@ -77,6 +77,7 @@ const CODEX_LOCAL_ACCESS_RUNTIME_PROVIDER_ID: &str = "codex_local_access";
 const CODEX_PROFILE_AUTH_FILE: &str = "auth.json";
 const CODEX_PROFILE_CONFIG_FILE: &str = "config.toml";
 const CODEX_PROVIDER_MODEL_CATALOG_FILE: &str = "cockpit-provider-model-catalog.json";
+const CODEX_PROVIDER_MODEL_BACKUP_FILE: &str = ".cockpit-provider-model-backup.json";
 const MAX_HTTP_REQUEST_BYTES: usize = 64 * 1024 * 1024;
 const DEFAULT_REQUEST_READ_TIMEOUT: Duration = Duration::from_secs(15);
 const MAX_REQUEST_RETRY_ATTEMPTS: usize = 1;
@@ -10116,6 +10117,73 @@ fn write_provider_gateway_model_catalog(
     write_string_atomic(&config_path, &content)
 }
 
+fn provider_model_backup_path(profile_dir: &Path) -> PathBuf {
+    profile_dir.join(CODEX_PROVIDER_MODEL_BACKUP_FILE)
+}
+
+fn read_provider_model_backup(profile_dir: &Path) -> Option<String> {
+    let content = std::fs::read_to_string(provider_model_backup_path(profile_dir)).ok()?;
+    let parsed = serde_json::from_str::<Value>(&content).ok()?;
+    parsed
+        .get("model")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
+
+fn save_provider_model_backup(profile_dir: &Path, model: &str) -> Result<(), String> {
+    let model = model.trim();
+    if model.is_empty() {
+        return Ok(());
+    }
+    let content = serde_json::to_string_pretty(&json!({ "model": model }))
+        .map_err(|e| format!("生成 Codex provider 模型备份失败: {}", e))?;
+    write_string_atomic(&provider_model_backup_path(profile_dir), &content)
+        .map_err(|e| format!("写入 Codex provider 模型备份失败: {}", e))
+}
+
+fn delete_provider_model_backup(profile_dir: &Path) -> Result<(), String> {
+    let path = provider_model_backup_path(profile_dir);
+    if path.exists() {
+        std::fs::remove_file(&path)
+            .map_err(|e| format!("删除 Codex provider 模型备份失败: {}", e))?;
+    }
+    Ok(())
+}
+
+fn backup_current_profile_model_before_provider_gateway(
+    profile_dir: &Path,
+    provider_models: &[String],
+) -> Result<(), String> {
+    let config_path = profile_config_path(profile_dir);
+    let existing = std::fs::read_to_string(&config_path).unwrap_or_default();
+    if existing.trim().is_empty() {
+        delete_provider_model_backup(profile_dir)?;
+        return Ok(());
+    }
+    let doc = existing
+        .parse::<Document>()
+        .map_err(|e| format!("解析 Codex config.toml 失败: {}", e))?;
+    let Some(model) = doc
+        .get("model")
+        .and_then(|item| item.as_str())
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    else {
+        delete_provider_model_backup(profile_dir)?;
+        return Ok(());
+    };
+    if provider_models
+        .iter()
+        .any(|item| item.trim().eq_ignore_ascii_case(model))
+    {
+        delete_provider_model_backup(profile_dir)?;
+        return Ok(());
+    }
+    save_provider_model_backup(profile_dir, model)
+}
+
 pub fn cleanup_provider_gateway_profile_model_overrides(profile_dir: &Path) -> Result<(), String> {
     let catalog_path = profile_dir.join(CODEX_PROVIDER_MODEL_CATALOG_FILE);
     let mut managed_models = HashSet::new();
@@ -10153,7 +10221,11 @@ pub fn cleanup_provider_gateway_profile_model_overrides(profile_dir: &Path) -> R
             .map(str::to_ascii_lowercase);
         if let Some(model) = current_model {
             if managed_models.contains(&model) {
-                doc.remove("model");
+                if let Some(previous_model) = read_provider_model_backup(profile_dir) {
+                    doc["model"] = value(previous_model);
+                } else {
+                    doc.remove("model");
+                }
                 changed = true;
             }
         }
@@ -10168,6 +10240,7 @@ pub fn cleanup_provider_gateway_profile_model_overrides(profile_dir: &Path) -> R
         std::fs::remove_file(&catalog_path)
             .map_err(|e| format!("删除 Codex provider 模型目录失败: {}", e))?;
     }
+    delete_provider_model_backup(profile_dir)?;
     Ok(())
 }
 
@@ -10239,6 +10312,10 @@ pub async fn activate_provider_gateway_for_dir(
     save_profile_takeover_backup(profile_dir, &key)?;
     write_local_access_profile_takeover(profile_dir, &collection, Some(&key)).await?;
     cleanup_provider_gateway_profile_model_overrides(profile_dir)?;
+    backup_current_profile_model_before_provider_gateway(
+        profile_dir,
+        &provider_gateway.upstream_models,
+    )?;
     if !provider_gateway.upstream_model.trim().is_empty() {
         write_local_access_profile_model_override(profile_dir, &provider_gateway.upstream_model)?;
     }
@@ -16540,7 +16617,8 @@ mod tests {
 
     use super::{
         account_model_rule_blocks_model, account_upstream_base_url, align_codex_prompt_cache,
-        apply_codex_official_headers, apply_routing_strategy, bridge_websocket_streams,
+        apply_codex_official_headers, apply_routing_strategy,
+        backup_current_profile_model_before_provider_gateway, bridge_websocket_streams,
         build_account_scoped_upstream_body, build_base_url_with_host,
         build_chat_completion_payload, build_chat_completion_stream_body,
         build_codex_client_models_response, build_collection_base_url, build_images_api_payload,
@@ -16571,8 +16649,8 @@ mod tests {
         GatewayResponseAdapter, ParsedRequest, ResolvedLocalApiKey, ResponseUsageCollector,
         RoutingCandidate, SidecarUsageDetails, SidecarUsageEvent, UsageCapture,
         CODEX_AUTO_REVIEW_MODEL_ID, CODEX_PROFILE_AUTH_FILE, CODEX_PROFILE_CONFIG_FILE,
-        CODEX_PROVIDER_MODEL_CATALOG_FILE, DEFAULT_MAX_RETRY_INTERVAL_MS,
-        DEFAULT_SESSION_AFFINITY_TTL_MS,
+        CODEX_PROVIDER_MODEL_BACKUP_FILE, CODEX_PROVIDER_MODEL_CATALOG_FILE,
+        DEFAULT_MAX_RETRY_INTERVAL_MS, DEFAULT_SESSION_AFFINITY_TTL_MS,
     };
     use crate::models::codex::{CodexAccount, CodexApiProviderMode, CodexAppSpeed, CodexTokens};
     use crate::models::codex_local_access::{
@@ -16773,6 +16851,48 @@ mod tests {
             fs::read_to_string(profile_dir.join(CODEX_PROFILE_CONFIG_FILE)).expect("read config");
         assert!(!config.contains("model_catalog_json"));
         assert!(!config.contains("model = \"deepseek-v4-pro\""));
+
+        let _ = fs::remove_dir_all(&profile_dir);
+    }
+
+    #[test]
+    fn provider_gateway_cleanup_restores_previous_official_model() {
+        let profile_dir = std::env::temp_dir().join(format!(
+            "cockpit-provider-model-restore-test-{}",
+            chrono::Utc::now().timestamp_nanos_opt().unwrap_or_default()
+        ));
+        fs::create_dir_all(&profile_dir).expect("create temp profile");
+
+        write_local_access_profile_model_override(&profile_dir, "gpt-5.5")
+            .expect("write official model");
+        backup_current_profile_model_before_provider_gateway(
+            &profile_dir,
+            &[
+                "deepseek-v4-pro".to_string(),
+                "deepseek-v4-flash".to_string(),
+            ],
+        )
+        .expect("backup official model");
+        write_provider_gateway_model_catalog(
+            &profile_dir,
+            &[
+                "deepseek-v4-pro".to_string(),
+                "deepseek-v4-flash".to_string(),
+            ],
+        )
+        .expect("write model catalog");
+        write_local_access_profile_model_override(&profile_dir, "deepseek-v4-pro")
+            .expect("write provider model");
+
+        cleanup_provider_gateway_profile_model_overrides(&profile_dir).expect("cleanup overrides");
+
+        assert!(!profile_dir.join(CODEX_PROVIDER_MODEL_CATALOG_FILE).exists());
+        assert!(!profile_dir.join(CODEX_PROVIDER_MODEL_BACKUP_FILE).exists());
+        let config =
+            fs::read_to_string(profile_dir.join(CODEX_PROFILE_CONFIG_FILE)).expect("read config");
+        assert!(!config.contains("model_catalog_json"));
+        assert!(!config.contains("model = \"deepseek-v4-pro\""));
+        assert!(config.contains("model = \"gpt-5.5\""));
 
         let _ = fs::remove_dir_all(&profile_dir);
     }
