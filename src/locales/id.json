@@ -1040,7 +1040,12 @@
       },
       "errors": {
         "notEnabled": "Aktifkan sinkronisasi WebDAV terlebih dahulu"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1659,7 +1664,8 @@
       "comingSoon": "Multi-Instance Coming Soon",
       "comingSoonDesc": "Run multiple Codex.app instances with different accounts simultaneously, stay tuned.",
       "unsupported": {
-        "desc": "Codex multi-instance is currently available only on macOS."
+        "desc": "Codex multi-instance is currently available only on macOS.",
+        "title": "Unsupported on this system"
       },
       "quota": {
         "hourly": "5h",

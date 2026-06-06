@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "請先啟用 WebDAV 同步"
-      }
+      },
+      "retentionTitle": "雲端保留天數",
+      "retentionDesc": "雲端超過天數的備份會在下次同步時自動清理。",
+      "retentionUnit": "天",
+      "collapseAll": "收起遠端備份",
+      "expandAll": "展開全部遠端備份 (還有 {{count}} 個)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "多開實例功能即將上線",
       "comingSoonDesc": "支援以不同帳號同時運行多個 Codex.app 實例，敬請期待。",
       "unsupported": {
-        "desc": "Codex 多開實例僅支援 macOS，請在 macOS 上使用。"
+        "desc": "Codex 多開實例僅支援 macOS，請在 macOS 上使用。",
+        "title": "暫不支援目前系統"
       },
       "quota": {
         "hourly": "5小時",

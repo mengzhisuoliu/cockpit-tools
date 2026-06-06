@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "Сначала включите синхронизацию WebDAV"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "Мульти-инстанс скоро",
       "comingSoonDesc": "Запускайте несколько экземпляров Codex.app с разными аккаунтами одновременно.",
       "unsupported": {
-        "desc": "Мульти-инстанс Codex в настоящее время доступен только на macOS."
+        "desc": "Мульти-инстанс Codex в настоящее время доступен только на macOS.",
+        "title": "Не поддерживается на этой системе"
       },
       "quota": {
         "hourly": "5ч",

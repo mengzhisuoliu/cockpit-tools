@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "Hãy bật đồng bộ hóa WebDAV trước"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "Đa Phiên Bản Sắp Ra Mắt",
       "comingSoonDesc": "Chạy nhiều phiên bản Codex.app với các tài khoản khác nhau cùng lúc.",
       "unsupported": {
-        "desc": "Đa phiên bản Codex hiện chỉ khả dụng trên macOS."
+        "desc": "Đa phiên bản Codex hiện chỉ khả dụng trên macOS.",
+        "title": "Không hỗ trợ trên hệ thống này"
       },
       "quota": {
         "hourly": "5 giờ",

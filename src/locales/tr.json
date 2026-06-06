@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "Önce WebDAV senkronizasyonunu etkinleştirin"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "Çoklu Örnek Yakında",
       "comingSoonDesc": "Farklı hesaplarla birden fazla Codex.app örneğini aynı anda çalıştırın.",
       "unsupported": {
-        "desc": "Codex çoklu örnek şu anda yalnızca macOS'ta kullanılabilir."
+        "desc": "Codex çoklu örnek şu anda yalnızca macOS'ta kullanılabilir.",
+        "title": "Bu sistemde desteklenmiyor"
       },
       "quota": {
         "hourly": "5sa",

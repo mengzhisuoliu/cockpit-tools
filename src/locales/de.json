@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "Aktivieren Sie zuerst die WebDAV-Synchronisierung"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "Multi-Instanz kommt bald",
       "comingSoonDesc": "Führen Sie mehrere Codex.app-Instanzen mit verschiedenen Konten gleichzeitig aus.",
       "unsupported": {
-        "desc": "Codex Multi-Instanz ist derzeit nur auf macOS verfügbar."
+        "desc": "Codex Multi-Instanz ist derzeit nur auf macOS verfügbar.",
+        "title": "Auf diesem System nicht unterstützt"
       },
       "quota": {
         "hourly": "5 Std.",

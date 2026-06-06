@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "먼저 WebDAV 동기화를 활성화하십시오"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "멀티 인스턴스 곧 출시",
       "comingSoonDesc": "다른 계정으로 여러 Codex.app 인스턴스를 동시에 실행할 수 있습니다.",
       "unsupported": {
-        "desc": "Codex 멀티 인스턴스는 현재 macOS에서만 사용 가능합니다."
+        "desc": "Codex 멀티 인스턴스는 현재 macOS에서만 사용 가능합니다.",
+        "title": "이 시스템에서 지원되지 않음"
       },
       "quota": {
         "hourly": "5시간",

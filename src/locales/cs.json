@@ -994,7 +994,12 @@
       },
       "errors": {
         "notEnabled": "Nejprve povolte synchronizaci WebDAV"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1613,7 +1618,8 @@
       "comingSoon": "Funkce více instancí již brzy",
       "comingSoonDesc": "Spusťte více instancí Codex.app s různými účty současně, zůstaňte naladěni.",
       "unsupported": {
-        "desc": "Více instancí Codex je aktuálně dostupné pouze na macOS."
+        "desc": "Více instancí Codex je aktuálně dostupné pouze na macOS.",
+        "title": "Na tomto systému nepodporováno"
       },
       "quota": {
         "hourly": "5 hodin",

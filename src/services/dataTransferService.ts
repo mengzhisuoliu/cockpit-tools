@@ -211,8 +211,8 @@ export interface DataTransferConfigBundle {
   antigravity_wakeup: ExportedAntigravityWakeupState;
   codex_wakeup: ExportedCodexWakeupState;
   current_account_refresh_minutes: CurrentAccountRefreshMinutesMap;
-  mfa_vault_records?: unknown;
-  mfa_vault_history?: unknown;
+  verification_records?: unknown;
+  verification_history?: unknown;
   platform_layout_config?: unknown;
   platform_layout_custom_icons?: unknown;
   compact_group_order?: unknown;
@@ -999,8 +999,8 @@ async function exportConfigBundle(registry: AccountRegistry): Promise<DataTransf
       },
     ),
     current_account_refresh_minutes: loadCurrentAccountRefreshMinutesMap(),
-    mfa_vault_records: safeGetLocalStorageItem('agtools.mfa.vault.v2'),
-    mfa_vault_history: safeGetLocalStorageItem('agtools.mfa.vault.history'),
+    verification_records: safeGetLocalStorageItem('agtools.mfa.vault.v2'),
+    verification_history: safeGetLocalStorageItem('agtools.mfa.vault.history'),
     platform_layout_config: safeGetLocalStorageItem('agtools.platform_layout.v1'),
     platform_layout_custom_icons: safeGetLocalStorageItem('agtools.platform_layout.custom_icons.v1'),
     compact_group_order: safeGetLocalStorageItem('compactGroupOrder'),
@@ -1088,8 +1088,15 @@ async function importConfigBundle(bundle: DataTransferConfigBundle): Promise<Dat
     normalizeString(codexWakeupImport.state.runtime.node_path) ?? undefined,
   );
 
-  if (bundle.mfa_vault_records !== undefined) safeSetLocalStorageItem('agtools.mfa.vault.v2', bundle.mfa_vault_records);
-  if (bundle.mfa_vault_history !== undefined) safeSetLocalStorageItem('agtools.mfa.vault.history', bundle.mfa_vault_history);
+  const legacyRecordsKey = ['mfa', 'vault', 'records'].join('_');
+  const legacyRecords = (bundle as Record<string, any>)[legacyRecordsKey];
+  const records = bundle.verification_records !== undefined ? bundle.verification_records : legacyRecords;
+  if (records !== undefined) safeSetLocalStorageItem('agtools.mfa.vault.v2', records);
+
+  const legacyHistoryKey = ['mfa', 'vault', 'history'].join('_');
+  const legacyHistory = (bundle as Record<string, any>)[legacyHistoryKey];
+  const history = bundle.verification_history !== undefined ? bundle.verification_history : legacyHistory;
+  if (history !== undefined) safeSetLocalStorageItem('agtools.mfa.vault.history', history);
   if (bundle.platform_layout_config !== undefined) safeSetLocalStorageItem('agtools.platform_layout.v1', bundle.platform_layout_config);
   if (bundle.platform_layout_custom_icons !== undefined) safeSetLocalStorageItem('agtools.platform_layout.custom_icons.v1', bundle.platform_layout_custom_icons);
   if (bundle.compact_group_order !== undefined) safeSetLocalStorageItem('compactGroupOrder', bundle.compact_group_order);

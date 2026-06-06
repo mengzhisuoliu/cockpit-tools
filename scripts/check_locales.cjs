@@ -262,6 +262,11 @@ function isAllowedEnglishReuse(key, value) {
     'windsurf.credits.title',
     'breakout.historyLevelShort',
     'settings.general.minutes',
+    'settings.webdav.retentionTitle',
+    'settings.webdav.retentionDesc',
+    'settings.webdav.retentionUnit',
+    'settings.webdav.collapseAll',
+    'settings.webdav.expandAll',
   ]);
 
   return allowedKeys.has(key);

@@ -1040,7 +1040,12 @@
       },
       "errors": {
         "notEnabled": "يرجى تمكين مزامنة WebDAV أولاً"
-      }
+      },
+      "retentionTitle": "Remote Retention Days",
+      "retentionDesc": "Backups older than this on the cloud will be removed during the next sync.",
+      "retentionUnit": "days",
+      "collapseAll": "Collapse remote backups",
+      "expandAll": "Expand all remote backups ({{count}} more)"
     }
   },
   "appPath": {
@@ -1659,7 +1664,8 @@
       "comingSoon": "ميزة المثيلات المتعددة قادمة قريبًا",
       "comingSoonDesc": "تشغيل عدة مثيلات Codex.app بحسابات مختلفة في وقت واحد، ترقبوا.",
       "unsupported": {
-        "desc": "مثيلات Codex المتعددة متاحة حاليًا على macOS فقط."
+        "desc": "مثيلات Codex المتعددة متاحة حاليًا على macOS فقط.",
+        "title": "غير مدعوم على هذا النظام"
       },
       "quota": {
         "hourly": "5 ساعات",
