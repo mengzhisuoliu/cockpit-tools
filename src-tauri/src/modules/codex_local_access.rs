@@ -10018,6 +10018,11 @@ fn provider_gateway_wire_api_for_account(account: &CodexAccount) -> String {
     }
 }
 
+pub fn account_requires_provider_gateway(account: &CodexAccount) -> bool {
+    account.is_api_key_auth()
+        && provider_gateway_wire_api_for_account(account) == "chat_completions"
+}
+
 fn provider_gateway_for_account(
     account: &CodexAccount,
 ) -> Result<CodexLocalAccessProviderGateway, String> {
@@ -10057,6 +10062,12 @@ fn provider_gateway_for_account(
                 }
             })
             .collect(),
+        vision_routing_model: account
+            .api_vision_routing_model
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_string),
     })
 }
 
@@ -16626,10 +16637,10 @@ mod tests {
     use base64::{engine::general_purpose, Engine as _};
 
     use super::{
-        account_model_rule_blocks_model, account_upstream_base_url, align_codex_prompt_cache,
-        apply_codex_official_headers, apply_routing_strategy,
-        backup_current_profile_model_before_provider_gateway, bridge_websocket_streams,
-        build_account_scoped_upstream_body, build_base_url_with_host,
+        account_model_rule_blocks_model, account_requires_provider_gateway,
+        account_upstream_base_url, align_codex_prompt_cache, apply_codex_official_headers,
+        apply_routing_strategy, backup_current_profile_model_before_provider_gateway,
+        bridge_websocket_streams, build_account_scoped_upstream_body, build_base_url_with_host,
         build_chat_completion_payload, build_chat_completion_stream_body,
         build_codex_client_models_response, build_collection_base_url, build_images_api_payload,
         build_local_models_response, build_ordered_account_ids, build_request_routing_hint,
@@ -16744,6 +16755,40 @@ mod tests {
             sidecar_codex_api_key_auth_id(&account).as_deref(),
             Some("codex:apikey:b1193dcdb71b")
         );
+    }
+
+    #[test]
+    fn chat_completions_api_key_requires_provider_gateway() {
+        let mut account = CodexAccount::new_api_key(
+            "local-account-id".to_string(),
+            "deepseek@example.com".to_string(),
+            "sk-test".to_string(),
+            CodexApiProviderMode::Custom,
+            Some("https://api.deepseek.com/v1".to_string()),
+            Some("deepseek".to_string()),
+            Some("DeepSeek".to_string()),
+            Vec::new(),
+        );
+        account.api_wire_api = Some("chat_completions".to_string());
+
+        assert!(account_requires_provider_gateway(&account));
+    }
+
+    #[test]
+    fn responses_api_key_does_not_require_provider_gateway() {
+        let mut account = CodexAccount::new_api_key(
+            "local-account-id".to_string(),
+            "openai@example.com".to_string(),
+            "sk-test".to_string(),
+            CodexApiProviderMode::Custom,
+            Some("https://api.openai.com/v1".to_string()),
+            Some("openai".to_string()),
+            Some("OpenAI".to_string()),
+            Vec::new(),
+        );
+        account.api_wire_api = Some("responses".to_string());
+
+        assert!(!account_requires_provider_gateway(&account));
     }
 
     #[test]
@@ -18260,6 +18305,7 @@ data: {"type":"response.completed","response":{"id":"resp_123","usage":{"input_t
                 wire_api: Some("chat_completions".to_string()),
                 supports_vision: false,
                 model_capabilities: HashMap::new(),
+                vision_routing_model: None,
             }),
             account_ids: vec!["account-1".to_string()],
             model_prefix: None,

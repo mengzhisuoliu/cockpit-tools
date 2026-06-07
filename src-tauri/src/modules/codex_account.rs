@@ -336,6 +336,7 @@ fn apply_api_key_fields(
     api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
+    api_vision_routing_model: Option<String>,
 ) {
     let is_cockpit_api = provider_config
         .provider_id
@@ -359,6 +360,7 @@ fn apply_api_key_fields(
     account.api_wire_api = normalize_api_wire_api(api_wire_api);
     account.api_supports_vision = api_supports_vision;
     account.api_model_vision_support = normalize_api_model_vision_support(api_model_vision_support);
+    account.api_vision_routing_model = normalize_optional_value(api_vision_routing_model);
     account.email = build_api_key_email(api_key);
     if is_cockpit_api && normalize_optional_ref(account.account_name.as_deref()).is_none() {
         account.account_name = Some(COCKPIT_API_DEFAULT_ACCOUNT_NAME.to_string());
@@ -2211,6 +2213,7 @@ pub fn upsert_api_key_account(
     api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
+    api_vision_routing_model: Option<String>,
     account_name: Option<String>,
 ) -> Result<CodexAccount, String> {
     let (api_key, api_base_url) = validate_api_key_credentials(&api_key, api_base_url.as_deref())?;
@@ -2247,6 +2250,7 @@ pub fn upsert_api_key_account(
             api_wire_api.clone(),
             api_supports_vision,
             api_model_vision_support.clone(),
+            api_vision_routing_model.clone(),
         );
         if acc.email.trim().is_empty() {
             acc.email = build_api_key_email(&api_key);
@@ -2274,6 +2278,7 @@ pub fn upsert_api_key_account(
         acc.api_wire_api = normalize_api_wire_api(api_wire_api.clone());
         acc.api_supports_vision = api_supports_vision;
         acc.api_model_vision_support = normalize_api_model_vision_support(api_model_vision_support);
+        acc.api_vision_routing_model = normalize_optional_value(api_vision_routing_model);
         index.accounts.push(CodexAccountSummary {
             id: account_id.clone(),
             email: acc.email.clone(),
@@ -3930,12 +3935,33 @@ fn switch_account_with_prepared(
     Ok(updated_account)
 }
 
+async fn activate_provider_gateway_after_switch_if_needed(
+    base_dir: &Path,
+    account: &CodexAccount,
+) -> Result<(), String> {
+    if !crate::modules::codex_local_access::account_requires_provider_gateway(account) {
+        return Ok(());
+    }
+
+    logger::log_info(&format!(
+        "[Codex切号] API Key 账号使用 Chat Completions 协议，启用本地供应商网关: account_id={}, target_dir={}",
+        account.id,
+        base_dir.display()
+    ));
+    crate::modules::codex_local_access::activate_provider_gateway_for_dir(base_dir, &account.id)
+        .await?;
+    Ok(())
+}
+
 pub async fn switch_account_managed(account_id: &str) -> Result<CodexAccount, String> {
     let account = load_account_after_index_repair(account_id)
         .ok_or_else(|| format!("账号不存在: {}", account_id))?;
     if account.is_api_key_auth() {
         if normalize_optional_ref(account.bound_oauth_account_id.as_deref()).is_none() {
-            return switch_account_with_prepared(account_id, account);
+            let updated_account = switch_account_with_prepared(account_id, account)?;
+            let codex_home = get_codex_home();
+            activate_provider_gateway_after_switch_if_needed(&codex_home, &updated_account).await?;
+            return Ok(updated_account);
         }
         let oauth_account = refresh_bound_oauth_account_for_api_key(&account, "switch").await?;
         let codex_home = get_codex_home();
@@ -3965,6 +3991,8 @@ pub async fn switch_account_managed(account_id: &str) -> Result<CodexAccount, St
             "已切换到 Codex API Key 账号: {}，登录态绑定 OAuth: {}",
             updated_account.email, oauth_account.email
         ));
+
+        activate_provider_gateway_after_switch_if_needed(&codex_home, &updated_account).await?;
 
         return Ok(updated_account);
     }
@@ -4011,6 +4039,7 @@ pub fn import_from_local() -> Result<CodexAccount, String> {
             false,
             std::collections::HashMap::new(),
             None,
+            None,
         );
     }
 
@@ -4029,6 +4058,7 @@ pub fn import_from_local() -> Result<CodexAccount, String> {
             None,
             false,
             std::collections::HashMap::new(),
+            None,
             None,
         );
     }
@@ -4050,6 +4080,7 @@ fn import_account_struct(account: CodexAccount) -> Result<CodexAccount, String> 
             account.api_wire_api.clone(),
             account.api_supports_vision,
             account.api_model_vision_support.clone(),
+            account.api_vision_routing_model.clone(),
             account.account_name.clone(),
         )?;
         let mut changed = false;
@@ -4571,6 +4602,7 @@ async fn import_account_from_json_value(
                 false,
                 std::collections::HashMap::new(),
                 None,
+                None,
             )?;
             apply_api_key_import_metadata(&mut account, &value);
             save_account(&account)?;
@@ -4671,6 +4703,7 @@ pub async fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, S
                 false,
                 std::collections::HashMap::new(),
                 None,
+                None,
             )?;
             if let Some(value) = raw_value.as_ref() {
                 apply_api_key_import_metadata(&mut account, value);
@@ -4700,6 +4733,7 @@ pub async fn import_from_json(json_content: &str) -> Result<Vec<CodexAccount>, S
                 None,
                 false,
                 std::collections::HashMap::new(),
+                None,
                 None,
             )?;
             if let Some(value) = raw_value.as_ref() {
@@ -6798,6 +6832,7 @@ pub fn update_api_key_credentials(
     api_wire_api: Option<String>,
     api_supports_vision: bool,
     api_model_vision_support: std::collections::HashMap<String, bool>,
+    api_vision_routing_model: Option<String>,
 ) -> Result<CodexAccount, String> {
     let mut account =
         load_account(account_id).ok_or_else(|| format!("账号不存在: {}", account_id))?;
@@ -6837,6 +6872,7 @@ pub fn update_api_key_credentials(
         api_wire_api,
         api_supports_vision,
         api_model_vision_support,
+        api_vision_routing_model,
     );
     account.update_last_used();
     save_account(&account)?;

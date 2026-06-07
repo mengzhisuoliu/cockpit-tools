@@ -478,8 +478,8 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
   const modelNames = Array.from(new Set(modelItems.map((item) => item.slug).filter(Boolean)));
   const defaultModel = modelNames[0] || "";
   if (!modelNames.length) return;
-  if (window.__cockpitCodexModelInjectorVersion === "1") return;
-  window.__cockpitCodexModelInjectorVersion = "1";
+  if (window.__cockpitCodexModelInjectorVersion === "2") return;
+  window.__cockpitCodexModelInjectorVersion = "2";
   try {{ console.info("[Cockpit Codex] model injector active", modelNames); }} catch {{}}
 
   function descriptor(name) {{
@@ -581,54 +581,14 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     return changed;
   }}
 
-  function patchObjectGraphForModels(root, visited, depth = 0) {{
-    if (!root || typeof root !== "object" || visited.has(root) || depth > 5) return false;
-    visited.add(root);
-    let changed = patchContainer(root);
-    if (root instanceof Element || root === window || root === document || root === document.body || root === document.documentElement) return changed;
-    for (const key of Object.keys(root)) {{
-      if (key === "ownerDocument" || key === "parentElement" || key === "parentNode" || key === "children" || key === "childNodes") continue;
-      let child;
-      try {{ child = root[key]; }} catch {{ continue; }}
-      if (child && typeof child === "object" && patchObjectGraphForModels(child, visited, depth + 1)) changed = true;
-    }}
-    return changed;
-  }}
-
   function patchModelPayload(payload) {{
     if (!payload || typeof payload !== "object") return payload;
     try {{
       patchContainer(payload);
-      patchObjectGraphForModels(payload, new WeakSet(), 0);
     }} catch (error) {{
       try {{ console.warn("[Cockpit Codex] model payload patch failed", error?.message || String(error)); }} catch {{}}
     }}
     return payload;
-  }}
-
-  function installResponseJsonPatch() {{
-    if (window.__cockpitModelResponseJsonPatched === "1") return;
-    const originalJson = Response.prototype.json;
-    if (typeof originalJson !== "function") return;
-    window.__cockpitModelResponseJsonPatched = "1";
-    Response.prototype.json = async function patchedCockpitModelResponseJson(...args) {{
-      const payload = await originalJson.apply(this, args);
-      return patchModelPayload(payload);
-    }};
-  }}
-
-  function reactFiberKeys(element) {{
-    return Object.keys(element || {{}}).filter((key) => key.startsWith("__reactFiber") || key.startsWith("__reactInternalInstance") || key.startsWith("__reactProps"));
-  }}
-
-  function patchReactModelState() {{
-    const visited = new WeakSet();
-    const nodes = [document.body, ...document.querySelectorAll("button, [role='menu'], [role='dialog'], [data-radix-popper-content-wrapper]")].filter(Boolean);
-    for (const node of nodes.slice(0, 220)) {{
-      for (const key of reactFiberKeys(node)) {{
-        patchObjectGraphForModels(node[key], visited, 0);
-      }}
-    }}
   }}
 
   function summarizeForLog(value, depth = 0) {{
@@ -654,7 +614,8 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     try {{ return JSON.stringify(summarizeForLog(value)); }} catch (error) {{ return String(value); }}
   }}
 
-  function patchStatsigConfig(config) {{
+  function patchStatsigConfig(name, config) {{
+    if (String(name || "") !== "107580212") return config;
     const value = config?.value;
     if (!value || typeof value !== "object") return config;
     const available = Array.isArray(value.available_models) ? [...value.available_models] : [];
@@ -670,9 +631,9 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     for (const client of clients) {{
       if (typeof client.getDynamicConfig !== "function" || client.__cockpitModelPatched) continue;
       const original = client.getDynamicConfig.bind(client);
-      client.getDynamicConfig = (name, options) => patchStatsigConfig(original(name, options));
+      client.getDynamicConfig = (name, options) => patchStatsigConfig(name, original(name, options));
       client.__cockpitModelPatched = true;
-      try {{ patchStatsigConfig(client.getDynamicConfig("107580212", {{ disableExposureLog: true }})); }} catch {{}}
+      try {{ patchStatsigConfig("107580212", client.getDynamicConfig("107580212", {{ disableExposureLog: true }})); }} catch {{}}
     }}
   }}
 
@@ -700,7 +661,7 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     const original = client.sendRequest.bind(client);
     client.sendRequest = async function patchedSendRequest(method, params, options) {{
       const actualMethod = method === "send-cli-request-for-host" && params?.method ? String(params.method) : String(method || "");
-      const shouldTrace = actualMethod === "list-models-for-host" || /thread|session|conversation|task|prompt/i.test(actualMethod);
+      const shouldTrace = actualMethod === "list-models-for-host";
       if (shouldTrace) {{
         try {{ console.info("[Cockpit Codex] app-server request", actualMethod, stringifyForLog(params)); }} catch {{}}
       }}
@@ -723,28 +684,35 @@ fn build_injection_script(models: &[ModelDescriptor]) -> Result<String, String> 
     client.__cockpitModelRequestPatched = true;
     return true;
   }}
+  let appServerPatchAttempts = 0;
+  let appServerPatchInstalled = false;
   async function patchAppServerClient() {{
+    if (appServerPatchInstalled || appServerPatchAttempts >= 40) return;
+    appServerPatchAttempts += 1;
     try {{
       const module = await loadModule("app-server-manager-signals-");
+      let patched = false;
       for (const candidate of Object.values(module).filter((value) => value && typeof value === "object")) {{
-        patchClient(candidate);
+        if (patchClient(candidate)) patched = true;
         if (typeof candidate.sendRequest !== "function" && typeof candidate.get === "function") {{
-          try {{ patchClient(candidate.get()); }} catch {{}}
+          try {{ if (patchClient(candidate.get())) patched = true; }} catch {{}}
         }}
       }}
+      if (patched) appServerPatchInstalled = true;
     }} catch {{}}
   }}
 
   function tick() {{
-    installResponseJsonPatch();
     patchStatsig();
     patchAppServerClient();
-    patchReactModelState();
   }}
   tick();
   setTimeout(tick, 300);
   setTimeout(tick, 1000);
-  setInterval(tick, 2500);
+  const interval = setInterval(() => {{
+    tick();
+    if (appServerPatchInstalled || appServerPatchAttempts >= 40) clearInterval(interval);
+  }}, 2500);
 }})();
 "#
     ))

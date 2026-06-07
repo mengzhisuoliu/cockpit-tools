@@ -29,6 +29,7 @@ export interface CodexAccount {
   api_wire_api?: CodexProviderWireApi | null;
   api_supports_vision?: boolean;
   api_model_vision_support?: Record<string, boolean>;
+  api_vision_routing_model?: string | null;
   bound_oauth_account_id?: string | null;
   user_id?: string;
   plan_type?: string;

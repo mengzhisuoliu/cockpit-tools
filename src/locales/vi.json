@@ -12,16 +12,16 @@
     "enabled": "Đã bật",
     "disabled": "Đã tắt",
     "close": "Đóng",
-    "open": "Open",
-    "copy": "Copy",
+    "open": "Open​",
+    "copy": "Copy​",
     "copied": "Đã sao chép",
-    "add": "Add",
-    "enable": "Enable",
-    "disable": "Disable",
-    "none": "None",
+    "add": "Add​",
+    "enable": "Enable​",
+    "disable": "Disable​",
+    "none": "None​",
     "detail": "Chi tiết",
     "editable": "Có thể chỉnh sửa",
-    "preview": "Preview",
+    "preview": "Preview​",
     "shared": {
       "addAccount": "Thêm tài khoản",
       "columns": {
@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}} giờ",
         "relativeHoursMinutes": "{{hours}} giờ {{minutes}} phút",
         "relativeMinutes": "{{minutes}} phút",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "còn {{left}}",
@@ -218,7 +218,7 @@
       "desc": "Khu vực này được cố định ở góc trên bên phải trên mọi trang, phù hợp cho chiến dịch hoặc quảng cáo thương hiệu.",
       "action": "Xem chi tiết"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "Thu gọn",
     "confirmDelete": "Xác nhận xóa",
     "confirmDeleteTag": "Xác nhận xóa thẻ",
@@ -228,13 +228,13 @@
     "selectAll": "Chọn tất cả"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "Quản lý tài khoản",
-    "wakeup": "Wakeup Tasks",
+    "wakeup": "Wakeup Tasks​",
     "settings": "Cài đặt",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
     "dashboard": "Bảng điều khiển",
     "morePlatforms": "Thêm nền tảng",
     "instances": "Đa Phiên Bản",
@@ -244,11 +244,11 @@
       "restart": "Khởi động lại",
       "installing": "Đang cài đặt"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Nền tảng Zed",
     "expandSidebar": "Mở rộng thanh bên",
     "collapseSidebar": "Thu gọn thanh bên",
@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "Bố cục cổ điển hiển thị đầy đủ điều hướng nền tảng và hỗ trợ thu gọn thanh bên. Bạn có thể chuyển lại bất cứ lúc nào tại Cài đặt > Chung > Bố cục thanh bên.",
     "switchClassicLayoutDontAskAgain": "Không hiển thị lại thông báo này",
     "switchClassicLayoutConfirm": "Chuyển ngay",
-    "2faManager": "Quản lý 2FA"
+    "2faManager": "Quản lý 2FA",
+    "apiRelay": "Trạm chuyển"
   },
   "sponsors": {
     "pageTitle": "Nhà tài trợ",
@@ -520,7 +521,7 @@
       "force": {
         "title": "Khởi động lại bắt buộc",
         "principle": "Xác định các tiến trình qua --user-data-dir và buộc đóng chúng (SIGKILL / taskkill /F), sau đó bắt đầu phiên bản đích.",
-        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"",
+        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"​",
         "commandWin": "Windows: taskkill /F /PID <pid> (khớp với --user-data-dir)",
         "pros": "Có thể khởi động lại chính xác một phiên bản duy nhất.",
         "cons": "Có thể gây ra cảnh báo \"đóng bất ngờ\", rủi ro mất dữ liệu chưa lưu."
@@ -813,12 +814,12 @@
       "proxyUrlRequired": "Không được để trống URL proxy khi bật proxy toàn cục."
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "Giải pháp quản lý tài khoản chuyên nghiệp",
       "author": "Tác giả chính",
       "wechat": "Tài khoản WeChat chính thức",
       "github": "Kho lưu trữ mã nguồn",
-      "alipay": "Alipay",
+      "alipay": "Alipay​",
       "wechatpay": "WeChat trả tiền",
       "sponsor": "Tài trợ dự án",
       "sponsorDesc": "Hỗ trợ phát triển",
@@ -1040,13 +1041,13 @@
       "authInvalid": "Thông tin xác thực không hợp lệ",
       "refreshFailed": "Làm mới không thành công",
       "normal": "Bình thường",
-      "forbidden": "403",
+      "forbidden": "403​",
       "forbidden_tooltip": "API trả về 403 Forbidden, tài khoản không có quyền sử dụng Gemini Code Assist",
       "forbidden_msg": "Tài khoản không có quyền, đã bỏ qua tự động làm mới"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "Tín dụng AI"
@@ -1340,7 +1341,7 @@
     "bindFailed": "Liên kết thất bại: {{error}}",
     "jsonRequired": "Vui lòng nhập hoặc dán nội dung JSON",
     "example": "Ví dụ",
-    "actionRunning": "{{action}}...",
+    "actionRunning": "{{action}}...​",
     "actionSuccess": "{{action}} thành công",
     "actionFailed": "{{action}} thất bại: {{error}}"
   },
@@ -1412,20 +1413,20 @@
     },
     "format": {
       "noReply": "(Không có phản hồi)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "mã thông báo={{prompt}}+{{completion}}={{total}}",
-      "traceId": "traceId={{traceId}}",
-      "detailJoiner": ", ",
-      "message": "[[{{model}}]]: {{reply}}{{suffix}}",
-      "none": "--",
+      "traceId": "traceId={{traceId}}​",
+      "detailJoiner": ", ​",
+      "message": "[[{{model}}]]: {{reply}}{{suffix}}​",
+      "none": "--​",
       "today": "Hôm nay {{time}}",
       "tomorrow": "Ngày mai {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "Chưa chọn",
-      "joiner": ", ",
+      "joiner": ", ​",
       "moreItems": "{{items}} ({{total}} mục)",
       "quotaReset": "Tự động đánh thức khi đặt lại hạn mức",
-      "crontab": "Crontab: {{expr}}",
+      "crontab": "Crontab: {{expr}}​",
       "daily": "Hàng ngày {{times}}{{suffix}}",
       "weekly": "Hàng tuần {{days}} {{times}}{{suffix}}",
       "interval": "Mỗi {{hours}} giờ ({{start}}-{{end}})",
@@ -1497,7 +1498,7 @@
       "triggerMode": "Chế độ kích hoạt",
       "triggerModeHint": "1. Lịch trình: kích hoạt vào các thời điểm đã thiết lập.\n2. Crontab: định nghĩa bằng biểu thức.\n3. Đặt lại hạn mức: kích hoạt một lần khi hạn mức đầy.",
       "modeScheduled": "📅 Lịch trình",
-      "modeCrontab": "🧩 Crontab",
+      "modeCrontab": "🧩 Crontab​",
       "modeQuotaReset": "🔄 Đặt lại hạn mức",
       "antigravityVersion": "Phiên bản Antigravity IDE",
       "modelSelect": "Chọn mô hình",
@@ -1649,7 +1650,7 @@
         },
         "force": {
           "principle": "Xác định các tiến trình qua CODEX_HOME và buộc đóng chúng (SIGKILL / taskkill /F), sau đó bắt đầu phiên bản đích.",
-          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"",
+          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"​",
           "commandWin": "Windows: taskkill /F /PID <pid> (khớp với CODEX_HOME)"
         }
       }
@@ -1710,7 +1711,7 @@
     },
     "exportFormat": {
       "label": "Định dạng xuất",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "Định dạng sub2api",
       "cpa": "Định dạng cpa",
       "downloadAll": "Tải xuống tất cả",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} yêu cầu",
         "accountTokens": "{{count}} token",
         "accountResult": "Thành công {{success}} / Thất bại {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "Yêu cầu ảnh",
         "imagesDetail": "Tạo {{generate}} / Sửa {{edit}} / Quyền {{blocked}}",
         "estimatedCost": "Giá trị ước tính",
@@ -1885,7 +1886,7 @@
       "modelIdViewOnly": "Chỉ xem",
       "quotaPool": {
         "title": "Nhóm hạn mức",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "Tuần",
         "viewFull": "Xem thống kê đầy đủ",
         "modalTitle": "Nhóm hạn mức dịch vụ API",
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "Kiểm tra mạng. Chưa lấy được quota mới nhất. Làm mới để thử lại."
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Hiển thị hạn mức Code Review"
@@ -2034,7 +2035,7 @@
     "time": {
       "today": "Hôm nay {{time}}",
       "tomorrow": "Ngày mai {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "Dạng thu gọn"
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "Chế độ",
         "modelCatalog": "Danh mục mô hình",
         "visionCapability": "Nhập ảnh",
-        "visionModels": "Mẫu hỗ trợ ảnh"
+        "visionModels": "Mẫu hỗ trợ ảnh",
+        "visionRoutingModel": "Mẫu xử lý ảnh"
       },
       "validation": {
         "nameRequired": "Tên nhà cung cấp là bắt buộc.",
@@ -2557,7 +2559,7 @@
         "models": "Endpoint mô hình lỗi",
         "parse": "Không đọc được phản hồi",
         "httpStatus": "Trạng thái {{status}}",
-        "message": "{{title}}: {{detail}}. {{suggestion}}"
+        "message": "{{title}}: {{detail}}. {{suggestion}}​"
       },
       "testSuggestion": {
         "addApiKey": "Hãy thêm API Key cho nhà cung cấp này trước khi kiểm tra.",
@@ -2584,13 +2586,14 @@
         "providerDefault": "Nhà cung cấp này mặc định hỗ trợ nhập ảnh",
         "providerDefaultHint": "Khi tắt, chỉ các mẫu bên dưới được nhận ảnh; các mẫu khác sẽ bị gateway cục bộ từ chối.",
         "modelsHint": "Mỗi dòng một mẫu. Dùng khi chỉ một số mẫu của nhà cung cấp hỗ trợ ảnh dán vào.",
+        "routingModelHint": "Khi mẫu hiện tại không đọc được ảnh, yêu cầu dùng mẫu này; để trống sẽ tự dùng mẫu ảnh duy nhất.",
         "allModels": "Ảnh",
         "partialModels": "Một số ảnh",
         "textOnly": "Chỉ văn bản"
       },
-      "sponsorRecommended": "Nhà tài trợ đề xuất",
+      "sponsorRecommended": "Trạm chuyển đề xuất",
       "builtinProviders": "Nhà cung cấp có sẵn",
-      "sponsorHint": "URL dịch vụ tương thích do nhà tài trợ đề xuất đã được điền. Sau khi nhập API Key, thẻ sẽ tự động truy vấn số dư và mức dùng.",
+      "sponsorHint": "URL dịch vụ trạm chuyển riêng đã được điền. Sau khi nhập API Key, thẻ sẽ tự động truy vấn số dư và mức dùng.",
       "integration": {
         "sub2api": "Tương thích Sub2API",
         "newApi": "Tương thích New API"
@@ -2966,9 +2969,9 @@
       "totalAccounts": "Tổng tài khoản"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "Phân bố gói",
       "current": "Tài khoản hiện tại",
       "recommended": "Tài khoản đề xuất",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "Dấu cách",
       "batchDelimiterComma": "Dấu phẩy",
       "batchDelimiterPipe": "Gạch dọc",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "Tùy chỉnh",
       "batchJsonDesc": "Dán mảng JSON mà mỗi phần tử chứa email và password.",
       "batchTextDesc": "Nhập một tài khoản mỗi dòng và phân tích nghiêm ngặt theo ký tự phân tách đã chọn.",
@@ -3237,7 +3240,7 @@
       "batchPartial": "Thành công {{success}}, thất bại {{failed}}",
       "batchFailed": "Nhập hàng loạt thất bại với {{failed}} tài khoản",
       "batchFailureEntryWithLine": "Mục {{line}} ({{email}}): {{error}}",
-      "batchFailureEntry": "{{email}}: {{error}}",
+      "batchFailureEntry": "{{email}}: {{error}}​",
       "batchFailureMore": "{{count}} mục khác thất bại"
     },
     "oauth": {
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} đã sử dụng / tổng cộng {{total}}",
       "planUsageCoveredLine": "{{used}} đã sử dụng / {{total}} nằm trong kế hoạch",
       "expiryDays": "{{days}} ngày",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "Đặt lại sớm",
       "resetInHours": "Đặt lại sau {{hours}}h",
       "resetInMinutes": "Đặt lại sau {{minutes}} phút"
@@ -3306,11 +3309,11 @@
       "estUsage": "Ước tính. Cách sử dụng"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "Không xác định"
     },
     "flowNotice": {
@@ -3389,7 +3392,7 @@
     "startHint": "Bấm bắt đầu hoặc nhấn phím Space",
     "rankTitle": "Xếp hạng lịch sử cục bộ",
     "rankCurrent": "Hiện tại",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "Chơi lại",
     "pause": "Tạm dừng",
     "resume": "Tiếp tục",
@@ -3412,7 +3415,7 @@
     "rankingShort": "Cục bộ",
     "rankingEmpty": "Chưa có bản ghi cục bộ",
     "rankingClear": "Xóa xếp hạng cục bộ",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "Thu nhỏ",
     "resumeGameNav": "Tiếp tục trò chơi",
     "closeConfirmTitle": "Kết thúc ván này?",
@@ -3759,9 +3762,9 @@
       "leftOfTotal": "Còn lại / Tổng",
       "usage": "Đã dùng",
       "usageResets": "Đặt lại mức dùng",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
-      "resetAtWithRelative": "{{absolute}} ({{relative}})"
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
+      "resetAtWithRelative": "{{absolute}} ({{relative}})​"
     },
     "tierText": {
       "pro": "Gemini Code Assist trong Google One AI Pro",
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "Tổng quan sử dụng",
       "viewDetails": "Xem chi tiết",
       "includedCredits": "Credits trong gói",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "Nâng cấp gói để tăng hạn mức hàng tháng",
       "upgradeAction": "Nâng cấp"
     },
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "Điểm danh hằng ngày",
@@ -4187,7 +4190,7 @@
     "plan": "Gói",
     "cycle": "Chu kỳ",
     "status": "Trạng thái",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "Đề xuất"
     },
@@ -4321,5 +4324,130 @@
     "copyCode": "Sao chép mã",
     "copied": "Đã sao chép",
     "refreshIn": "{{time}} giây"
+  },
+  "relay": {
+    "pageTitle": "Trạm chuyển riêng",
+    "pageDesc": "Dịch vụ API đối tác dành cho người dùng Cockpit Tools, dùng được với tài khoản Codex API Key.",
+    "loading": "Đang tải trạm chuyển...",
+    "emptyTitle": "Trạm chuyển chưa bật",
+    "emptyDesc": "Cấu hình từ xa chưa bật trạm chuyển riêng.",
+    "defaultDescription": "Dịch vụ trạm chuyển API đối tác.",
+    "getApiKey": "Lấy API Key",
+    "configTitle": "Bật trong Codex",
+    "apiKeyLabel": "Khóa API",
+    "apiKeyPlaceholder": "Dán API Key lấy từ trạm chuyển",
+    "apiKeyRequired": "Nhập API Key.",
+    "baseUrl": "URL API",
+    "protocol": "Giao thức",
+    "vision": "Nhập ảnh",
+    "testConnection": "Kiểm tra kết nối",
+    "saveAndEnable": "Lưu và bật",
+    "goCodex": "Đến Codex",
+    "statusUnavailable": "Cấu hình trạm chuyển không khả dụng.",
+    "testing": "Đang kiểm tra kết nối...",
+    "testSuccess": "Kiểm tra kết nối thành công. API Key này có thể dùng với trạm chuyển.",
+    "testFailed": "Kiểm tra kết nối thất bại.",
+    "saving": "Đang lưu và bật trong Codex...",
+    "saveSuccess": "Đã lưu cấu hình trạm chuyển. Bạn có thể dùng tại trang tài khoản Codex.",
+    "saveFailed": "Lưu cấu hình trạm chuyển thất bại.",
+    "savedProvider": "Nhà cung cấp đã lưu: {{name}}",
+    "modelsTitle": "Mô hình hỗ trợ",
+    "modelsEmpty": "Chưa có danh sách mô hình cố định từ xa. Sau khi lưu, Codex có thể dùng theo khả năng dịch vụ."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Trung chuyển",
+    "title": "Relay APIKEY.FUN",
+    "description": "Relay chính thức của Cockpit cung cấp quyền truy cập API mô hình lớn ổn định, mở và có hiệu quả chi phí cao. Nền tảng hỗ trợ các mô hình phổ biến như Claude, OpenAI và Gemini, phù hợp để cấu hình thống nhất trong Codex, Gemini CLI, Claude Code và các công cụ phát triển khác. Đăng ký qua liên kết độc quyền của Cockpit để nhận ưu đãi nạp tiền vĩnh viễn lên tới 5%.",
+    "register": "Liên kết độc quyền",
+    "docs": "Tài liệu chính thức",
+    "viewNow": "Xem ngay",
+    "queryTitle": "Hạn mức khóa",
+    "queryDesc": "Nhập API Key APIKEY.FUN để tự động kiểm tra hạn mức.",
+    "keyNotSet": "Chưa nhập khóa",
+    "apiKeyLabel": "Khóa API",
+    "apiKeyPlaceholder": "Dán API Key được tạo trong console APIKEY.FUN",
+    "hideKey": "Ẩn",
+    "showKey": "Hiện",
+    "endpointLabel": "Điểm kết nối",
+    "protocolLabel": "Giao thức Codex",
+    "queryUsage": "Kiểm tra hạn mức",
+    "querying": "Đang kiểm tra",
+    "saveToCodex": "Ghi vào Codex",
+    "saving": "Đang ghi",
+    "saveSuccess": "Đã ghi vào Codex Provider: {{name}}",
+    "toolsTitle": "Ghi cấu hình client",
+    "toolsDesc": "Ghi trực tiếp các tệp cấu hình cục bộ theo tài liệu APIKEY.FUN và bố cục tệp của CC Switch.",
+    "endpoint": {
+      "global": "Tuyến toàn cầu",
+      "globalDesc": "API Base mặc định chính thức, phù hợp hầu hết môi trường mạng.",
+      "direct": "Đường trực tiếp",
+      "directDesc": "Phù hợp tình huống cần độ trễ thấp."
+    },
+    "wireApi": {
+      "responses": "Giao thức Responses",
+      "responsesDesc": "Ưu tiên cho Codex, dùng trực tiếp giao thức OpenAI Responses.",
+      "chatCompletions": "Giao thức Chat Completions",
+      "chatCompletionsDesc": "Tương thích qua gateway cục bộ."
+    },
+    "usage": {
+      "remaining": "Còn lại",
+      "used": "Đã dùng",
+      "todayRequests": "Hôm nay",
+      "todayTokens": "Token hôm nay",
+      "totalRequests": "Tổng yêu cầu",
+      "totalTokens": "Tổng Token"
+    },
+    "tool": {
+      "codexTitle": "Nhà cung cấp Codex",
+      "codexDesc": "Ghi Provider với Base URL /v1 của endpoint hiện tại.",
+      "envTitle": "Môi trường",
+      "envDesc": "Tham khảo cho Claude Code, Gemini CLI, Hermes và các đầu vào tương thích OpenAI.",
+      "curlTitle": "Script API",
+      "curlDesc": "Kiểm tra nhanh yêu cầu tương thích Chat Completions."
+    },
+    "docTool": {
+      "codex": "Có thể ghi trực tiếp vào Codex Provider.",
+      "claudeCode": "Sao chép tham số tương thích Anthropic Messages.",
+      "geminiCli": "Sao chép Base URL tương thích OpenAI và API Key.",
+      "traeSolo": "Sao chép tham số relay theo tài liệu chính thức.",
+      "openClaw": "Sao chép tham số kết nối tương thích OpenAI.",
+      "hermes": "Sao chép tham số cho trang mô hình Hermes.",
+      "apiScript": "Sao chép tham số cơ bản cho script."
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Ghi ~/.codex/config.toml và auth.json với giao thức Responses và API Key hiện tại.",
+      "geminiTitle": "Cấu hình Gemini CLI",
+      "geminiDesc": "Ghi ~/.gemini/.env và đặt chế độ xác thực trong settings.json thành gemini-api-key.",
+      "openclawTitle": "Cấu hình OpenClaw",
+      "openclawDesc": "Ghi models.providers.apikeyfun vào ~/.openclaw/openclaw.json.",
+      "hermesTitle": "Cấu hình Hermes",
+      "hermesDesc": "Ghi custom_providers vào ~/.hermes/config.yaml và chuyển sang mô hình mặc định apikeyfun.",
+      "button": "Ghi cấu hình",
+      "applying": "Đang ghi",
+      "success": "Đã ghi tệp cấu hình: {{paths}}",
+      "failed": "Ghi cấu hình thất bại: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "Nhập API Key.",
+      "queryFailed": "Kiểm tra hạn mức thất bại: {{error}}",
+      "saveFailed": "Ghi thất bại: {{error}}"
+    },
+    "keyManager": {
+      "title": "Quản lý khóa",
+      "desc": "Lưu API Keys để chuyển nhanh và tự động kiểm tra hạn mức.",
+      "saveButton": "Lưu khóa",
+      "savedButton": "Đã lưu",
+      "empty": "Chưa có khóa đã lưu.",
+      "lastRemaining": "Số dư trước {{value}}",
+      "notQueried": "Chưa kiểm tra",
+      "deleteButton": "Xóa",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "Đã thêm {{time}}",
+      "saveFlash": "Vừa lưu"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

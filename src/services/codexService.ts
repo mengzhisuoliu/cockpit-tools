@@ -181,6 +181,7 @@ export async function addCodexAccountWithApiKey(
   apiModelCatalog?: string[],
   apiSupportsVision?: boolean,
   apiModelVisionSupport?: Record<string, boolean>,
+  apiVisionRoutingModel?: string,
   accountName?: string,
   apiWireApi?: CodexProviderWireApi,
 ): Promise<CodexAccount> {
@@ -194,6 +195,7 @@ export async function addCodexAccountWithApiKey(
     apiWireApi: apiWireApi ?? null,
     apiSupportsVision: apiSupportsVision ?? false,
     apiModelVisionSupport: apiModelVisionSupport ?? {},
+    apiVisionRoutingModel: apiVisionRoutingModel ?? null,
     accountName: accountName ?? null,
   });
 }
@@ -212,6 +214,7 @@ export async function updateCodexApiKeyCredentials(
   apiModelCatalog?: string[],
   apiSupportsVision?: boolean,
   apiModelVisionSupport?: Record<string, boolean>,
+  apiVisionRoutingModel?: string,
   apiWireApi?: CodexProviderWireApi,
 ): Promise<CodexAccount> {
   return await invoke('update_codex_api_key_credentials', {
@@ -225,6 +228,7 @@ export async function updateCodexApiKeyCredentials(
     apiWireApi: apiWireApi ?? null,
     apiSupportsVision: apiSupportsVision ?? false,
     apiModelVisionSupport: apiModelVisionSupport ?? {},
+    apiVisionRoutingModel: apiVisionRoutingModel ?? null,
   });
 }
 

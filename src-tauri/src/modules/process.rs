@@ -7857,10 +7857,7 @@ pub fn start_codex_with_args(codex_home: &str, extra_args: &[String]) -> Result<
     }
 }
 
-/// 启动当前 Cockpit 环境的 Codex 默认实例。
-///
-/// 默认实例也必须显式注入当前环境的 CODEX_HOME，并使用独立 Electron user-data-dir。
-/// 否则安装版与 dev 版同时运行时，无法可靠区分各自的默认实例。
+/// 启动 Codex 默认实例（不注入 CODEX_HOME，支持附加参数，支持 macOS / Windows）
 pub fn start_codex_default(extra_args: &[String]) -> Result<u32, String> {
     start_codex_default_internal(extra_args, false)
 }
@@ -7873,14 +7870,212 @@ fn start_codex_default_internal(
     extra_args: &[String],
     fast_after_close: bool,
 ) -> Result<u32, String> {
+    #[cfg(not(target_os = "windows"))]
     let _ = fast_after_close;
-    let default_home = crate::modules::codex_account::get_codex_home()
-        .to_string_lossy()
-        .to_string();
-    start_codex_with_args(&default_home, extra_args)
+
+    #[cfg(target_os = "macos")]
+    {
+        let app_root = resolve_macos_app_root_from_config("codex").or_else(|| {
+            resolve_codex_launch_path()
+                .ok()
+                .and_then(|p| resolve_macos_app_root_from_launch_path(&p))
+        });
+        let app_root = app_root.ok_or_else(|| app_path_missing_error("codex"))?;
+
+        let mut args: Vec<String> = Vec::new();
+        for arg in extra_args {
+            let trimmed = arg.trim();
+            if !trimmed.is_empty() {
+                args.push(trimmed.to_string());
+            }
+        }
+
+        // 使用 open -n -a 启动默认实例，避免复用已运行的其他 Codex 实例。
+        let open_pid = spawn_open_app_with_options(&app_root, &args, true)
+            .map_err(|e| format!("启动 Codex 失败: {}", e))?;
+        crate::modules::logger::log_info("Codex 默认实例启动命令已发送（open -n -a）");
+        let probe_started = Instant::now();
+        let timeout = Duration::from_secs(6);
+        while probe_started.elapsed() < timeout {
+            if let Some(resolved_pid) = resolve_codex_pid(None, None) {
+                return Ok(resolved_pid);
+            }
+            thread::sleep(Duration::from_millis(200));
+        }
+        crate::modules::logger::log_warn(&format!(
+            "[Codex Start] 启动后 6s 内未匹配到默认实例 PID，回退 open pid={}",
+            open_pid
+        ));
+        return Ok(open_pid);
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        use std::os::windows::process::CommandExt;
+
+        let launch_path_for_probe = resolve_codex_launch_path().ok();
+        let before_probe_started = Instant::now();
+        let before_pids: HashSet<u32> = if fast_after_close {
+            launch_path_for_probe
+                .as_ref()
+                .map(|path| {
+                    collect_codex_main_process_pids_from_sysinfo_fast(
+                        path.to_string_lossy().as_ref(),
+                    )
+                    .into_iter()
+                    .collect()
+                })
+                .unwrap_or_default()
+        } else {
+            collect_codex_process_entries()
+                .into_iter()
+                .map(|(pid, _)| pid)
+                .collect()
+        };
+        crate::modules::logger::log_info(&format!(
+            "[Codex Start] before pid probe mode={}, count={}, elapsed_ms={}",
+            if fast_after_close { "fast" } else { "full" },
+            before_pids.len(),
+            before_probe_started.elapsed().as_millis()
+        ));
+
+        let app_user_model_id = detect_codex_store_app_user_model_id();
+        if let Some(app_user_model_id) = app_user_model_id {
+            crate::modules::logger::log_info(&format!(
+                "[Codex Start] 启动策略候选=system-store-entry app_id={}",
+                app_user_model_id
+            ));
+            match launch_codex_via_store_app_user_model_id(
+                &app_user_model_id,
+                None,
+                None,
+                extra_args,
+            ) {
+                Ok(()) => {
+                    crate::modules::logger::log_info(&format!(
+                        "[Codex Start] 已通过系统入口启动 Codex: {}",
+                        app_user_model_id
+                    ));
+                    let timeout = Duration::from_secs(15);
+                    if fast_after_close {
+                        if let Some(launch_path) = launch_path_for_probe.as_ref() {
+                            if let Some(pid) = wait_for_codex_default_start_pid_fast(
+                                launch_path.to_string_lossy().as_ref(),
+                                &before_pids,
+                                timeout,
+                            ) {
+                                crate::modules::logger::log_info(&format!(
+                                    "[Codex Start] fast store-entry pid matched app_id={} pid={}",
+                                    app_user_model_id, pid
+                                ));
+                                return Ok(pid);
+                            }
+                        } else {
+                            crate::modules::logger::log_warn(
+                                "[Codex Start] fast pid probe skipped because launch path is unavailable",
+                            );
+                        }
+                    } else {
+                        let probe_started = Instant::now();
+                        while probe_started.elapsed() < timeout {
+                            let entries = collect_codex_process_entries();
+                            let mut new_pids: Vec<u32> = entries
+                                .iter()
+                                .map(|(pid, _)| *pid)
+                                .filter(|pid| !before_pids.contains(pid))
+                                .collect();
+                            if let Some(pid) = pick_preferred_pid(new_pids.clone()) {
+                                crate::modules::logger::log_info(&format!(
+                                    "[Codex Start] 启动策略=system-store-entry app_id={} pid={}",
+                                    app_user_model_id, pid
+                                ));
+                                return Ok(pid);
+                            }
+                            if before_pids.is_empty() {
+                                new_pids = entries.iter().map(|(pid, _)| *pid).collect();
+                                if let Some(pid) = pick_preferred_pid(new_pids) {
+                                    crate::modules::logger::log_info(&format!(
+                                        "[Codex Start] 启动策略=system-store-entry app_id={} pid={}",
+                                        app_user_model_id, pid
+                                    ));
+                                    return Ok(pid);
+                                }
+                            }
+                            thread::sleep(Duration::from_millis(250));
+                        }
+                        if before_pids.is_empty() {
+                            if let Some(pid) = resolve_codex_pid(None, None) {
+                                crate::modules::logger::log_info(&format!(
+                                    "[Codex Start] 启动策略=system-store-entry app_id={} pid={}",
+                                    app_user_model_id, pid
+                                ));
+                                return Ok(pid);
+                            }
+                        } else {
+                            crate::modules::logger::log_warn(&format!(
+                                "[Codex Start] system-store-entry only reused existing instance, before_pids={}",
+                                summarize_pid_list_for_log(
+                                    &before_pids.iter().copied().collect::<Vec<u32>>()
+                                )
+                            ));
+                        }
+                    }
+                    crate::modules::logger::log_warn(
+                        "[Codex Start] 系统入口已调用，但 15s 内未探测到 Codex 主进程，准备回退可执行路径",
+                    );
+                }
+                Err(err) => {
+                    crate::modules::logger::log_warn(&format!(
+                        "[Codex Start] 系统入口启动失败，准备回退可执行路径: {}",
+                        err
+                    ));
+                }
+            }
+        } else {
+            crate::modules::logger::log_warn(
+                "[Codex Start] 未探测到 Codex AppUserModelId，准备回退可执行路径",
+            );
+        }
+
+        let launch_path = resolve_codex_launch_path()?;
+        crate::modules::logger::log_info(&format!(
+            "[Codex Start] 启动策略=exe-path launch_path={}",
+            launch_path.to_string_lossy()
+        ));
+        let mut cmd = Command::new(&launch_path);
+        apply_managed_proxy_env_to_command(&mut cmd);
+        if should_detach_child() {
+            cmd.creation_flags(CREATE_NEW_PROCESS_GROUP | DETACHED_PROCESS);
+            cmd.stdin(Stdio::null())
+                .stdout(Stdio::null())
+                .stderr(Stdio::null());
+        }
+        // Codex 是 GUI 应用，不设置 CREATE_NO_WINDOW，否则会导致其内部 spawn CLI 子进程失败。
+        for arg in extra_args {
+            let trimmed = arg.trim();
+            if !trimmed.is_empty() {
+                cmd.arg(trimmed);
+            }
+        }
+
+        let child =
+            spawn_command_with_trace(&mut cmd).map_err(|e| format!("启动 Codex 失败: {}", e))?;
+        crate::modules::logger::log_info(&format!(
+            "[Codex Start] 启动策略=exe-path launch_path={} pid={}",
+            launch_path.to_string_lossy(),
+            child.id()
+        ));
+        return Ok(child.id());
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    {
+        let _ = extra_args;
+        Err("Codex 启动仅支持 macOS 和 Windows".to_string())
+    }
 }
 
-/// 关闭当前 Cockpit 环境的 Codex 默认实例。
+/// 关闭 Codex 默认实例。默认实例没有 CODEX_HOME 环境变量时按默认 ~/.codex 处理。
 pub fn close_codex_default_fast_by_pid(
     last_pid: Option<u32>,
     timeout_secs: u64,
@@ -7890,16 +8085,6 @@ pub fn close_codex_default_fast_by_pid(
         let Some(pid) = last_pid.filter(|pid| *pid != 0 && is_pid_running(*pid)) else {
             return Ok(false);
         };
-        let default_home = crate::modules::codex_account::get_codex_home()
-            .to_string_lossy()
-            .to_string();
-        if resolve_codex_pid(Some(pid), Some(&default_home)) != Some(pid) {
-            crate::modules::logger::log_warn(&format!(
-                "[Codex Close] fast default close skipped, last_pid={} does not belong to current CODEX_HOME",
-                pid
-            ));
-            return Ok(false);
-        }
         let launch_path = match resolve_codex_launch_path() {
             Ok(path) => path,
             Err(err) => {
@@ -8104,6 +8289,11 @@ pub fn close_codex_instances(codex_homes: &[String], timeout_secs: u64) -> Resul
             return Ok(());
         }
 
+        let default_home = normalize_path_for_compare(
+            &crate::modules::codex_account::get_codex_home()
+                .to_string_lossy()
+                .to_string(),
+        );
         let entries = collect_codex_process_entries();
         let mut pids: Vec<u32> = entries
             .iter()
@@ -8111,7 +8301,8 @@ pub fn close_codex_instances(codex_homes: &[String], timeout_secs: u64) -> Resul
                 let resolved_home = home
                     .as_ref()
                     .map(|value| normalize_path_for_compare(value))
-                    .filter(|value| !value.is_empty())?;
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| default_home.clone());
                 if !resolved_home.is_empty() && target_homes.contains(&resolved_home) {
                     Some(*pid)
                 } else {
@@ -8237,7 +8428,7 @@ pub fn close_codex_instances(codex_homes: &[String], timeout_secs: u64) -> Resul
                             || (includes_default
                                 && current_default_app_dir.as_deref() == Some(normalized.as_str())))
                 }
-                None => false,
+                None => includes_default,
             }
         };
 

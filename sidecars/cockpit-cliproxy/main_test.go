@@ -791,14 +791,11 @@ func TestRelayServerProviderGatewayUsesSelectedUpstreamModel(t *testing.T) {
 	}
 }
 
-func TestRelayServerProviderGatewayOmitsVisionInputWhenUnsupported(t *testing.T) {
+func TestRelayServerProviderGatewayRejectsVisionInputWhenUnsupported(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	upstreamCalled := false
-	var upstreamBody string
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		upstreamCalled = true
-		body, _ := io.ReadAll(r.Body)
-		upstreamBody = string(body)
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"id":"chatcmpl_1","object":"chat.completion","created":1,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}`))
 	}))
@@ -831,17 +828,121 @@ func TestRelayServerProviderGatewayOmitsVisionInputWhenUnsupported(t *testing.T)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
 
+	if w.Code != http.StatusBadRequest {
+		t.Fatalf("unexpected status: %d body=%s", w.Code, w.Body.String())
+	}
+	if upstreamCalled {
+		t.Fatal("unsupported image input without routing model should not call upstream")
+	}
+	if !strings.Contains(w.Body.String(), "unsupported_image_input") {
+		t.Fatalf("unsupported image input should return explicit error: %s", w.Body.String())
+	}
+}
+
+func TestRelayServerProviderGatewayRoutesVisionInputToConfiguredModel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var upstreamPath string
+	var upstreamBody string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		upstreamPath = r.URL.Path
+		body, _ := io.ReadAll(r.Body)
+		upstreamBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id":"chatcmpl_1","object":"chat.completion","created":1,"model":"mimo-v2.5","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}`))
+	}))
+	defer upstream.Close()
+
+	gateway := &providerGatewaySpec{
+		BaseURL:            upstream.URL,
+		APIKey:             "mimo-key",
+		UpstreamModel:      "mimo-v2.5-pro",
+		UpstreamModels:     []string{"mimo-v2.5-pro", "mimo-v2.5"},
+		WireAPI:            "chat_completions",
+		VisionRoutingModel: "mimo-v2.5",
+		ModelCapabilities: map[string]providerGatewayModelCapability{
+			"mimo-v2.5": {SupportsVision: true},
+		},
+	}
+	m := &manifest{
+		APIKeys:  []apiKeySpec{{ID: "provider_gateway_account_1", Label: "Provider Gateway", Key: "client-key", Enabled: true, ProviderGateway: gateway}},
+		ModelIDs: []string{"mimo-v2.5-pro", "mimo-v2.5"},
+		apiKeyByValue: map[string]*apiKeySpec{
+			"client-key": {ID: "provider_gateway_account_1", Label: "Provider Gateway", Key: "client-key", Enabled: true, ProviderGateway: gateway},
+		},
+	}
+	router := (&relayServer{
+		runtime:  &fakeRuntime{},
+		cfg:      &config.Config{},
+		manifest: m,
+		policy:   &requestPolicy{manifest: m},
+	}).router()
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"model":"mimo-v2.5-pro","input":[{"type":"message","role":"user","content":[{"type":"input_text","text":"describe"},{"type":"input_image","image_url":"data:image/png;base64,abc"}]}],"stream":false}`))
+	req.Header.Set("Authorization", "Bearer client-key")
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
 	if w.Code != http.StatusOK {
 		t.Fatalf("unexpected status: %d body=%s", w.Code, w.Body.String())
 	}
-	if !upstreamCalled {
-		t.Fatal("vision input should be omitted and forwarded")
+	if upstreamPath != "/v1/chat/completions" {
+		t.Fatalf("unexpected upstream path: %s", upstreamPath)
 	}
-	if strings.Contains(upstreamBody, "image_url") || strings.Contains(upstreamBody, "input_image") {
-		t.Fatalf("unsupported image should be omitted before upstream: %s", upstreamBody)
+	if !strings.Contains(upstreamBody, `"model":"mimo-v2.5"`) || strings.Contains(upstreamBody, `"model":"mimo-v2.5-pro"`) {
+		t.Fatalf("vision request should be routed to configured model: %s", upstreamBody)
 	}
-	if !strings.Contains(upstreamBody, "Image omitted") {
-		t.Fatalf("unsupported image should leave a text placeholder: %s", upstreamBody)
+	if !strings.Contains(upstreamBody, "image_url") {
+		t.Fatalf("vision request should keep image input: %s", upstreamBody)
+	}
+}
+
+func TestRelayServerProviderGatewayRoutesVisionInputToOnlyVisionModel(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	var upstreamBody string
+	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, _ := io.ReadAll(r.Body)
+		upstreamBody = string(body)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"id":"chatcmpl_1","object":"chat.completion","created":1,"model":"mimo-v2.5","choices":[{"index":0,"message":{"role":"assistant","content":"ok"},"finish_reason":"stop"}]}`))
+	}))
+	defer upstream.Close()
+
+	gateway := &providerGatewaySpec{
+		BaseURL:        upstream.URL,
+		APIKey:         "mimo-key",
+		UpstreamModel:  "mimo-v2.5-pro",
+		UpstreamModels: []string{"mimo-v2.5-pro", "mimo-v2.5"},
+		WireAPI:        "chat_completions",
+		ModelCapabilities: map[string]providerGatewayModelCapability{
+			"mimo-v2.5": {SupportsVision: true},
+		},
+	}
+	m := &manifest{
+		APIKeys:  []apiKeySpec{{ID: "provider_gateway_account_1", Label: "Provider Gateway", Key: "client-key", Enabled: true, ProviderGateway: gateway}},
+		ModelIDs: []string{"mimo-v2.5-pro", "mimo-v2.5"},
+		apiKeyByValue: map[string]*apiKeySpec{
+			"client-key": {ID: "provider_gateway_account_1", Label: "Provider Gateway", Key: "client-key", Enabled: true, ProviderGateway: gateway},
+		},
+	}
+	router := (&relayServer{
+		runtime:  &fakeRuntime{},
+		cfg:      &config.Config{},
+		manifest: m,
+		policy:   &requestPolicy{manifest: m},
+	}).router()
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/responses", strings.NewReader(`{"model":"mimo-v2.5-pro","input":[{"type":"message","role":"user","content":[{"type":"input_text","text":"describe"},{"type":"input_image","image_url":"data:image/png;base64,abc"}]}],"stream":false}`))
+	req.Header.Set("Authorization", "Bearer client-key")
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	router.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("unexpected status: %d body=%s", w.Code, w.Body.String())
+	}
+	if !strings.Contains(upstreamBody, `"model":"mimo-v2.5"`) || strings.Contains(upstreamBody, `"model":"mimo-v2.5-pro"`) {
+		t.Fatalf("single vision model should be used automatically: %s", upstreamBody)
 	}
 }
 

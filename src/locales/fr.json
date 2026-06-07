@@ -25,8 +25,8 @@
     "shared": {
       "addAccount": "Ajouter un compte",
       "columns": {
-        "actions": "Actions",
-        "plan": "Plan",
+        "actions": "Actions​",
+        "plan": "Plan​",
         "addOnPromptCredits": "Crédits de prompts additionnels",
         "credits": "Crédits",
         "email": "E-mail",
@@ -48,7 +48,7 @@
         "all": "Tous ({{count}})",
         "enterprise": "ENTREPRISE ({{count}})",
         "free": "GRATUIT ({{count}})",
-        "pro": "PRO ({{count}})",
+        "pro": "PRO ({{count}})​",
         "business": "ENTREPRISE ({{count}})",
         "individual": "INDIVIDUEL ({{count}})",
         "validAccounts": "Comptes valides ({{count}})"
@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}} h",
         "relativeHoursMinutes": "{{hours}} h {{minutes}} min",
         "relativeMinutes": "{{minutes}} min",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "{{left}} restants",
@@ -218,7 +218,7 @@
       "desc": "Cette zone est fixée en haut à droite sur toutes les pages pour les campagnes ou publicités de marque.",
       "action": "Voir les détails"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "Réduire",
     "confirmDelete": "Confirmer la suppression",
     "confirmDeleteTag": "Confirmer la suppression du tag",
@@ -228,42 +228,43 @@
     "selectAll": "Tout sélectionner"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "Comptes",
     "wakeup": "Tâches de réveil",
     "settings": "Paramètres",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
     "dashboard": "Tableau de bord",
     "morePlatforms": "Plus de plateformes",
-    "instances": "Multi-Instance",
+    "instances": "Multi-Instance​",
     "manual": "Guide d'utilisation",
     "quickUpdate": {
       "update": "Mettre à jour",
       "restart": "Redémarrer",
       "installing": "Installation"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Plateforme Zed",
     "expandSidebar": "Développer la barre latérale",
     "collapseSidebar": "Réduire la barre latérale",
     "logs": "Journaux",
-    "sponsors": "Sponsors",
+    "sponsors": "Sponsors​",
     "sponsorAppreciation": "Soutenir",
     "switchClassicLayoutEntry": "Passer à la disposition classique",
     "switchClassicLayoutTitle": "Passer à la disposition classique de la barre latérale",
     "switchClassicLayoutDesc": "La disposition classique affiche toute la navigation des plateformes et prend en charge le repli de la barre latérale. Vous pouvez revenir à tout moment dans Paramètres > Général > Disposition de la barre latérale.",
     "switchClassicLayoutDontAskAgain": "Ne plus afficher ce message",
     "switchClassicLayoutConfirm": "Basculer maintenant",
-    "2faManager": "Gestion 2FA"
+    "2faManager": "Gestion 2FA",
+    "apiRelay": "Relais"
   },
   "sponsors": {
-    "pageTitle": "Sponsors",
+    "pageTitle": "Sponsors​",
     "pageDesc": "Merci à ces sponsors de soutenir Cockpit Tools.",
     "loading": "Chargement des sponsors...",
     "emptyTitle": "Aucun sponsor pour le moment",
@@ -369,7 +370,7 @@
       "bindAccount": "Compte lié",
       "unbound": "Non lié",
       "pendingInit": "En attente d'initialisation (démarrez une fois d'abord)",
-      "quota": "Quota",
+      "quota": "Quota​",
       "lastLaunched": "Dernier lancement",
       "argsPresent": "Args définis"
     },
@@ -377,7 +378,7 @@
       "instance": "Exemple",
       "email": "Compte",
       "quota": "État du quota",
-      "actions": "Actions",
+      "actions": "Actions​",
       "speed": "Vitesse"
     },
     "empty": {
@@ -584,7 +585,7 @@
       "every15min": "Toutes les 15 minutes",
       "every30min": "Toutes les 30 minutes",
       "every1hour": "Toutes les heures",
-      "minutes": "min",
+      "minutes": "min​",
       "refreshIntervalLimited": "Le réveil lors de la réinitialisation du quota est activé, l'intervalle d'actualisation est donc de 2 minutes minimum.",
       "closeBehavior": "Comportement à la fermeture",
       "closeBehaviorDesc": "Action à la fermeture de la fenêtre",
@@ -813,12 +814,12 @@
       "proxyUrlRequired": "L'URL du proxy ne peut pas être vide lorsque le proxy global est activé."
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "Solution professionnelle de gestion de comptes",
       "author": "Auteur",
-      "wechat": "WeChat",
+      "wechat": "WeChat​",
       "github": "Dépôt GitHub",
-      "alipay": "Alipay",
+      "alipay": "Alipay​",
       "wechatpay": "Paiement WeChat",
       "sponsor": "Soutenir",
       "sponsorDesc": "Accompagner le développement",
@@ -1032,7 +1033,7 @@
       "subscription": "Abonnement",
       "quota": "Statut du quota",
       "lastUsed": "Dernière utilisation",
-      "actions": "Actions"
+      "actions": "Actions​"
     },
     "status": {
       "current": "Actuel",
@@ -1040,13 +1041,13 @@
       "authInvalid": "Identifiants invalides",
       "refreshFailed": "Échec de l'actualisation",
       "normal": "Normale",
-      "forbidden": "403",
+      "forbidden": "403​",
       "forbidden_tooltip": "API a retourné 403 Forbidden, le compte n'a pas accès à Gemini Code Assist",
       "forbidden_msg": "Compte interdit, actualisation automatique ignorée"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "Crédits IA"
@@ -1068,8 +1069,8 @@
     "filterLabel": "Filtrer les comptes",
     "filter": {
       "all": "Tous ({{count}})",
-      "pro": "PRO ({{count}})",
-      "ultra": "ULTRA ({{count}})"
+      "pro": "PRO ({{count}})​",
+      "ultra": "ULTRA ({{count}})​"
     },
     "sortLabel": "Trier",
     "sort": {
@@ -1105,7 +1106,7 @@
         "duplicate": "Le tag existe déjà",
         "tooMany": "Vous pouvez ajouter jusqu'à {{max}} tags"
       },
-      "notesLabel": "Notes",
+      "notesLabel": "Notes​",
       "notesPlaceholder": "Saisissez une note. Laissez vide pour effacer"
     },
     "groupByTag": "Grouper par tag",
@@ -1319,10 +1320,10 @@
   },
   "pagination": {
     "info": "Affichage de {{start}} - {{end}} sur {{total}}",
-    "perPage": "{{count}} / page",
+    "perPage": "{{count}} / page​",
     "prev": "Précédent",
     "next": "Suivant",
-    "page": "Page {{current}} / {{total}}"
+    "page": "Page {{current}} / {{total}}​"
   },
   "messages": {
     "deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce compte ?",
@@ -1340,7 +1341,7 @@
     "bindFailed": "Échec de la liaison : {{error}}",
     "jsonRequired": "Veuillez entrer ou coller le contenu JSON",
     "example": "Exemple",
-    "actionRunning": "{{action}}...",
+    "actionRunning": "{{action}}...​",
     "actionSuccess": "{{action}} réussi",
     "actionFailed": "{{action}} a échoué : {{error}}"
   },
@@ -1354,7 +1355,7 @@
       },
       "filters": {
         "all": "Tous",
-        "typeShort": "Type",
+        "typeShort": "Type​",
         "tagsShort": "Étiquettes",
         "groupsShort": "Groupes"
       },
@@ -1412,17 +1413,17 @@
     },
     "format": {
       "noReply": "(Aucune réponse)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "jetons={{prompt}}+{{completion}}={{total}}",
-      "traceId": "traceId={{traceId}}",
-      "detailJoiner": ", ",
+      "traceId": "traceId={{traceId}}​",
+      "detailJoiner": ", ​",
       "message": "[[{{model}}]] : {{reply}}{{suffix}}",
-      "none": "--",
+      "none": "--​",
       "today": "Aujourd'hui {{time}}",
       "tomorrow": "Demain {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "Non sélectionné",
-      "joiner": ", ",
+      "joiner": ", ​",
       "moreItems": "{{items}} ({{total}} éléments)",
       "quotaReset": "Réveil au reset de quota",
       "crontab": "Crontab : {{expr}}",
@@ -1465,11 +1466,11 @@
     },
     "refreshInterval": {
       "disabled": "Désactivé",
-      "minutes": "minutes"
+      "minutes": "minutes​"
     },
     "triggerSource": {
       "scheduled": "Planifié",
-      "crontab": "Crontab",
+      "crontab": "Crontab​",
       "quotaReset": "Réinitialisation de quota",
       "manual": "Tester maintenant",
       "unknown": "Inconnu",
@@ -1622,7 +1623,7 @@
         "title": "Non pris en charge sur ce système"
       },
       "quota": {
-        "hourly": "5h",
+        "hourly": "5h​",
         "weekly": "Hebdomadaire"
       },
       "syncAllRecords": {
@@ -1710,7 +1711,7 @@
     },
     "exportFormat": {
       "label": "Format d’export",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "Format sub2api",
       "cpa": "Format cpa",
       "downloadAll": "Tout télécharger",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} requêtes",
         "accountTokens": "{{count}} jetons",
         "accountResult": "Succès {{success}} / Échec {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "Requêtes image",
         "imagesDetail": "Génération {{generate}} / Retouche {{edit}} / Droit {{blocked}}",
         "estimatedCost": "Valeur estimée",
@@ -1885,7 +1886,7 @@
       "modelIdViewOnly": "Lecture seule",
       "quotaPool": {
         "title": "Pool de quotas",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "Semaine",
         "viewFull": "Voir les stats complètes",
         "modalTitle": "Pool de quotas du service API",
@@ -1909,7 +1910,7 @@
       "customRoutingApplyBatch": "Appliquer aux sélectionnés",
       "customRoutingReset": "Réinitialiser",
       "customRoutingAccountColumn": "Compte",
-      "customRoutingQuotaColumn": "Quota",
+      "customRoutingQuotaColumn": "Quota​",
       "customRoutingEmpty": "Aucun compte configurable dans la collection actuelle du service API",
       "customRoutingSave": "Enregistrer le routage",
       "customRoutingSaveSuccess": "Routage personnalisé du service API mis à jour",
@@ -1952,7 +1953,7 @@
       },
       "requestKind": {
         "text": "Texte",
-        "imageGeneration": "Image",
+        "imageGeneration": "Image​",
         "imageEdit": "Retouche",
         "other": "Autre"
       },
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "Vérifiez le réseau. Le quota le plus récent n’a pas été récupéré. Actualisez pour réessayer."
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Afficher le quota Code Review"
@@ -2034,13 +2035,13 @@
     "time": {
       "today": "Aujourd'hui {{time}}",
       "tomorrow": "Demain {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "Vue compacte"
     },
     "filter": {
-      "plus": "PLUS ({{count}})",
+      "plus": "PLUS ({{count}})​",
       "team": "ÉQUIPE ({{count}})"
     },
     "sort": {
@@ -2291,7 +2292,7 @@
         "repairVisibilitySkippedOnly": "Aucune différence de fournisseur inscriptible n’a été trouvée ; {{count}} fichier(s) state_5.sqlite invalides ou corrompus ont été ignorés. Codex doit les régénérer avant que leurs enregistrements SQLite puissent être réparés.",
         "repairVisibilitySkippedWithBase": "{{message}} ; {{count}} fichier(s) state_5.sqlite invalides ou corrompus ont été ignorés. Codex doit les régénérer avant que leurs enregistrements SQLite puissent être réparés."
       },
-      "groupCount": "{{count}} sessions",
+      "groupCount": "{{count}} sessions​",
       "updatedAt": "Mis à jour",
       "labels": {
         "sessionId": "ID de session",
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "Mode",
         "modelCatalog": "Catalogue de modèles",
         "visionCapability": "Entrée image",
-        "visionModels": "Modèles vision"
+        "visionModels": "Modèles vision",
+        "visionRoutingModel": "Modèle image"
       },
       "validation": {
         "nameRequired": "Le nom du fournisseur est obligatoire.",
@@ -2584,13 +2586,14 @@
         "providerDefault": "Ce fournisseur prend en charge les images par défaut",
         "providerDefaultHint": "Si désactivé, seuls les modèles listés ci-dessous acceptent les images ; les autres sont rejetés par la passerelle locale.",
         "modelsHint": "Un modèle par ligne. Utile quand seuls certains modèles du fournisseur acceptent les images collées.",
-        "allModels": "Images",
+        "routingModelHint": "Quand le modèle actuel ne lit pas les images, la requête utilise ce modèle ; vide utilise automatiquement l'unique modèle vision.",
+        "allModels": "Images​",
         "partialModels": "Images partielles",
         "textOnly": "Texte seul"
       },
-      "sponsorRecommended": "Sponsors recommandés",
+      "sponsorRecommended": "Relais conseillé",
       "builtinProviders": "Fournisseurs intégrés",
-      "sponsorHint": "L’URL du service compatible recommandée par le sponsor a été renseignée. Après saisie de l’API Key, la carte interrogera automatiquement le solde et l’usage.",
+      "sponsorHint": "L’URL du service compatible du relais exclusif a été renseignée. Après saisie de l’API Key, la carte consultera automatiquement le solde et l’usage.",
       "integration": {
         "sub2api": "Compatible Sub2API",
         "newApi": "Compatible New API"
@@ -2700,7 +2703,7 @@
       "desc": "Ajoutez une note de compte distincte pour {{account}}.",
       "placeholder": "E-mail, mot de passe, e-mail de récupération ou notes de livraison",
       "emptyTitle": "Ajouter une note de compte",
-      "short": "Note",
+      "short": "Note​",
       "addShort": "Ajouter",
       "saved": "Note de compte enregistrée",
       "saveFailed": "Échec de l’enregistrement de la note de compte : {{error}}"
@@ -2750,7 +2753,7 @@
       },
       "accountHealth": {
         "failures": "{{count}} échecs consécutifs",
-        "image": "Images {{status}}"
+        "image": "Images {{status}}​"
       },
       "models": {
         "availableTitle": "Modèles disponibles",
@@ -2770,7 +2773,7 @@
         "pricingInput": "Entrée",
         "pricingCache": "Entrée cache",
         "pricingOutput": "Sortie",
-        "pricingSource": "Source",
+        "pricingSource": "Source​",
         "pricingActions": "Action",
         "pricingCachePlaceholder": "Comme entrée",
         "pricingCustom": "Perso",
@@ -2815,7 +2818,7 @@
         "accountPlaceholder": "E-mail ou ID compte",
         "apiKeyFilter": "Clé API",
         "apiKeyPlaceholder": "Nom ou ID",
-        "kindFilter": "Type",
+        "kindFilter": "Type​",
         "statusFilter": "État",
         "gatewayModeFilter": "Passerelle",
         "errorFilter": "Erreur",
@@ -2966,9 +2969,9 @@
       "totalAccounts": "Total des comptes"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "Répartition des plans",
       "current": "Compte actuel",
       "recommended": "Compte recommandé",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "Espace",
       "batchDelimiterComma": "Virgule",
       "batchDelimiterPipe": "Barre verticale",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "Personnalisé",
       "batchJsonDesc": "Collez un tableau JSON dont chaque élément contient email et password.",
       "batchTextDesc": "Saisissez un compte par ligne ; l’analyse respecte strictement le délimiteur sélectionné.",
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} utilisé / {{total}} total",
       "planUsageCoveredLine": "{{used}} utilisé / {{total}} couvert par le plan",
       "expiryDays": "{{days}} jours",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "Réinitialiser bientôt",
       "resetInHours": "Réinitialisé dans {{hours}}h",
       "resetInMinutes": "Réinitialisé dans {{minutes}}m"
@@ -3306,11 +3309,11 @@
       "estUsage": "HNE. Usage"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "Inconnu"
     },
     "flowNotice": {
@@ -3389,9 +3392,9 @@
     "startHint": "Cliquez sur démarrer ou appuyez sur Espace",
     "rankTitle": "Classement historique local",
     "rankCurrent": "Actuel",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "Recommencer",
-    "pause": "Pause",
+    "pause": "Pause​",
     "resume": "Reprendre",
     "paused": "En pause",
     "level": "Niveau {{level}}",
@@ -3402,7 +3405,7 @@
     "historyShort": "Historique",
     "historyEmpty": "Aucun enregistrement",
     "historyClear": "Effacer",
-    "historyScoreShort": "Score {{score}}",
+    "historyScoreShort": "Score {{score}}​",
     "historyLevelShort": "Niv {{level}}",
     "historyDurationShort": "Durée {{duration}}",
     "historyReasonGameOver": "Partie terminée",
@@ -3412,7 +3415,7 @@
     "rankingShort": "Locale",
     "rankingEmpty": "Aucun enregistrement local",
     "rankingClear": "Effacer l'historique local",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "Réduire",
     "resumeGameNav": "Reprendre la partie",
     "closeConfirmTitle": "Terminer cette partie ?",
@@ -3422,7 +3425,7 @@
     "closeEnd": "Terminer et fermer"
   },
   "announcement": {
-    "title": "Notifications",
+    "title": "Notifications​",
     "empty": "Aucune notification",
     "markAllRead": "Tout marquer comme lu",
     "gotIt": "J'ai compris",
@@ -3438,7 +3441,7 @@
       "feature": "✨ Nouvelle fonction",
       "warning": "⚠️ Avertissement",
       "info": "ℹ️ Informations",
-      "urgent": "🚨 Urgent"
+      "urgent": "🚨 Urgent​"
     },
     "refreshed": "Notifications actualisées ({count} au total)",
     "clickToClose": "Cliquer pour fermer",
@@ -3759,9 +3762,9 @@
       "leftOfTotal": "Restant / Total",
       "usage": "Utilisé",
       "usageResets": "Réinitialisation de l'usage",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
-      "resetAtWithRelative": "{{absolute}} ({{relative}})"
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
+      "resetAtWithRelative": "{{absolute}} ({{relative}})​"
     },
     "tierText": {
       "pro": "Gemini Code Assist dans Google One AI Pro",
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "Aperçu de l'utilisation",
       "viewDetails": "Voir les détails",
       "includedCredits": "Crédits inclus dans l'abonnement",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "Passez à une offre supérieure pour augmenter le quota mensuel",
       "upgradeAction": "Mettre à niveau"
     },
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "Check-in quotidien",
@@ -4185,9 +4188,9 @@
     "recommendedAccount": "Compte recommandé",
     "accountPreview": "Aperçu du compte",
     "plan": "Forfait",
-    "cycle": "Cycle",
+    "cycle": "Cycle​",
     "status": "Statut",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "Recommandé"
     },
@@ -4276,7 +4279,7 @@
     "dynamicCode": "Code dynamique",
     "remark": "Remarque",
     "time": "Heure",
-    "actions": "Actions",
+    "actions": "Actions​",
     "noData": "Aucun identifiant enregistré",
     "copyCode": "Copier le code",
     "delete": "Supprimer",
@@ -4321,5 +4324,130 @@
     "copyCode": "Copier le code",
     "copied": "Copié",
     "refreshIn": "{{time}} s"
+  },
+  "relay": {
+    "pageTitle": "Relais exclusif",
+    "pageDesc": "Service API partenaire pour les utilisateurs de Cockpit Tools, utilisable avec les comptes API Key Codex.",
+    "loading": "Chargement du relais...",
+    "emptyTitle": "Relais désactivé",
+    "emptyDesc": "La configuration distante n’a pas activé le relais exclusif.",
+    "defaultDescription": "Service de relais API partenaire.",
+    "getApiKey": "Obtenir l’API Key",
+    "configTitle": "Activer dans Codex",
+    "apiKeyLabel": "Clé API",
+    "apiKeyPlaceholder": "Collez l’API Key obtenue depuis le relais",
+    "apiKeyRequired": "Saisissez une API Key.",
+    "baseUrl": "URL API",
+    "protocol": "Protocole",
+    "vision": "Images",
+    "testConnection": "Tester",
+    "saveAndEnable": "Enregistrer et activer",
+    "goCodex": "Aller à Codex",
+    "statusUnavailable": "La configuration du relais est indisponible.",
+    "testing": "Test de connexion...",
+    "testSuccess": "Test réussi. Cette API Key peut être utilisée avec le relais.",
+    "testFailed": "Échec du test de connexion.",
+    "saving": "Enregistrement et activation dans Codex...",
+    "saveSuccess": "Configuration du relais enregistrée. Elle est disponible sur la page des comptes Codex.",
+    "saveFailed": "Échec de l’enregistrement du relais.",
+    "savedProvider": "Fournisseur enregistré : {{name}}",
+    "modelsTitle": "Modèles pris en charge",
+    "modelsEmpty": "Aucune liste fixe de modèles n’est configurée à distance. Après l’enregistrement, Codex utilisera les capacités du service."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Relais",
+    "title": "Relay APIKEY.FUN",
+    "description": "Le relais officiel de Cockpit fournit un accès API stable, ouvert et économique aux grands modèles. Il prend en charge Claude, OpenAI, Gemini et d’autres modèles majeurs, et convient à une configuration unifiée dans Codex, Gemini CLI, Claude Code et d’autres outils de développement. En vous inscrivant via le lien exclusif Cockpit, vous pouvez bénéficier d’une remise permanente allant jusqu’à 5% sur les recharges.",
+    "register": "Lien exclusif",
+    "docs": "Docs officielles",
+    "viewNow": "Voir maintenant",
+    "queryTitle": "Quota de clé",
+    "queryDesc": "Saisissez une API Key APIKEY.FUN pour vérifier le quota automatiquement.",
+    "keyNotSet": "Aucune clé",
+    "apiKeyLabel": "Clé API",
+    "apiKeyPlaceholder": "Collez l’API Key créée dans la console APIKEY.FUN",
+    "hideKey": "Masquer",
+    "showKey": "Afficher",
+    "endpointLabel": "Point d’accès",
+    "protocolLabel": "Protocole Codex",
+    "queryUsage": "Vérifier quota",
+    "querying": "Vérification",
+    "saveToCodex": "Écrire dans Codex",
+    "saving": "Écriture",
+    "saveSuccess": "Écrit dans Codex Provider : {{name}}",
+    "toolsTitle": "Écrire la config client",
+    "toolsDesc": "Écrit directement les fichiers de configuration locaux selon la doc APIKEY.FUN et la structure CC Switch.",
+    "endpoint": {
+      "global": "Mondial",
+      "globalDesc": "API Base officielle par défaut pour la plupart des réseaux.",
+      "direct": "Ligne directe",
+      "directDesc": "Pour les usages sensibles à la latence."
+    },
+    "wireApi": {
+      "responses": "Protocole Responses",
+      "responsesDesc": "Préféré pour Codex, via le protocole OpenAI Responses direct.",
+      "chatCompletions": "Protocole Chat Completions",
+      "chatCompletionsDesc": "Compatibilité via la passerelle locale."
+    },
+    "usage": {
+      "remaining": "Restant",
+      "used": "Utilisé",
+      "todayRequests": "Aujourd’hui",
+      "todayTokens": "Tokens du jour",
+      "totalRequests": "Requêtes totales",
+      "totalTokens": "Tokens totaux"
+    },
+    "tool": {
+      "codexTitle": "Fournisseur Codex",
+      "codexDesc": "Écrit un Provider avec la Base URL /v1 de l’endpoint actuel.",
+      "envTitle": "Environnement",
+      "envDesc": "Référence pour Claude Code, Gemini CLI, Hermes et autres entrées compatibles OpenAI.",
+      "curlTitle": "Script API",
+      "curlDesc": "Vérifie rapidement une requête compatible Chat Completions."
+    },
+    "docTool": {
+      "codex": "Peut être écrit directement dans Codex Provider.",
+      "claudeCode": "Copier les paramètres compatibles Anthropic Messages.",
+      "geminiCli": "Copier la Base URL compatible OpenAI et l’API Key.",
+      "traeSolo": "Copier les paramètres relais requis par la doc officielle.",
+      "openClaw": "Copier les paramètres de connexion compatibles OpenAI.",
+      "hermes": "Copier les paramètres pour la page modèles Hermes.",
+      "apiScript": "Copier les paramètres de base pour script."
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Écrit ~/.codex/config.toml et auth.json avec le protocole Responses et l’API Key actuelle.",
+      "geminiTitle": "Config Gemini CLI",
+      "geminiDesc": "Écrit ~/.gemini/.env et définit le mode d’authentification de settings.json sur gemini-api-key.",
+      "openclawTitle": "Config OpenClaw",
+      "openclawDesc": "Écrit models.providers.apikeyfun dans ~/.openclaw/openclaw.json.",
+      "hermesTitle": "Config Hermes",
+      "hermesDesc": "Écrit custom_providers dans ~/.hermes/config.yaml et bascule vers le modèle par défaut apikeyfun.",
+      "button": "Écrire config",
+      "applying": "Écriture",
+      "success": "Fichiers de configuration écrits : {{paths}}",
+      "failed": "Échec d’écriture : {{error}}"
+    },
+    "error": {
+      "missingApiKey": "Saisissez une API Key.",
+      "queryFailed": "Échec de la vérification du quota : {{error}}",
+      "saveFailed": "Échec de l’écriture : {{error}}"
+    },
+    "keyManager": {
+      "title": "Gestion des clés",
+      "desc": "Enregistrez vos API Keys pour les sélectionner rapidement et vérifier le quota automatiquement.",
+      "saveButton": "Enregistrer",
+      "savedButton": "Enregistrée",
+      "empty": "Aucune clé enregistrée.",
+      "lastRemaining": "Dernier solde {{value}}",
+      "notQueried": "Non vérifiée",
+      "deleteButton": "Supprimer",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "Ajoutée le {{time}}",
+      "saveFlash": "Enregistrée"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

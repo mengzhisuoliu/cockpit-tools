@@ -158,6 +158,7 @@ import {
   isCockpitApiProviderBaseUrl,
   resolveCodexApiProviderPresetId,
 } from "../utils/codexProviderPresets";
+import { normalizeApiKeyFunOfficialUrl } from "../utils/apikeyFunLinks";
 import { resolveCodexProviderCapabilityProfile } from "../utils/codexProviderGateway";
 import {
   formatCodexQuotaPoolPercent,
@@ -352,7 +353,7 @@ function isSponsorModelProvider(
   sponsorTemplates: SponsorApiProviderTemplate[],
 ): boolean {
   if (!provider) return false;
-  if (provider.sourceTag?.startsWith("sponsor:")) {
+  if (provider.sourceTag) {
     return sponsorTemplates.some((template) => template.id === provider.sourceTag);
   }
   const normalizedBaseUrl = normalizeHttpBaseUrl(provider.baseUrl);
@@ -689,14 +690,14 @@ function normalizeSponsorApiProviderTemplates(
       continue;
     }
     templates.push({
-      id: `sponsor:${sponsor.id}`,
+      id: `relay:${sponsor.id}`,
       sponsor,
       name: sponsor.name,
       baseUrl: integration.baseUrl.trim(),
       modelCatalog: integration.models ?? [],
       supportsVision: integration.supportsVision === true,
-      website: integration.website?.trim() || sponsor.url?.trim() || "",
-      apiKeyUrl: integration.apiKeyUrl?.trim() || sponsor.url?.trim() || "",
+      website: normalizeApiKeyFunOfficialUrl(integration.website || sponsor.url),
+      apiKeyUrl: normalizeApiKeyFunOfficialUrl(integration.apiKeyUrl || sponsor.url),
       wireApi: integration.wireApi ?? null,
       integrationType: integration.type ?? null,
     });
@@ -706,6 +707,10 @@ function normalizeSponsorApiProviderTemplates(
     if (priority !== 0) return priority;
     return a.name.localeCompare(b.name);
   });
+}
+
+function isRelayApiProviderTemplateId(value?: string | null): boolean {
+  return Boolean(value?.startsWith("relay:"));
 }
 
 function getDefaultApiProviderPresetId(
@@ -2355,6 +2360,8 @@ export function CodexAccountsPage() {
       apiModelCatalog?: string[];
       apiWireApi?: "responses" | "chat_completions";
       apiSupportsVision?: boolean;
+      apiModelVisionSupport?: Record<string, boolean>;
+      apiVisionRoutingModel?: string;
       accountName?: string;
       sponsorTemplate?: SponsorApiProviderTemplate;
     } => {
@@ -2401,6 +2408,12 @@ export function CodexAccountsPage() {
           apiModelCatalog: managedProvider.modelCatalog,
           apiWireApi: managedProvider.wireApi ?? undefined,
           apiSupportsVision: managedProvider.supportsVision,
+          apiModelVisionSupport: Object.fromEntries(
+            Object.entries(managedProvider.modelCapabilities ?? {}).map(
+              ([model, capability]) => [model, capability.supportsVision === true],
+            ),
+          ),
+          apiVisionRoutingModel: managedProvider.visionRoutingModel,
           accountName: managedProvider.name,
         };
       }
@@ -3894,6 +3907,7 @@ export function CodexAccountsPage() {
             ([model, capability]) => [model, capability.supportsVision === true],
           ),
         ),
+        selectedQuickSwitchProvider.visionRoutingModel,
         selectedQuickSwitchProvider.wireApi ?? undefined,
       );
       setMessage({
@@ -3966,7 +3980,7 @@ export function CodexAccountsPage() {
       ) {
         try {
           const savedProvider = await upsertCodexModelProviderFromCredential({
-            providerId: providerPayload.apiProviderId?.startsWith("sponsor:")
+            providerId: isRelayApiProviderTemplateId(providerPayload.apiProviderId)
               ? null
               : (providerPayload.apiProviderId ?? null),
             providerName: providerPayload.apiProviderName ?? null,
@@ -4026,7 +4040,8 @@ export function CodexAccountsPage() {
         finalProviderPayload.apiProviderName,
         finalProviderPayload.apiModelCatalog,
         finalProviderPayload.apiSupportsVision,
-        undefined,
+        finalProviderPayload.apiModelVisionSupport,
+        finalProviderPayload.apiVisionRoutingModel,
         finalProviderPayload.accountName,
         finalProviderPayload.apiWireApi,
       );
@@ -4949,7 +4964,8 @@ export function CodexAccountsPage() {
         providerPayload.apiProviderName,
         providerPayload.apiModelCatalog,
         providerPayload.apiSupportsVision,
-        undefined,
+        providerPayload.apiModelVisionSupport,
+        providerPayload.apiVisionRoutingModel,
         providerPayload.apiWireApi,
       );
       if (
@@ -4959,7 +4975,9 @@ export function CodexAccountsPage() {
       ) {
         try {
           const savedProvider = await upsertCodexModelProviderFromCredential({
-            providerId: providerPayload.apiProviderId ?? null,
+            providerId: isRelayApiProviderTemplateId(providerPayload.apiProviderId)
+              ? null
+              : (providerPayload.apiProviderId ?? null),
             providerName: providerPayload.apiProviderName ?? null,
             apiBaseUrl: validation.apiBaseUrl,
             apiKey: validation.apiKey,
@@ -7333,6 +7351,15 @@ export function CodexAccountsPage() {
                     <Repeat size={14} />
                   </button>
                 )}
+                {isApiKeyAccount && !isNewApiAccount && (
+                  <button
+                    className="card-action-btn"
+                    onClick={() => openApiKeyCredentialsModal(account)}
+                    title={t("instances.actions.edit", "编辑")}
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
                 <button
                   className={`card-action-btn ${!isCurrent ? "success" : ""}`}
                   onClick={() => handleSwitch(account.id)}
@@ -8610,6 +8637,15 @@ export function CodexAccountsPage() {
                   title={t("codex.quickSwitch.action", "快速切换供应商")}
                 >
                   <Repeat size={14} />
+                </button>
+              )}
+              {isApiKeyAccount && !isNewApiAccount && (
+                <button
+                  className="action-btn"
+                  onClick={() => openApiKeyCredentialsModal(account)}
+                  title={t("instances.actions.edit", "编辑")}
+                >
+                  <Pencil size={14} />
                 </button>
               )}
               <button
@@ -10537,7 +10573,7 @@ export function CodexAccountsPage() {
                           <p className="api-provider-hint">
                             {t(
                               "codex.modelProviders.sponsorHint",
-                              "已按赞助商推荐自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
+                              "已按专属中转站配置自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
                             )}
                           </p>
                           <div className="api-provider-links">
@@ -11403,7 +11439,7 @@ export function CodexAccountsPage() {
               onClick={closeApiKeyCredentialsModal}
             >
               <div
-                className="modal-content codex-add-modal"
+                className="modal-content codex-add-modal codex-api-key-edit-modal"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="modal-header">

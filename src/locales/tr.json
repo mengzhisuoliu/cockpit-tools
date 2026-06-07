@@ -48,7 +48,7 @@
         "all": "Tümü ({{count}})",
         "enterprise": "KURUMSAL ({{count}})",
         "free": "ÜCRETSİZ ({{count}})",
-        "pro": "PRO ({{count}})",
+        "pro": "PRO ({{count}})​",
         "business": "İŞ ({{count}})",
         "individual": "BİREYSEL ({{count}})",
         "validAccounts": "Geçerli hesaplar ({{count}})"
@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}} sa",
         "relativeHoursMinutes": "{{hours}} sa {{minutes}} dk",
         "relativeMinutes": "{{minutes}} dk",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "{{left}} kaldı",
@@ -218,7 +218,7 @@
       "desc": "Bu alan tüm sayfalarda sağ üstte sabitlenir ve kampanya ya da marka reklamları için uygundur.",
       "action": "Ayrıntıları görüntüle"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "Daralt",
     "confirmDelete": "Silmeyi Onayla",
     "confirmDeleteTag": "Etiket Silmeyi Onayla",
@@ -228,13 +228,13 @@
     "selectAll": "Tümünü Seç"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "Hesaplar",
     "wakeup": "Uyandırma Görevleri",
     "settings": "Ayarlar",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
     "dashboard": "Gösterge Paneli",
     "morePlatforms": "Daha Fazla Platform",
     "instances": "Çoklu Örnek",
@@ -244,11 +244,11 @@
       "restart": "Yeniden başlat",
       "installing": "Yükleniyor"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Zed Platformu",
     "expandSidebar": "Kenar çubuğunu genişlet",
     "collapseSidebar": "Kenar çubuğunu daralt",
@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "Klasik düzen, platform gezinmesinin tamamını gösterir ve kenar çubuğunu daraltmayı destekler. Ayarlar > Genel > Kenar Çubuğu Düzeni bölümünden istediğiniz zaman geri dönebilirsiniz.",
     "switchClassicLayoutDontAskAgain": "Bu uyarıyı tekrar gösterme",
     "switchClassicLayoutConfirm": "Şimdi geç",
-    "2faManager": "2FA Yönetimi"
+    "2faManager": "2FA Yönetimi",
+    "apiRelay": "Aktarım"
   },
   "sponsors": {
     "pageTitle": "Sponsorlar",
@@ -520,7 +521,7 @@
       "force": {
         "title": "Zorunlu yeniden başlatma",
         "principle": "İşlemleri --user-data-dir aracılığıyla tanımlar ve zorla kapatır (SIGKILL / taskkill /F), ardından hedef oturumu başlatır.",
-        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"",
+        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"​",
         "commandWin": "Windows: taskkill /F /PID <pid> (--user-data-dir ile eşleşen)",
         "pros": "Tek bir oturumu hassas bir şekilde yeniden başlatabilir.",
         "cons": "Beklenmedik kapanma uyarısına neden olabilir, kaydedilmemiş veri kaybı riski vardır."
@@ -804,7 +805,7 @@
       "proxyTitle": "Genel Proxy",
       "proxyEnabled": "Genel proxyyi etkinleştir",
       "proxyEnabledDesc": "Cockpit tarafından başlatılan yönetilen platform süreçlerine proxy ortam değişkenleri enjekte eder.",
-      "proxyUrl": "Proxy URL",
+      "proxyUrl": "Proxy URL​",
       "proxyUrlDesc": "Örnek: http://127.0.0.1:7890 veya socks5://127.0.0.1:7890",
       "proxyUrlPlaceholder": "örn. http://127.0.0.1:7890",
       "proxyNoProxy": "NO_PROXY Listesi",
@@ -813,14 +814,14 @@
       "proxyUrlRequired": "Genel proxy etkin olduğunda proxy URL boş olamaz."
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "Profesyonel Hesap Yönetimi Çözümü",
       "author": "Yazar",
-      "wechat": "WeChat",
+      "wechat": "WeChat​",
       "github": "GitHub Deposu",
-      "alipay": "Alipay",
-      "wechatpay": "WeChat Pay",
-      "sponsor": "Sponsor",
+      "alipay": "Alipay​",
+      "wechatpay": "WeChat Pay​",
+      "sponsor": "Sponsor​",
       "sponsorDesc": "Geliştirmeyi destekleyin",
       "feedback": "Geri bildirim",
       "feedbackDesc": "Sorunları/önerileri bildirin",
@@ -1039,14 +1040,14 @@
       "disabled": "Devre Dışı",
       "authInvalid": "Geçersiz kimlik bilgileri",
       "refreshFailed": "Yenileme başarısız oldu",
-      "normal": "Normal",
-      "forbidden": "403",
+      "normal": "Normal​",
+      "forbidden": "403​",
       "forbidden_tooltip": "API 403 Forbidden döndürdü, hesabın Gemini Code Assist'e erişimi yok",
       "forbidden_msg": "Hesap yasaklı, otomatik yenileme atlandı"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "AI Kredileri"
@@ -1068,8 +1069,8 @@
     "filterLabel": "Hesapları filtrele",
     "filter": {
       "all": "Tümü ({{count}})",
-      "pro": "PRO ({{count}})",
-      "ultra": "ULTRA ({{count}})"
+      "pro": "PRO ({{count}})​",
+      "ultra": "ULTRA ({{count}})​"
     },
     "sortLabel": "Sırala",
     "sort": {
@@ -1340,7 +1341,7 @@
     "bindFailed": "Bağlama hatası: {{error}}",
     "jsonRequired": "Lütfen JSON içeriğini girin veya yapıştırın",
     "example": "Örnek",
-    "actionRunning": "{{action}}...",
+    "actionRunning": "{{action}}...​",
     "actionSuccess": "{{action}} başarılı",
     "actionFailed": "{{action}} başarısız: {{error}}"
   },
@@ -1412,20 +1413,20 @@
     },
     "format": {
       "noReply": "(Yanıt yok)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "tokenler={{prompt}}+{{completion}}={{total}}",
-      "traceId": "traceId={{traceId}}",
-      "detailJoiner": ", ",
-      "message": "[[{{model}}]]: {{reply}}{{suffix}}",
-      "none": "--",
+      "traceId": "traceId={{traceId}}​",
+      "detailJoiner": ", ​",
+      "message": "[[{{model}}]]: {{reply}}{{suffix}}​",
+      "none": "--​",
       "today": "Bugün {{time}}",
       "tomorrow": "Yarın {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "Seçilmedi",
-      "joiner": ", ",
+      "joiner": ", ​",
       "moreItems": "{{items}} ({{total}} öğe)",
       "quotaReset": "Kota sıfırlandığında otomatik uyandır",
-      "crontab": "Crontab: {{expr}}",
+      "crontab": "Crontab: {{expr}}​",
       "daily": "Günlük {{times}}{{suffix}}",
       "weekly": "Haftalık {{days}} {{times}}{{suffix}}",
       "interval": "Her {{hours}}s ({{start}}-{{end}})",
@@ -1469,7 +1470,7 @@
     },
     "triggerSource": {
       "scheduled": "Planlı",
-      "crontab": "Crontab",
+      "crontab": "Crontab​",
       "quotaReset": "Kota sıfırlama",
       "manual": "Testi Çalıştır",
       "unknown": "Bilinmiyor",
@@ -1497,7 +1498,7 @@
       "triggerMode": "Tetikleme modu",
       "triggerModeHint": "1. Planlı: ayarlanan zamanlarda tetiklenir.\n2. Crontab: bir ifadeyle tanımlanır.\n3. Kota sıfırlama: kota dolu olduğunda bir kez tetiklenir.",
       "modeScheduled": "📅 Planlı",
-      "modeCrontab": "🧩 Crontab",
+      "modeCrontab": "🧩 Crontab​",
       "modeQuotaReset": "🔄 Kota sıfırlama",
       "antigravityVersion": "Antigravity IDE sürümü",
       "modelSelect": "Model seçimi",
@@ -1649,7 +1650,7 @@
         },
         "force": {
           "principle": "İşlemleri CODEX_HOME aracılığıyla tanımlar ve zorla kapatır (SIGKILL / taskkill /F), ardından hedef oturumu başlatır.",
-          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"",
+          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"​",
           "commandWin": "Windows: taskkill /F /PID <pid> (CODEX_HOME ile eşleşen)"
         }
       }
@@ -1710,7 +1711,7 @@
     },
     "exportFormat": {
       "label": "Dışa aktarma biçimi",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "sub2api biçimi",
       "cpa": "cpa biçimi",
       "downloadAll": "Tümünü indir",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} istek",
         "accountTokens": "{{count}} token",
         "accountResult": "Başarılı {{success}} / Hatalı {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "Görsel istekleri",
         "imagesDetail": "Üret {{generate}} / Düzenle {{edit}} / Yetki {{blocked}}",
         "estimatedCost": "Tahmini değer",
@@ -1879,13 +1880,13 @@
       "enableBeforeActivateTitle": "Hizmet etkin değil",
       "enableBeforeActivateMessage": "API hizmeti şu anda devre dışı ve önce etkinleştirilmesi gerekiyor. Şimdi etkinleştirip geçiş yapılsın mı?",
       "enableAndActivateAction": "Etkinleştir ve geçiş yap",
-      "apiPortUrl": "API Port URL",
-      "modelId": "Model ID",
+      "apiPortUrl": "API Port URL​",
+      "modelId": "Model ID​",
       "modelIdPlaceholder": "Model ID seçin",
       "modelIdViewOnly": "Yalnızca görüntüle",
       "quotaPool": {
         "title": "Kota havuzu",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "Hafta",
         "viewFull": "Tam istatistikleri gör",
         "modalTitle": "API hizmeti kota havuzu",
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "Ağı kontrol edin. En güncel kota alınamadı. Yenileyip tekrar deneyin."
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Code Review kotasını göster"
@@ -2034,7 +2035,7 @@
     "time": {
       "today": "Bugün {{time}}",
       "tomorrow": "Yarın {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "Kompakt görünüm"
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "Mod",
         "modelCatalog": "Model Kataloğu",
         "visionCapability": "Görsel girişi",
-        "visionModels": "Görsel modeller"
+        "visionModels": "Görsel modeller",
+        "visionRoutingModel": "Görsel rota modeli"
       },
       "validation": {
         "nameRequired": "Sağlayıcı adı gerekli.",
@@ -2557,7 +2559,7 @@
         "models": "Model uç noktası hatalı",
         "parse": "Yanıt ayrıştırılamadı",
         "httpStatus": "Durum {{status}}",
-        "message": "{{title}}: {{detail}}. {{suggestion}}"
+        "message": "{{title}}: {{detail}}. {{suggestion}}​"
       },
       "testSuggestion": {
         "addApiKey": "Testten önce bu sağlayıcı için API Key ekleyin.",
@@ -2584,13 +2586,14 @@
         "providerDefault": "Bu sağlayıcı varsayılan olarak görsel girişini destekler",
         "providerDefaultHint": "Kapalıyken yalnızca aşağıdaki modeller görsel alır; diğerleri yerel ağ geçidi tarafından reddedilir.",
         "modelsHint": "Her satıra bir model yazın. Sağlayıcıdaki yalnızca bazı modeller yapıştırılan görselleri destekliyorsa kullanın.",
+        "routingModelHint": "Geçerli model görsel okuyamıyorsa istek bu modeli kullanır; boşsa tek görsel model otomatik kullanılır.",
         "allModels": "Görsel",
         "partialModels": "Bazı görseller",
         "textOnly": "Yalnızca metin"
       },
-      "sponsorRecommended": "Sponsor Önerileri",
+      "sponsorRecommended": "Aktarım önerisi",
       "builtinProviders": "Yerleşik Sağlayıcılar",
-      "sponsorHint": "Sponsorun önerdiği uyumlu servis adresi dolduruldu. API Key girdikten sonra kart bakiye ve kullanımı otomatik sorgular.",
+      "sponsorHint": "Özel aktarım servisinin URL’si dolduruldu. API Key girdikten sonra kart bakiye ve kullanımı otomatik sorgular.",
       "integration": {
         "sub2api": "Sub2API uyumlu",
         "newApi": "New API uyumlu"
@@ -2810,7 +2813,7 @@
         "allStatuses": "Tüm durumlar",
         "allGatewayModes": "Tum modlar",
         "modelFilter": "Model adı",
-        "modelPlaceholder": "Model ID",
+        "modelPlaceholder": "Model ID​",
         "accountFilter": "Hesap",
         "accountPlaceholder": "E-posta veya hesap ID",
         "apiKeyFilter": "API anahtarı",
@@ -2966,9 +2969,9 @@
       "totalAccounts": "Toplam hesap"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "Plan dağılımı",
       "current": "Mevcut hesap",
       "recommended": "Önerilen hesap",
@@ -3165,7 +3168,7 @@
       "title": "Kota Uyarısı",
       "desc": "Mevcut hesabın kotası uyarı eşiğine ulaştı. Lütfen kısa sürede ilgilenin.",
       "unknownModel": "Bilinmeyen model",
-      "platform": "Platform",
+      "platform": "Platform​",
       "account": "Mevcut hesap",
       "threshold": "Uyarı eşiği",
       "lowest": "Mevcut en düşük",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "Boşluk",
       "batchDelimiterComma": "Virgül",
       "batchDelimiterPipe": "Dikey çizgi",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "Özel",
       "batchJsonDesc": "Her öğesinde email ve password bulunan bir JSON dizisi yapıştırın.",
       "batchTextDesc": "Her satıra bir hesap girin ve seçilen ayraçla sıkı biçimde ayrıştırın.",
@@ -3237,7 +3240,7 @@
       "batchPartial": "{{success}} başarılı, {{failed}} başarısız",
       "batchFailed": "{{failed}} hesap için toplu içe aktarma başarısız",
       "batchFailureEntryWithLine": "{{line}} öğesi ({{email}}): {{error}}",
-      "batchFailureEntry": "{{email}}: {{error}}",
+      "batchFailureEntry": "{{email}}: {{error}}​",
       "batchFailureMore": "{{count}} tane daha başarısız"
     },
     "oauth": {
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} kullanılmış / {{total}} toplam",
       "planUsageCoveredLine": "{{used}} kullanıldı / {{total}} planda yer aldı",
       "expiryDays": "{{days}} gün",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "Yakında sıfırla",
       "resetInHours": "{{hours}}h içinde sıfırlanır",
       "resetInMinutes": "{{minutes}}m içinde sıfırlanır"
@@ -3306,11 +3309,11 @@
       "estUsage": "Avustralya, Brezilya ve Kuzey Amerika ülkelerinin kullandığı saat uygulaması. Kullanım"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "Bilinmiyor"
     },
     "flowNotice": {
@@ -3389,7 +3392,7 @@
     "startHint": "Başlat'a tıkla veya Boşluk tuşuna bas",
     "rankTitle": "Geçmiş yerel sıralama",
     "rankCurrent": "Mevcut",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "Yeniden başlat",
     "pause": "Duraklat",
     "resume": "Devam et",
@@ -3412,7 +3415,7 @@
     "rankingShort": "Yerel",
     "rankingEmpty": "Henüz yerel kayıt yok",
     "rankingClear": "Yerel sıralamayı temizle",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "Küçült",
     "resumeGameNav": "Oyuna devam et",
     "closeConfirmTitle": "Bu oyunu bitir?",
@@ -3759,9 +3762,9 @@
       "leftOfTotal": "Kalan / Toplam",
       "usage": "Kullanılan",
       "usageResets": "Kullanım sıfırlanır",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
-      "resetAtWithRelative": "{{absolute}} ({{relative}})"
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
+      "resetAtWithRelative": "{{absolute}} ({{relative}})​"
     },
     "tierText": {
       "pro": "Google One AI Pro içindeki Gemini Code Assist",
@@ -3783,7 +3786,7 @@
     "enterprise": "Kurumsal",
     "usage": "Kullanım durumu",
     "creditsBalance": "Kredi bakiyesi",
-    "usageNormal": "Normal",
+    "usageNormal": "Normal​",
     "usageAbnormal": "Anormal",
     "usageViewDetail": "Ayrıntıları görüntüle",
     "usageDetailTitle": "Kullanım durumu ayrıntıları",
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "Kullanım özeti",
       "viewDetails": "Ayrıntıları görüntüle",
       "includedCredits": "Plana dahil krediler",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "Aylık kotayı artırmak için planı yükseltin",
       "upgradeAction": "Yükselt"
     },
@@ -3993,7 +3996,7 @@
     "enterprise": "Kurumsal",
     "usage": "Kullanım durumu",
     "creditsBalance": "Kredi bakiyesi",
-    "usageNormal": "Normal",
+    "usageNormal": "Normal​",
     "usageAbnormal": "Anormal",
     "usageViewDetail": "Ayrıntıları görüntüle",
     "usageDetailTitle": "Kullanım durumu ayrıntıları",
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "Günlük check-in",
@@ -4187,7 +4190,7 @@
     "plan": "Paket",
     "cycle": "Döngü",
     "status": "Durum",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "Önerilen"
     },
@@ -4321,5 +4324,130 @@
     "copyCode": "Kodu kopyala",
     "copied": "Kopyalandı",
     "refreshIn": "{{time}} sn"
+  },
+  "relay": {
+    "pageTitle": "Özel aktarım",
+    "pageDesc": "Cockpit Tools kullanıcıları için Codex API Key hesaplarıyla kullanılabilen iş ortaklığı API servisi.",
+    "loading": "Aktarım yükleniyor...",
+    "emptyTitle": "Aktarım kapalı",
+    "emptyDesc": "Uzak yapılandırma özel aktarımı etkinleştirmedi.",
+    "defaultDescription": "İş ortaklığı API aktarım servisi.",
+    "getApiKey": "API Key al",
+    "configTitle": "Codex’te etkinleştir",
+    "apiKeyLabel": "API anahtarı",
+    "apiKeyPlaceholder": "Aktarımdan alınan API Key’i yapıştır",
+    "apiKeyRequired": "API Key girin.",
+    "baseUrl": "API adresi",
+    "protocol": "Protokol",
+    "vision": "Görsel girişi",
+    "testConnection": "Bağlantıyı test et",
+    "saveAndEnable": "Kaydet ve etkinleştir",
+    "goCodex": "Codex’e git",
+    "statusUnavailable": "Aktarım yapılandırması kullanılamıyor.",
+    "testing": "Bağlantı test ediliyor...",
+    "testSuccess": "Bağlantı testi geçti. Bu API Key aktarım ile kullanılabilir.",
+    "testFailed": "Bağlantı testi başarısız.",
+    "saving": "Codex’e kaydedilip etkinleştiriliyor...",
+    "saveSuccess": "Aktarım yapılandırması kaydedildi. Codex hesapları sayfasında kullanabilirsiniz.",
+    "saveFailed": "Aktarım yapılandırması kaydedilemedi.",
+    "savedProvider": "Kaydedilen sağlayıcı: {{name}}",
+    "modelsTitle": "Desteklenen modeller",
+    "modelsEmpty": "Uzakta sabit model listesi yapılandırılmamış. Kaydettikten sonra Codex servis yeteneklerini kullanabilir."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Ara geçiş",
+    "title": "APIKEY.FUN relay",
+    "description": "Cockpit resmi ara geçiş hizmeti, büyük model API erişimi için kararlı, açık ve yüksek fiyat-performanslı bir çözüm sunar. Claude, OpenAI, Gemini gibi ana akım modelleri destekler; Codex, Gemini CLI, Claude Code ve diğer geliştirici araçlarında tek tip yapılandırma için uygundur. Cockpit özel bağlantısıyla kaydolarak yüklemelerde kalıcı olarak %5’e varan indirim alabilirsiniz.",
+    "register": "Özel kayıt linki",
+    "docs": "Resmi doküman",
+    "viewNow": "Hemen bak",
+    "queryTitle": "Anahtar kotası",
+    "queryDesc": "Kotayı otomatik sorgulamak için APIKEY.FUN API Key girin.",
+    "keyNotSet": "Anahtar yok",
+    "apiKeyLabel": "API anahtarı",
+    "apiKeyPlaceholder": "APIKEY.FUN konsolunda oluşturulan API Key’i yapıştırın",
+    "hideKey": "Gizle",
+    "showKey": "Göster",
+    "endpointLabel": "Bağlantı noktası",
+    "protocolLabel": "Codex protokolü",
+    "queryUsage": "Kotayı kontrol et",
+    "querying": "Kontrol ediliyor",
+    "saveToCodex": "Codex’e yaz",
+    "saving": "Yazılıyor",
+    "saveSuccess": "Codex Provider’a yazıldı: {{name}}",
+    "toolsTitle": "İstemci config yaz",
+    "toolsDesc": "APIKEY.FUN dokümanına ve CC Switch dosya yapısına göre yerel istemci yapılandırma dosyalarını doğrudan yazar.",
+    "endpoint": {
+      "global": "Küresel hat",
+      "globalDesc": "Çoğu ağ ortamı için resmi varsayılan API Base.",
+      "direct": "Direkt hat",
+      "directDesc": "Gecikmeye duyarlı senaryolar için."
+    },
+    "wireApi": {
+      "responses": "Responses protokolü",
+      "responsesDesc": "Codex için tercih edilir, OpenAI Responses protokolünü doğrudan kullanır.",
+      "chatCompletions": "Chat Completions protokolü",
+      "chatCompletionsDesc": "Yerel gateway ile uyumluluk sağlar."
+    },
+    "usage": {
+      "remaining": "Kalan",
+      "used": "Kullanılan",
+      "todayRequests": "Bugün",
+      "todayTokens": "Bugünkü Token",
+      "totalRequests": "Toplam istek",
+      "totalTokens": "Toplam Token"
+    },
+    "tool": {
+      "codexTitle": "Codex sağlayıcı",
+      "codexDesc": "Geçerli endpoint’in /v1 Base URL’siyle Provider yazar.",
+      "envTitle": "Ortam",
+      "envDesc": "Claude Code, Gemini CLI, Hermes gibi OpenAI uyumlu girişler için referans.",
+      "curlTitle": "API betiği",
+      "curlDesc": "Chat Completions uyumlu isteği hızlıca doğrular."
+    },
+    "docTool": {
+      "codex": "Doğrudan Codex Provider’a yazılabilir.",
+      "claudeCode": "Anthropic Messages uyumlu parametreleri kopyala.",
+      "geminiCli": "OpenAI uyumlu Base URL ve API Key’i kopyala.",
+      "traeSolo": "Resmi dokümanda gereken relay parametrelerini kopyala.",
+      "openClaw": "OpenAI uyumlu bağlantı parametrelerini kopyala.",
+      "hermes": "Hermes model sayfası parametrelerini kopyala.",
+      "apiScript": "Betik entegrasyonu için temel parametreleri kopyala."
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Responses protokolü ve geçerli API Key ile ~/.codex/config.toml ve auth.json yazar.",
+      "geminiTitle": "Gemini CLI ayarı",
+      "geminiDesc": "~/.gemini/.env yazar ve settings.json auth modunu gemini-api-key yapar.",
+      "openclawTitle": "OpenClaw ayarı",
+      "openclawDesc": "~/.openclaw/openclaw.json içine models.providers.apikeyfun yazar.",
+      "hermesTitle": "Hermes ayarı",
+      "hermesDesc": "~/.hermes/config.yaml içine custom_providers yazar ve apikeyfun varsayılan modeline geçer.",
+      "button": "Config yaz",
+      "applying": "Yazılıyor",
+      "success": "Yapılandırma dosyaları yazıldı: {{paths}}",
+      "failed": "Yapılandırma yazılamadı: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "API Key girin.",
+      "queryFailed": "Kota kontrolü başarısız: {{error}}",
+      "saveFailed": "Yazma başarısız: {{error}}"
+    },
+    "keyManager": {
+      "title": "Anahtar yönetimi",
+      "desc": "Hızlı geçiş ve otomatik kota sorgusu için API Keys kaydedin.",
+      "saveButton": "Anahtarı kaydet",
+      "savedButton": "Kaydedildi",
+      "empty": "Kayıtlı anahtar yok.",
+      "lastRemaining": "Son bakiye {{value}}",
+      "notQueried": "Sorgulanmadı",
+      "deleteButton": "Sil",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "{{time}} eklendi",
+      "saveFlash": "Kaydedildi"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

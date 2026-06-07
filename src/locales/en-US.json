@@ -291,6 +291,7 @@
     "logs": "Logs",
     "sponsors": "Sponsors",
     "sponsorAppreciation": "Sponsor",
+    "apiRelay": "Relay",
     "instances": "Multi-Instance",
     "manual": "User Manual",
     "quickUpdate": {
@@ -317,6 +318,131 @@
     "listAriaLabel": "Sponsor list",
     "defaultDescription": "Thanks for supporting Cockpit Tools.",
     "openSponsor": "Open"
+  },
+  "relay": {
+    "pageTitle": "Exclusive Relay",
+    "pageDesc": "A partnered API service for Cockpit Tools users that can be used with Codex API Key accounts.",
+    "loading": "Loading relay...",
+    "emptyTitle": "Relay disabled",
+    "emptyDesc": "The remote configuration has not enabled the exclusive relay.",
+    "defaultDescription": "Partnered API relay service.",
+    "getApiKey": "Get API Key",
+    "configTitle": "Enable in Codex",
+    "apiKeyLabel": "API Key",
+    "apiKeyPlaceholder": "Paste the API Key from the relay",
+    "apiKeyRequired": "Enter an API Key.",
+    "baseUrl": "Base URL",
+    "protocol": "Protocol",
+    "vision": "Vision",
+    "testConnection": "Test connection",
+    "saveAndEnable": "Save and enable",
+    "goCodex": "Go to Codex",
+    "statusUnavailable": "The relay configuration is unavailable.",
+    "testing": "Testing connection...",
+    "testSuccess": "Connection test passed. This API Key can be used with the relay.",
+    "testFailed": "Connection test failed.",
+    "saving": "Saving and enabling in Codex...",
+    "saveSuccess": "Relay configuration saved. You can use it on the Codex accounts page.",
+    "saveFailed": "Failed to save relay configuration.",
+    "savedProvider": "Saved provider: {{name}}",
+    "modelsTitle": "Supported models",
+    "modelsEmpty": "No fixed model list is configured remotely. After saving, Codex can use the service capabilities."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Relay",
+    "title": "APIKEY.FUN",
+    "description": "The official Cockpit relay, providing stable, open, and cost-effective large-model API access. It supports mainstream models such as Claude, OpenAI, and Gemini, and is suitable for unified configuration across Codex, Gemini CLI, Claude Code, and other developer tools. Register through the Cockpit exclusive link to get a permanent top-up discount of up to 5%.",
+    "register": "Exclusive signup",
+    "docs": "Official docs",
+    "viewNow": "View now",
+    "queryTitle": "Key Quota Lookup",
+    "queryDesc": "Enter an APIKEY.FUN API Key to query quota automatically.",
+    "keyNotSet": "No key entered",
+    "apiKeyLabel": "API Key",
+    "apiKeyPlaceholder": "Paste the API Key created in the APIKEY.FUN console",
+    "hideKey": "Hide",
+    "showKey": "Show",
+    "endpointLabel": "Endpoint",
+    "protocolLabel": "Codex protocol",
+    "queryUsage": "Check quota",
+    "querying": "Checking",
+    "saveToCodex": "Write to Codex",
+    "saving": "Writing",
+    "saveSuccess": "Written to Codex Provider: {{name}}",
+    "toolsTitle": "Write Client Config",
+    "toolsDesc": "Write local client config files directly, following the APIKEY.FUN docs and CC Switch file layout.",
+    "endpoint": {
+      "global": "Global",
+      "globalDesc": "Official default API Base for most network environments.",
+      "direct": "Direct Line",
+      "directDesc": "Better for latency-sensitive use."
+    },
+    "wireApi": {
+      "responses": "Responses",
+      "responsesDesc": "Preferred for Codex, using the OpenAI Responses protocol directly.",
+      "chatCompletions": "Chat Completions",
+      "chatCompletionsDesc": "Uses the local gateway to support Chat Completions."
+    },
+    "usage": {
+      "remaining": "Remaining",
+      "used": "Used",
+      "todayRequests": "Today",
+      "todayTokens": "Today tokens",
+      "totalRequests": "Total requests",
+      "totalTokens": "Total tokens"
+    },
+    "tool": {
+      "codexTitle": "Codex Provider",
+      "codexDesc": "Writes a model Provider with the current endpoint's /v1 Base URL.",
+      "envTitle": "Environment",
+      "envDesc": "Reference for OpenAI-compatible entries such as Claude Code, Gemini CLI, and Hermes.",
+      "curlTitle": "API Script",
+      "curlDesc": "Quickly verify a Chat Completions compatible request."
+    },
+    "docTool": {
+      "codex": "Can be written directly into Codex Provider.",
+      "claudeCode": "Copy Anthropic Messages compatible parameters.",
+      "geminiCli": "Copy the OpenAI-compatible Base URL and API Key.",
+      "traeSolo": "Copy the relay parameters required by the official docs.",
+      "openClaw": "Copy OpenAI-compatible connection parameters.",
+      "hermes": "Copy parameters for the Hermes models page.",
+      "apiScript": "Copy the base parameters for script integration."
+    },
+    "apply": {
+      "codexTitle": "Codex",
+      "codexDesc": "Writes ~/.codex/config.toml and auth.json with the Responses protocol and current API Key.",
+      "geminiTitle": "Gemini CLI",
+      "geminiDesc": "Writes ~/.gemini/.env and sets settings.json auth mode to gemini-api-key.",
+      "openclawTitle": "OpenClaw",
+      "openclawDesc": "Writes models.providers.apikeyfun in ~/.openclaw/openclaw.json.",
+      "hermesTitle": "Hermes",
+      "hermesDesc": "Writes custom_providers in ~/.hermes/config.yaml and switches to the apikeyfun default model.",
+      "button": "Write config",
+      "applying": "Writing",
+      "success": "Config files written: {{paths}}",
+      "failed": "Config write failed: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "Enter an API Key.",
+      "queryFailed": "Quota check failed: {{error}}",
+      "saveFailed": "Write-in failed: {{error}}"
+    },
+    "copyKey": "Copy Key",
+    "clearKey": "Clear input",
+    "keyManager": {
+      "title": "Key Manager",
+      "desc": "Save API Keys for quick switching and automatic quota checks.",
+      "saveButton": "Save key",
+      "savedButton": "Saved",
+      "empty": "No saved keys.",
+      "lastRemaining": "Last balance {{value}}",
+      "notQueried": "Not checked",
+      "deleteButton": "Delete",
+      "editAlias": "Edit alias",
+      "renamePlaceholder": "Enter alias...",
+      "createdAt": "Added {{time}}",
+      "saveFlash": "Just saved"
+    }
   },
   "platformLayout": {
     "title": "Platform Layout",
@@ -2228,7 +2354,8 @@
         "newApiKeyName": "New Key Name (Optional)",
         "newApiKey": "New API Key",
         "visionCapability": "Image Input",
-        "visionModels": "Vision Models"
+        "visionModels": "Vision Models",
+        "visionRoutingModel": "Image Route Model"
       },
       "validation": {
         "nameRequired": "Provider name is required.",
@@ -2354,13 +2481,14 @@
         "providerDefault": "This provider supports image input by default",
         "providerDefaultHint": "When off, only the models listed below can receive image input; other models are rejected by the local gateway.",
         "modelsHint": "One model per line. Use this when only some models in the provider support pasted images.",
+        "routingModelHint": "When the current model cannot read images, image requests use this model; blank uses the only vision model automatically.",
         "allModels": "Images",
         "partialModels": "Some Images",
         "textOnly": "Text Only"
       },
-      "sponsorRecommended": "Sponsor Picks",
+      "sponsorRecommended": "Relay Pick",
       "builtinProviders": "Built-in Providers",
-      "sponsorHint": "The sponsor-recommended compatible service URL has been filled in. After you enter an API Key, the card will query balance and usage automatically.",
+      "sponsorHint": "The exclusive relay service URL has been filled in. After you enter an API Key, the card will query balance and usage automatically.",
       "integration": {
         "sub2api": "Sub2API Compatible",
         "newApi": "New API Compatible"

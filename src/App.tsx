@@ -15,7 +15,7 @@ import { listen, UnlistenFn } from '@tauri-apps/api/event';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-dialog';
 import { useTranslation } from 'react-i18next';
-import { FileText, FolderOpen, HeartHandshake, RefreshCw, X } from 'lucide-react';
+import { FileText, FolderOpen, RefreshCw, X } from 'lucide-react';
 import { SideNav } from './components/layout/SideNav';
 import { GlobalModal } from './components/GlobalModal';
 import { TopCenterPromoBanner } from './components/TopCenterPromoBanner';
@@ -126,11 +126,11 @@ const SettingsPage = lazy(() =>
 const TwoFactorAuthPage = lazy(() =>
   import('./pages/TwoFactorAuthPage').then((module) => ({ default: module.TwoFactorAuthPage })),
 );
-const SponsorsPage = lazy(() =>
-  import('./pages/SponsorsPage').then((module) => ({ default: module.SponsorsPage })),
-);
 const ManualPage = lazy(() =>
   import('./pages/ManualPage').then((module) => ({ default: module.ManualPage })),
+);
+const ApiKeyFunPage = lazy(() =>
+  import('./pages/ApiKeyFunPage').then((module) => ({ default: module.ApiKeyFunPage })),
 );
 const InstancesPage = lazy(() =>
   import('./pages/InstancesPage').then((module) => ({ default: module.InstancesPage })),
@@ -539,6 +539,7 @@ function MainApp() {
   const fetchTopRightAdState = useTopRightAdStore((state) => state.fetchState);
   const sponsorModuleState = useSponsorStore((state) => state.state);
   const fetchSponsorModuleState = useSponsorStore((state) => state.fetchState);
+  const sponsorModuleInitialized = useSponsorStore((state) => state.initialized);
   const sponsorEntryVisible = Boolean(sponsorModuleState.sponsorModule);
   const [topRightAdVisible, setTopRightAdVisible] = useState(true);
   const trayRefreshInFlightRef = useRef(false);
@@ -747,11 +748,15 @@ function MainApp() {
     };
   }, [fetchSponsorModuleState, fetchTopRightAdState]);
 
+  const openSponsorPage = useCallback(() => {
+    setPage('api-relay');
+  }, []);
+
   useEffect(() => {
-    if (page === 'sponsors' && !sponsorEntryVisible) {
+    if (sponsorModuleInitialized && page === 'api-relay' && !sponsorEntryVisible) {
       setPage('dashboard');
     }
-  }, [page, sponsorEntryVisible]);
+  }, [page, sponsorEntryVisible, sponsorModuleInitialized]);
 
   useEffect(() => {
     if (sideNavLayoutMode !== 'classic' || sideNavClassicFirstSyncDone) {
@@ -2806,6 +2811,7 @@ function MainApp() {
           const target = String(event.payload || '');
           switch (target) {
             case 'overview':
+            case 'api-relay':
             case 'codex':
             case 'codex-api-service':
             case 'github-copilot':
@@ -3170,23 +3176,18 @@ function MainApp() {
         onUpdateActionClick={handleQuickUpdateActionClick}
         updateRemindersEnabled={updateRemindersEnabled}
         sponsorEntryVisible={sponsorEntryVisible}
+        onOpenSponsorLink={openSponsorPage}
         onOpenLogViewer={() => setShowLogViewer(true)}
       />
 
       {sideNavLayoutMode !== 'classic' && (
         <button
           className="log-entry-fab"
-          onClick={() => {
-            if (sponsorEntryVisible) {
-              setPage('sponsors');
-              return;
-            }
-            setShowLogViewer(true);
-          }}
-          title={sponsorEntryVisible ? t('nav.sponsorAppreciation', '赞赏') : t('manual.dataPrivacy.keywords.5', '日志')}
-          aria-label={sponsorEntryVisible ? t('nav.sponsorAppreciation', '赞赏') : t('manual.dataPrivacy.keywords.5', '日志')}
+          onClick={() => setShowLogViewer(true)}
+          title={t('manual.dataPrivacy.keywords.5', '日志')}
+          aria-label={t('manual.dataPrivacy.keywords.5', '日志')}
         >
-          {sponsorEntryVisible ? <HeartHandshake size={18} /> : <FileText size={18} />}
+          <FileText size={18} />
         </button>
       )}
 
@@ -3220,6 +3221,7 @@ function MainApp() {
               }
             />
           )}
+          {page === 'api-relay' && <ApiKeyFunPage />}
           {page === 'overview' && <AccountsPage onNavigate={setPage} />}
           {page === 'codex' && <CodexAccountsPage />}
           {page === 'codex-api-service' && <CodexApiServicePage />}
@@ -3238,7 +3240,6 @@ function MainApp() {
           {page === 'wakeup' && <WakeupTasksPage onNavigate={setPage} />}
           {page === 'verification' && <WakeupVerificationPage onNavigate={setPage} />}
           {page === '2fa' && <TwoFactorAuthPage />}
-          {page === 'sponsors' && <SponsorsPage />}
           {page === 'manual' && (
             <ManualPage
               onNavigate={setPage}

@@ -33,7 +33,7 @@
         "promptCredits": "Crediti prompt",
         "creditPackage": "Pacchetto crediti",
         "sharedCreditPackage": "Pacchetto crediti condiviso",
-        "account": "Account",
+        "account": "Account​",
         "createdAt": "Data di creazione",
         "userId": "ID utente"
       },
@@ -48,7 +48,7 @@
         "all": "Tutti ({{count}})",
         "enterprise": "IMPRESA ({{count}})",
         "free": "GRATUITO ({{count}})",
-        "pro": "PRO ({{count}})",
+        "pro": "PRO ({{count}})​",
         "business": "AFFARI ({{count}})",
         "individual": "INDIVIDUALE ({{count}})",
         "validAccounts": "Account validi ({{count}})"
@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}} h",
         "relativeHoursMinutes": "{{hours}} h {{minutes}} min",
         "relativeMinutes": "{{minutes}} min",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "{{left}} rimanenti",
@@ -218,7 +218,7 @@
       "desc": "Quest’area è fissata in alto a destra su tutte le pagine per campagne o annunci del brand.",
       "action": "Vedi dettagli"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "Comprimi",
     "confirmDelete": "Conferma eliminazione",
     "confirmDeleteTag": "Conferma eliminazione tag",
@@ -228,13 +228,13 @@
     "selectAll": "Seleziona tutto"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "Account",
     "wakeup": "Attività di risveglio",
     "settings": "Impostazioni",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
     "dashboard": "Pannello di controllo",
     "morePlatforms": "Altre piattaforme",
     "instances": "Multi-Istanza",
@@ -244,11 +244,11 @@
       "restart": "Riavvia",
       "installing": "Installazione"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Piattaforma Zed",
     "expandSidebar": "Espandi la barra laterale",
     "collapseSidebar": "Comprimi la barra laterale",
@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "Il layout classico mostra l'intera navigazione delle piattaforme e supporta la chiusura della barra laterale. Puoi tornare indietro in qualsiasi momento da Impostazioni > Generale > Layout barra laterale.",
     "switchClassicLayoutDontAskAgain": "Non mostrare più questo avviso",
     "switchClassicLayoutConfirm": "Passa ora",
-    "2faManager": "Gestione 2FA"
+    "2faManager": "Gestione 2FA",
+    "apiRelay": "Relay API"
   },
   "sponsors": {
     "pageTitle": "Sponsor",
@@ -363,19 +364,19 @@
       "ready": "Pronta"
     },
     "labels": {
-      "path": "Directory",
+      "path": "Directory​",
       "args": "Argomenti di avvio",
       "argsEmpty": "Nessuno",
       "bindAccount": "Account collegato",
       "unbound": "Non collegato",
       "pendingInit": "In attesa di inizializzazione (avvia prima una volta)",
-      "quota": "Quota",
+      "quota": "Quota​",
       "lastLaunched": "Ultimo avvio",
       "argsPresent": "Arg presenti"
     },
     "columns": {
       "instance": "Istanza",
-      "email": "Account",
+      "email": "Account​",
       "quota": "Stato quota",
       "actions": "Azioni",
       "speed": "Velocità"
@@ -520,7 +521,7 @@
       "force": {
         "title": "Riavvio forzato",
         "principle": "Identifica i processi tramite --user-data-dir e li chiude forzatamente (SIGKILL / taskkill /F), quindi avvia l'istanza di destinazione.",
-        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"",
+        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"​",
         "commandWin": "Windows: taskkill /F /PID <pid> (corrispondenza --user-data-dir)",
         "pros": "Può riavviare con precisione una singola istanza.",
         "cons": "Potrebbe causare un avviso di \"chiusura imprevista\", rischio di perdita di dati non salvati."
@@ -584,7 +585,7 @@
       "every15min": "Ogni 15 minuti",
       "every30min": "Ogni 30 minuti",
       "every1hour": "Ogni ora",
-      "minutes": "min",
+      "minutes": "min​",
       "refreshIntervalLimited": "Il risveglio al ripristino della quota è abilitato, quindi l'intervallo minimo di aggiornamento è di 2 minuti.",
       "closeBehavior": "Comportamento alla chiusura",
       "closeBehaviorDesc": "Scegli azione alla chiusura della finestra",
@@ -813,16 +814,16 @@
       "proxyUrlRequired": "L'URL del proxy non può essere vuoto quando il proxy globale è abilitato."
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "Soluzione Professionale per la Gestione degli Account",
       "author": "Autore",
-      "wechat": "WeChat",
+      "wechat": "WeChat​",
       "github": "Repository GitHub",
-      "alipay": "Alipay",
+      "alipay": "Alipay​",
       "wechatpay": "WeChat paga",
-      "sponsor": "Sponsor",
+      "sponsor": "Sponsor​",
       "sponsorDesc": "Sostenere lo sviluppo",
-      "feedback": "Feedback",
+      "feedback": "Feedback​",
       "feedbackDesc": "Segnalare problemi/suggerimenti",
       "supportDev": "Supporta lo Sviluppo",
       "checkUpdate": "Controlla aggiornamenti",
@@ -947,7 +948,7 @@
       "enabledDesc": "Predefinito Jianguoyun, può essere modificato in qualsiasi servizio WebDAV.",
       "urlTitle": "Indirizzo del servizio",
       "urlDesc": "Indirizzo predefinito di Jianguoyun: https://dav.jianguoyun.com/dav/",
-      "usernameTitle": "Account",
+      "usernameTitle": "Account​",
       "usernameDesc": "Jianguoyun utilizza l'e-mail del tuo account.",
       "usernamePlaceholder": "E-mail o nome utente",
       "passwordTitle": "Password dell'applicazione",
@@ -1040,13 +1041,13 @@
       "authInvalid": "Credenziali non valide",
       "refreshFailed": "Aggiornamento non riuscito",
       "normal": "Normale",
-      "forbidden": "403",
+      "forbidden": "403​",
       "forbidden_tooltip": "API ha restituito 403 Forbidden, l'account non ha accesso a Gemini Code Assist",
       "forbidden_msg": "Account vietato, aggiornamento automatico saltato"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "Crediti IA"
@@ -1068,8 +1069,8 @@
     "filterLabel": "Filtra account",
     "filter": {
       "all": "Tutti ({{count}})",
-      "pro": "PRO ({{count}})",
-      "ultra": "ULTRA ({{count}})"
+      "pro": "PRO ({{count}})​",
+      "ultra": "ULTRA ({{count}})​"
     },
     "sortLabel": "Ordina",
     "sort": {
@@ -1312,7 +1313,7 @@
     "errors": {
       "title": "Dettagli errore",
       "empty": "Nessun dettaglio errore",
-      "account": "Account",
+      "account": "Account​",
       "code": "Codice errore",
       "time": "Avvenuto il"
     }
@@ -1340,7 +1341,7 @@
     "bindFailed": "Collegamento fallito: {{error}}",
     "jsonRequired": "Inserisci o incolla il contenuto JSON",
     "example": "Esempio",
-    "actionRunning": "{{action}}...",
+    "actionRunning": "{{action}}...​",
     "actionSuccess": "{{action}} riuscito",
     "actionFailed": "{{action}} non riuscito: {{error}}"
   },
@@ -1412,20 +1413,20 @@
     },
     "format": {
       "noReply": "(Nessuna risposta)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "gettoni={{prompt}}+{{completion}}={{total}}",
-      "traceId": "traceId={{traceId}}",
-      "detailJoiner": ", ",
-      "message": "[[{{model}}]]: {{reply}}{{suffix}}",
-      "none": "--",
+      "traceId": "traceId={{traceId}}​",
+      "detailJoiner": ", ​",
+      "message": "[[{{model}}]]: {{reply}}{{suffix}}​",
+      "none": "--​",
       "today": "Oggi {{time}}",
       "tomorrow": "Domani {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "Non selezionato",
-      "joiner": ", ",
+      "joiner": ", ​",
       "moreItems": "{{items}} ({{total}} elementi)",
       "quotaReset": "Risveglio al reset quota",
-      "crontab": "Crontab: {{expr}}",
+      "crontab": "Crontab: {{expr}}​",
       "daily": "Giornaliero {{times}}{{suffix}}",
       "weekly": "Settimanale {{days}} {{times}}{{suffix}}",
       "interval": "Ogni {{hours}} h ({{start}}-{{end}})",
@@ -1469,7 +1470,7 @@
     },
     "triggerSource": {
       "scheduled": "Programmato",
-      "crontab": "Crontab",
+      "crontab": "Crontab​",
       "quotaReset": "Reset quota",
       "manual": "Test immediato",
       "unknown": "Sconosciuto",
@@ -1497,7 +1498,7 @@
       "triggerMode": "Modalità di attivazione",
       "triggerModeHint": "1. Programmato: attiva a orari definiti.\n2. Crontab: definisci con un'espressione.\n3. Reset quota: attiva una volta quando la quota è piena.",
       "modeScheduled": "📅 Programmato",
-      "modeCrontab": "🧩 Crontab",
+      "modeCrontab": "🧩 Crontab​",
       "modeQuotaReset": "🔄 Reset quota",
       "antigravityVersion": "Versione Antigravity IDE",
       "modelSelect": "Selezione modelli",
@@ -1649,7 +1650,7 @@
         },
         "force": {
           "principle": "Identifica i processi tramite CODEX_HOME e li chiude forzatamente (SIGKILL / taskkill /F), quindi avvia l'istanza di destinazione.",
-          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"",
+          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"​",
           "commandWin": "Windows: taskkill /F /PID <pid> (corrispondenza CODEX_HOME)"
         }
       }
@@ -1710,11 +1711,11 @@
     },
     "exportFormat": {
       "label": "Formato di esportazione",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "Formato sub2api",
       "cpa": "Formato cpa",
       "downloadAll": "Scarica tutto",
-      "cpaCardTitle": "Account {{index}}",
+      "cpaCardTitle": "Account {{index}}​",
       "savedFolder": "Cartella salvata",
       "savedPath": "Percorso salvato"
     },
@@ -1812,7 +1813,7 @@
         "requests": "Richieste",
         "requestsDetail": "OK {{success}} / Errori {{failed}} / Annull. {{canceled}} / Monte {{upstreamFailed}} / Incompl. {{incomplete}}",
         "tokens": "Token",
-        "tokensDetail": "Input {{input}} / Output {{output}}",
+        "tokensDetail": "Input {{input}} / Output {{output}}​",
         "specialTokens": "Cache / Ragionamento",
         "specialTokensDetail": "Cache {{cached}} / Ragionamento {{reasoning}}",
         "avgLatency": "Latenza media",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} richieste",
         "accountTokens": "{{count}} token",
         "accountResult": "Successi {{success}} / Errori {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "Richieste immagine",
         "imagesDetail": "Genera {{generate}} / Modifica {{edit}} / Permesso {{blocked}}",
         "estimatedCost": "Valore stimato",
@@ -1885,7 +1886,7 @@
       "modelIdViewOnly": "Solo vista",
       "quotaPool": {
         "title": "Pool quota",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "Settimana",
         "viewFull": "Vedi statistiche complete",
         "modalTitle": "Pool quota del servizio API",
@@ -1908,7 +1909,7 @@
       "customRoutingWeightShort": "Peso",
       "customRoutingApplyBatch": "Applica ai selezionati",
       "customRoutingReset": "Ripristina",
-      "customRoutingAccountColumn": "Account",
+      "customRoutingAccountColumn": "Account​",
       "customRoutingQuotaColumn": "Disponibilità",
       "customRoutingEmpty": "Nessun account configurabile nella raccolta attuale del servizio API",
       "customRoutingSave": "Salva routing",
@@ -1958,7 +1959,7 @@
       },
       "testSuccessInline": "Test del servizio API riuscito",
       "gatewayModeLabel": "Modalita gateway",
-      "gatewayModeLegacyShort": "Legacy",
+      "gatewayModeLegacyShort": "Legacy​",
       "gatewayModeSidecarShort": "Nuovo",
       "gatewayModeNewLabel": "Servizio API-Nuovo",
       "gatewayModeOldLabel": "Servizio API-Vecchio",
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "Controlla la rete. La quota più recente non è stata recuperata. Aggiorna per riprovare."
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Mostra quota Code Review"
@@ -2034,7 +2035,7 @@
     "time": {
       "today": "Oggi {{time}}",
       "tomorrow": "Domani {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "Vista compatta"
@@ -2332,7 +2333,7 @@
         "addAndSwitch": "Aggiungi e passa"
       },
       "provider": {
-        "label": "Provider",
+        "label": "Provider​",
         "inlineLabel": "Fornitore: {{provider}}",
         "custom": "Personalizzato",
         "endpoint": "Endpoint del provider",
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "Modalità",
         "modelCatalog": "Catalogo modelli",
         "visionCapability": "Input immagini",
-        "visionModels": "Modelli visivi"
+        "visionModels": "Modelli visivi",
+        "visionRoutingModel": "Modello immagini"
       },
       "validation": {
         "nameRequired": "Il nome del provider è obbligatorio.",
@@ -2557,7 +2559,7 @@
         "models": "Endpoint modelli in errore",
         "parse": "Analisi risposta non riuscita",
         "httpStatus": "Stato {{status}}",
-        "message": "{{title}}: {{detail}}. {{suggestion}}"
+        "message": "{{title}}: {{detail}}. {{suggestion}}​"
       },
       "testSuggestion": {
         "addApiKey": "Aggiungi una API Key per questo provider prima del test.",
@@ -2584,13 +2586,14 @@
         "providerDefault": "Questo provider supporta le immagini per impostazione predefinita",
         "providerDefaultHint": "Se disattivato, solo i modelli elencati sotto possono ricevere immagini; gli altri vengono bloccati dal gateway locale.",
         "modelsHint": "Un modello per riga. Utile quando solo alcuni modelli del provider supportano immagini incollate.",
+        "routingModelHint": "Quando il modello attuale non legge immagini, la richiesta usa questo modello; vuoto usa automaticamente l'unico modello visivo.",
         "allModels": "Immagini",
         "partialModels": "Alcune immagini",
         "textOnly": "Solo testo"
       },
-      "sponsorRecommended": "Sponsor consigliati",
+      "sponsorRecommended": "Relay consigliato",
       "builtinProviders": "Provider integrati",
-      "sponsorHint": "L’URL del servizio compatibile consigliata dallo sponsor è stata compilata. Dopo aver inserito l’API Key, la scheda consulterà automaticamente saldo e utilizzo.",
+      "sponsorHint": "L’URL del servizio relay esclusivo è stata compilata. Dopo aver inserito l’API Key, la scheda consulterà automaticamente saldo e utilizzo.",
       "integration": {
         "sub2api": "Compatibile Sub2API",
         "newApi": "Compatibile New API"
@@ -2639,7 +2642,7 @@
       },
       "oauthBinding": {
         "desc": "Opzionale. Puoi collegare qualsiasi account OAuth con refresh_token. Senza collegamento, il provider continua con il flusso API Key originale.",
-        "currentProvider": "Provider: {{name}}"
+        "currentProvider": "Provider: {{name}}​"
       }
     },
     "quickSwitch": {
@@ -2691,7 +2694,7 @@
         "api": "Modalità API",
         "apiKey": "Chiave API",
         "apiService": "Servizio API",
-        "account": "Account"
+        "account": "Account​"
       }
     },
     "accountNote": {
@@ -2811,7 +2814,7 @@
         "allGatewayModes": "Tutte le modalita",
         "modelFilter": "Modello",
         "modelPlaceholder": "ID modello",
-        "accountFilter": "Account",
+        "accountFilter": "Account​",
         "accountPlaceholder": "Email o ID account",
         "apiKeyFilter": "Chiave API",
         "apiKeyPlaceholder": "Nome o ID",
@@ -2966,9 +2969,9 @@
       "totalAccounts": "Totale account"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "Distribuzione piani",
       "current": "Account attuale",
       "recommended": "Account consigliato",
@@ -3196,7 +3199,7 @@
     "password": {
       "desc": "Accedi con l’e-mail e la password del tuo account Windsurf per recuperare automaticamente API key e dati account.",
       "emailPlaceholder": "Indirizzo e-mail",
-      "passwordPlaceholder": "Password",
+      "passwordPlaceholder": "Password​",
       "empty": "Inserisci e-mail e password",
       "login": "Accedi",
       "logging": "Accesso in corso...",
@@ -3204,7 +3207,7 @@
       "failed": "Accesso non riuscito: {{error}}",
       "modeLabel": "Modalità",
       "modeSingle": "Singolo",
-      "modeBatch": "Batch",
+      "modeBatch": "Batch​",
       "batchDesc": "L’importazione batch supporta JSON o testo con un account per riga. In modalità testo è necessario specificare un delimitatore.",
       "batchInputModeLabel": "Formato",
       "batchInputModeJson": "Formato JSON",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "Spazio",
       "batchDelimiterComma": "Virgola",
       "batchDelimiterPipe": "Barra verticale",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "Personalizzato",
       "batchJsonDesc": "Incolla un array JSON in cui ogni elemento contiene email e password.",
       "batchTextDesc": "Inserisci un account per riga; il parsing segue rigorosamente il delimitatore selezionato.",
@@ -3237,7 +3240,7 @@
       "batchPartial": "{{success}} importati, {{failed}} non riusciti",
       "batchFailed": "Importazione batch non riuscita per {{failed}} account",
       "batchFailureEntryWithLine": "Elemento {{line}} ({{email}}): {{error}}",
-      "batchFailureEntry": "{{email}}: {{error}}",
+      "batchFailureEntry": "{{email}}: {{error}}​",
       "batchFailureMore": "{{count}} altri non riusciti"
     },
     "oauth": {
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} usato / {{total}} totale",
       "planUsageCoveredLine": "{{used}} usato / {{total}} coperto nel piano",
       "expiryDays": "{{days}} giorni",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "Ripristina presto",
       "resetInHours": "Si ripristina tra {{hours}}h",
       "resetInMinutes": "Si ripristina tra {{minutes}}m"
@@ -3306,11 +3309,11 @@
       "estUsage": "Est. Utilizzo"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "Sconosciuto"
     },
     "flowNotice": {
@@ -3389,7 +3392,7 @@
     "startHint": "Clicca Avvia o premi Spazio",
     "rankTitle": "Classifica storica locale",
     "rankCurrent": "Attuale",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "Ricomincia",
     "pause": "Pausa",
     "resume": "Riprendi",
@@ -3412,7 +3415,7 @@
     "rankingShort": "Locale",
     "rankingEmpty": "Nessun record locale",
     "rankingClear": "Cancella classifica locale",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "Minimizza",
     "resumeGameNav": "Riprendi partita",
     "closeConfirmTitle": "Terminare questa partita?",
@@ -3759,9 +3762,9 @@
       "leftOfTotal": "Residuo / Totale",
       "usage": "Usato",
       "usageResets": "Reset utilizzo",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
-      "resetAtWithRelative": "{{absolute}} ({{relative}})"
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
+      "resetAtWithRelative": "{{absolute}} ({{relative}})​"
     },
     "tierText": {
       "pro": "Gemini Code Assist su Google One AI Pro",
@@ -3779,8 +3782,8 @@
       "permission": "Ambito autorizzazioni: leggere il database di autenticazione CodeBuddy (state.vscdb), chiamare le capacita credenziali del sistema (Portachiavi macOS / DPAPI Windows / Secret Service Linux) per decrittografia e riscrittura.",
       "network": "Ambito rete: laccesso OAuth e il rinnovo del token richiedono richieste a codebuddy.ai; le query quota chiamano le API di fatturazione. Nessuna chiave locale o credenziale viene caricata."
     },
-    "nickname": "Nickname",
-    "enterprise": "Enterprise",
+    "nickname": "Nickname​",
+    "enterprise": "Enterprise​",
     "usage": "Stato utilizzo",
     "creditsBalance": "Saldo crediti",
     "usageNormal": "Stato normale",
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "Panoramica utilizzo",
       "viewDetails": "Vedi dettagli",
       "includedCredits": "Crediti inclusi nel piano",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "Esegui l'upgrade del piano per aumentare la quota mensile",
       "upgradeAction": "Aggiorna piano"
     },
@@ -3989,8 +3992,8 @@
       "permission": "Ambito autorizzazioni: leggere e scrivere il file di accesso WorkBuddy (CodeBuddyExtension/Data/Public/auth/workbuddy-desktop.info) per importazione locale e cambio account; il vecchio state.vscdb non viene più letto né modificato.",
       "network": "Ambito rete: l'accesso OAuth e il rinnovo del token richiedono richieste a WorkBuddy; le query quota chiamano le API di fatturazione. I file di accesso locali e le credenziali grezze non vengono caricati."
     },
-    "nickname": "Nickname",
-    "enterprise": "Enterprise",
+    "nickname": "Nickname​",
+    "enterprise": "Enterprise​",
     "usage": "Stato utilizzo",
     "creditsBalance": "Saldo crediti",
     "usageNormal": "Stato normale",
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "Check-in giornaliero",
@@ -4187,7 +4190,7 @@
     "plan": "Piano",
     "cycle": "Ciclo",
     "status": "Stato",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "Consigliato"
     },
@@ -4321,5 +4324,130 @@
     "copyCode": "Copia codice",
     "copied": "Copiato",
     "refreshIn": "{{time}} s"
+  },
+  "relay": {
+    "pageTitle": "Relay esclusivo",
+    "pageDesc": "Servizio API partner per gli utenti di Cockpit Tools, utilizzabile con account API Key Codex.",
+    "loading": "Caricamento relay...",
+    "emptyTitle": "Relay disattivato",
+    "emptyDesc": "La configurazione remota non ha abilitato il relay esclusivo.",
+    "defaultDescription": "Servizio relay API partner.",
+    "getApiKey": "Ottieni API Key",
+    "configTitle": "Abilita in Codex",
+    "apiKeyLabel": "Chiave API",
+    "apiKeyPlaceholder": "Incolla l’API Key del relay",
+    "apiKeyRequired": "Inserisci una API Key.",
+    "baseUrl": "URL API",
+    "protocol": "Protocollo",
+    "vision": "Immagini",
+    "testConnection": "Test connessione",
+    "saveAndEnable": "Salva e abilita",
+    "goCodex": "Vai a Codex",
+    "statusUnavailable": "La configurazione del relay non è disponibile.",
+    "testing": "Test connessione...",
+    "testSuccess": "Test riuscito. Questa API Key può essere usata con il relay.",
+    "testFailed": "Test connessione non riuscito.",
+    "saving": "Salvataggio e abilitazione in Codex...",
+    "saveSuccess": "Configurazione relay salvata. Puoi usarla nella pagina account Codex.",
+    "saveFailed": "Salvataggio della configurazione relay non riuscito.",
+    "savedProvider": "Provider salvato: {{name}}",
+    "modelsTitle": "Modelli supportati",
+    "modelsEmpty": "Nessun elenco fisso di modelli è configurato da remoto. Dopo il salvataggio, Codex userà le capacità del servizio."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Intermediario",
+    "title": "Relay APIKEY.FUN",
+    "description": "Il relay ufficiale di Cockpit offre accesso API stabile, aperto e conveniente ai grandi modelli. Supporta modelli principali come Claude, OpenAI e Gemini ed è adatto a una configurazione unificata in Codex, Gemini CLI, Claude Code e altri strumenti di sviluppo. Registrandoti tramite il link esclusivo Cockpit, puoi ottenere uno sconto permanente fino al 5% sulle ricariche.",
+    "register": "Link esclusivo",
+    "docs": "Doc ufficiali",
+    "viewNow": "Vedi ora",
+    "queryTitle": "Quota chiave",
+    "queryDesc": "Inserisci una API Key APIKEY.FUN per controllare automaticamente la quota.",
+    "keyNotSet": "Nessuna chiave",
+    "apiKeyLabel": "Chiave API",
+    "apiKeyPlaceholder": "Incolla la API Key creata nella console APIKEY.FUN",
+    "hideKey": "Nascondi",
+    "showKey": "Mostra",
+    "endpointLabel": "Punto finale",
+    "protocolLabel": "Protocollo Codex",
+    "queryUsage": "Controlla quota",
+    "querying": "Controllo",
+    "saveToCodex": "Scrivi in Codex",
+    "saving": "Scrittura",
+    "saveSuccess": "Scritto in Codex Provider: {{name}}",
+    "toolsTitle": "Scrivi config client",
+    "toolsDesc": "Scrive direttamente i file di configurazione locali seguendo la documentazione APIKEY.FUN e il layout di CC Switch.",
+    "endpoint": {
+      "global": "Globale rete",
+      "globalDesc": "API Base ufficiale predefinita per la maggior parte delle reti.",
+      "direct": "Linea diretta",
+      "directDesc": "Per scenari sensibili alla latenza."
+    },
+    "wireApi": {
+      "responses": "Protocollo Responses",
+      "responsesDesc": "Preferito per Codex, usa direttamente il protocollo OpenAI Responses.",
+      "chatCompletions": "Protocollo Chat Completions",
+      "chatCompletionsDesc": "Compatibilità tramite gateway locale."
+    },
+    "usage": {
+      "remaining": "Residuo",
+      "used": "Usato",
+      "todayRequests": "Oggi",
+      "todayTokens": "Token oggi",
+      "totalRequests": "Richieste totali",
+      "totalTokens": "Token totali"
+    },
+    "tool": {
+      "codexTitle": "Provider Codex",
+      "codexDesc": "Scrive un Provider con la Base URL /v1 dell’endpoint corrente.",
+      "envTitle": "Ambiente",
+      "envDesc": "Riferimento per Claude Code, Gemini CLI, Hermes e altri ingressi compatibili OpenAI.",
+      "curlTitle": "Script API",
+      "curlDesc": "Verifica rapidamente una richiesta compatibile Chat Completions."
+    },
+    "docTool": {
+      "codex": "Può essere scritto direttamente in Codex Provider.",
+      "claudeCode": "Copia parametri compatibili Anthropic Messages.",
+      "geminiCli": "Copia Base URL compatibile OpenAI e API Key.",
+      "traeSolo": "Copia i parametri relay richiesti dalla documentazione ufficiale.",
+      "openClaw": "Copia parametri di connessione compatibili OpenAI.",
+      "hermes": "Copia parametri per la pagina modelli Hermes.",
+      "apiScript": "Copia parametri base per script."
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Scrive ~/.codex/config.toml e auth.json con protocollo Responses e API Key corrente.",
+      "geminiTitle": "Config Gemini CLI",
+      "geminiDesc": "Scrive ~/.gemini/.env e imposta in settings.json la modalità auth gemini-api-key.",
+      "openclawTitle": "Config OpenClaw",
+      "openclawDesc": "Scrive models.providers.apikeyfun in ~/.openclaw/openclaw.json.",
+      "hermesTitle": "Config Hermes",
+      "hermesDesc": "Scrive custom_providers in ~/.hermes/config.yaml e passa al modello predefinito apikeyfun.",
+      "button": "Scrivi config",
+      "applying": "Scrittura",
+      "success": "File di configurazione scritti: {{paths}}",
+      "failed": "Scrittura config non riuscita: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "Inserisci una API Key.",
+      "queryFailed": "Controllo quota non riuscito: {{error}}",
+      "saveFailed": "Scrittura non riuscita: {{error}}"
+    },
+    "keyManager": {
+      "title": "Gestione chiavi",
+      "desc": "Salva le API Key per cambiare rapidamente e controllare automaticamente la quota.",
+      "saveButton": "Salva chiave",
+      "savedButton": "Salvata",
+      "empty": "Nessuna chiave salvata.",
+      "lastRemaining": "Saldo precedente {{value}}",
+      "notQueried": "Non controllata",
+      "deleteButton": "Elimina",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "Aggiunta il {{time}}",
+      "saveFlash": "Appena salvata"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

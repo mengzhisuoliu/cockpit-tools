@@ -297,8 +297,10 @@ async fn apply_bound_account_to_initialized_profile(
     } else {
         modules::codex_local_access::cleanup_provider_gateway_profile_model_overrides(profile_dir)?;
     }
-    let launch_provider_change =
-        build_launch_credential_change(previous_provider, read_launch_provider_for_dir(profile_dir));
+    let launch_provider_change = build_launch_credential_change(
+        previous_provider,
+        read_launch_provider_for_dir(profile_dir),
+    );
     repair_session_visibility_before_launch(context, &launch_provider_change)?;
     Ok(launch_provider_change.and_then(|change| change.credential_change))
 }
@@ -699,8 +701,7 @@ pub async fn codex_update_instance(
     app_speed: Option<CodexAppSpeed>,
     auto_sync_threads: Option<bool>,
 ) -> Result<CodexInstanceProfileView, String> {
-    let should_apply_bind_account =
-        bind_account_id.is_some() || follow_local_account.is_some();
+    let should_apply_bind_account = bind_account_id.is_some() || follow_local_account.is_some();
     if instance_id == DEFAULT_INSTANCE_ID {
         let default_dir = modules::codex_instance::get_default_codex_home()?;
         let mut updated = modules::codex_instance::update_default_settings(
@@ -788,8 +789,10 @@ pub async fn codex_update_instance(
     } else {
         None
     };
-    Ok(CodexInstanceProfileView::from_profile(instance, running, initialized)
-        .with_launch_credential_change(launch_credential_change))
+    Ok(
+        CodexInstanceProfileView::from_profile(instance, running, initialized)
+            .with_launch_credential_change(launch_credential_change),
+    )
 }
 
 #[tauri::command]

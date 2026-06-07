@@ -108,6 +108,10 @@ pub struct TopRightAdLocale {
 #[serde(rename_all = "camelCase")]
 pub struct TopRightAd {
     pub id: String,
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default)]
+    pub relay_related: bool,
     #[serde(default)]
     pub priority: i64,
     pub text: String,
@@ -235,6 +239,10 @@ struct AnnouncementResponse {
     pub announcements: Vec<Announcement>,
     #[serde(default)]
     pub top_right_ad: Option<TopRightAd>,
+    #[serde(default = "default_true")]
+    pub api_relay_enabled: bool,
+    #[serde(default = "default_true")]
+    pub top_right_ads_enabled: bool,
     #[serde(default)]
     pub top_right_ads: Vec<TopRightAd>,
     #[serde(default)]
@@ -363,6 +371,8 @@ fn load_cache() -> Result<Option<AnnouncementCache>, String> {
                 version: String::new(),
                 announcements: legacy.data,
                 top_right_ad: None,
+                api_relay_enabled: default_true(),
+                top_right_ads_enabled: default_true(),
                 top_right_ads: Vec::new(),
                 sponsor_module: None,
             },
@@ -655,7 +665,15 @@ fn filter_top_right_ad_item(
     mut item: TopRightAd,
     current_version: &str,
     locale: &str,
+    api_relay_enabled: bool,
 ) -> Option<TopRightAd> {
+    if !item.enabled {
+        return None;
+    }
+    if item.relay_related && !api_relay_enabled {
+        return None;
+    }
+
     let target_versions = if item.target_versions.trim().is_empty() {
         "*"
     } else {
@@ -686,18 +704,22 @@ fn filter_top_right_ad(
     ad: Option<TopRightAd>,
     current_version: &str,
     locale: &str,
+    api_relay_enabled: bool,
 ) -> Option<TopRightAd> {
-    filter_top_right_ad_item(ad?, current_version, locale)
+    filter_top_right_ad_item(ad?, current_version, locale, api_relay_enabled)
 }
 
 fn filter_top_right_ads(
     ads: Vec<TopRightAd>,
     current_version: &str,
     locale: &str,
+    api_relay_enabled: bool,
 ) -> Vec<TopRightAd> {
     let mut filtered: Vec<TopRightAd> = ads
         .into_iter()
-        .filter_map(|item| filter_top_right_ad_item(item, current_version, locale))
+        .filter_map(|item| {
+            filter_top_right_ad_item(item, current_version, locale, api_relay_enabled)
+        })
         .collect();
 
     filtered.sort_by(|a, b| {
@@ -924,8 +946,25 @@ pub async fn get_top_right_ad_state() -> Result<TopRightAdState, String> {
     let current_version = env!("CARGO_PKG_VERSION");
     let locale = config::get_user_config().language.to_lowercase();
     let raw_payload = load_announcements_raw().await?;
-    let ad = filter_top_right_ad(raw_payload.top_right_ad, current_version, &locale);
-    let ads = filter_top_right_ads(raw_payload.top_right_ads, current_version, &locale);
+    if !raw_payload.top_right_ads_enabled {
+        return Ok(TopRightAdState {
+            ad: None,
+            ads: Vec::new(),
+        });
+    }
+
+    let ad = filter_top_right_ad(
+        raw_payload.top_right_ad,
+        current_version,
+        &locale,
+        raw_payload.api_relay_enabled,
+    );
+    let ads = filter_top_right_ads(
+        raw_payload.top_right_ads,
+        current_version,
+        &locale,
+        raw_payload.api_relay_enabled,
+    );
     Ok(TopRightAdState { ad, ads })
 }
 
@@ -933,6 +972,11 @@ pub async fn get_sponsor_module_state() -> Result<SponsorModuleState, String> {
     let current_version = env!("CARGO_PKG_VERSION");
     let locale = config::get_user_config().language.to_lowercase();
     let raw_payload = load_announcements_raw().await?;
+    if !raw_payload.api_relay_enabled {
+        return Ok(SponsorModuleState {
+            sponsor_module: None,
+        });
+    }
     let sponsor_module =
         filter_sponsor_module(raw_payload.sponsor_module, current_version, &locale);
     Ok(SponsorModuleState { sponsor_module })

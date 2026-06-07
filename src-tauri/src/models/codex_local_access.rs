@@ -360,6 +360,8 @@ pub struct CodexLocalAccessProviderGateway {
     #[serde(default, skip_serializing_if = "std::collections::HashMap::is_empty")]
     pub model_capabilities:
         std::collections::HashMap<String, CodexLocalAccessProviderGatewayModelCapability>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub vision_routing_model: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

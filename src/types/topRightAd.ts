@@ -1,5 +1,7 @@
 export interface TopRightAd {
   id: string;
+  enabled: boolean;
+  relayRelated: boolean;
   priority: number;
   text: string;
   badge?: string | null;

@@ -97,13 +97,14 @@ type apiKeySpec struct {
 }
 
 type providerGatewaySpec struct {
-	BaseURL           string                                    `json:"baseUrl"`
-	APIKey            string                                    `json:"apiKey"`
-	UpstreamModel     string                                    `json:"upstreamModel"`
-	UpstreamModels    []string                                  `json:"upstreamModels,omitempty"`
-	WireAPI           string                                    `json:"wireApi,omitempty"`
-	SupportsVision    bool                                      `json:"supportsVision,omitempty"`
-	ModelCapabilities map[string]providerGatewayModelCapability `json:"modelCapabilities,omitempty"`
+	BaseURL            string                                    `json:"baseUrl"`
+	APIKey             string                                    `json:"apiKey"`
+	UpstreamModel      string                                    `json:"upstreamModel"`
+	UpstreamModels     []string                                  `json:"upstreamModels,omitempty"`
+	WireAPI            string                                    `json:"wireApi,omitempty"`
+	SupportsVision     bool                                      `json:"supportsVision,omitempty"`
+	ModelCapabilities  map[string]providerGatewayModelCapability `json:"modelCapabilities,omitempty"`
+	VisionRoutingModel string                                    `json:"visionRoutingModel,omitempty"`
 }
 
 type providerGatewayModelCapability struct {
@@ -377,6 +378,7 @@ func loadManifest(path string) (*manifest, error) {
 			gateway.APIKey = strings.TrimSpace(gateway.APIKey)
 			gateway.UpstreamModel = strings.TrimSpace(gateway.UpstreamModel)
 			gateway.UpstreamModels = normalizeStringList(gateway.UpstreamModels)
+			gateway.VisionRoutingModel = strings.TrimSpace(gateway.VisionRoutingModel)
 			if len(gateway.UpstreamModels) == 0 && gateway.UpstreamModel != "" {
 				gateway.UpstreamModels = []string{gateway.UpstreamModel}
 			}
@@ -977,6 +979,63 @@ func providerGatewayModelCapabilityOverridesVision(gateway *providerGatewaySpec,
 	return capability.SupportsVision, true
 }
 
+func providerGatewayVisionRoutingModel(gateway *providerGatewaySpec) string {
+	if gateway == nil {
+		return ""
+	}
+	model := strings.TrimSpace(gateway.VisionRoutingModel)
+	if model != "" && len(gateway.UpstreamModels) > 0 {
+		matched := ""
+		for _, upstreamModel := range gateway.UpstreamModels {
+			if strings.EqualFold(model, upstreamModel) {
+				matched = upstreamModel
+				break
+			}
+		}
+		if matched == "" {
+			return ""
+		}
+		model = matched
+	}
+	if model != "" && providerGatewayModelSupportsVision(gateway, model) {
+		return model
+	}
+	if model != "" {
+		return ""
+	}
+	visionModel := ""
+	for rawModel, capability := range gateway.ModelCapabilities {
+		if !capability.SupportsVision {
+			continue
+		}
+		model = strings.TrimSpace(rawModel)
+		if model == "" {
+			continue
+		}
+		if len(gateway.UpstreamModels) > 0 {
+			matched := ""
+			for _, upstreamModel := range gateway.UpstreamModels {
+				if strings.EqualFold(model, upstreamModel) {
+					matched = upstreamModel
+					break
+				}
+			}
+			if matched == "" {
+				continue
+			}
+			model = matched
+		}
+		if visionModel != "" && !strings.EqualFold(visionModel, model) {
+			return ""
+		}
+		visionModel = model
+	}
+	if visionModel != "" && providerGatewayModelSupportsVision(gateway, visionModel) {
+		return visionModel
+	}
+	return ""
+}
+
 func providerGatewayRequestHasVisionInput(body []byte) bool {
 	if len(body) == 0 || !json.Valid(body) {
 		return false
@@ -1010,68 +1069,6 @@ func providerGatewayValueHasVisionInput(value any) bool {
 		}
 	}
 	return false
-}
-
-func providerGatewayUnsupportedVisionPlaceholder(model string) string {
-	model = strings.TrimSpace(model)
-	if model == "" {
-		model = "current model"
-	}
-	return fmt.Sprintf("[Image omitted: %s does not support image input.]", model)
-}
-
-func providerGatewayOmitUnsupportedVisionInput(body []byte, model string) ([]byte, int) {
-	if len(body) == 0 || !json.Valid(body) {
-		return body, 0
-	}
-	var payload any
-	if err := json.Unmarshal(body, &payload); err != nil {
-		return body, 0
-	}
-	next, count := providerGatewayOmitUnsupportedVisionValue(payload, providerGatewayUnsupportedVisionPlaceholder(model))
-	if count == 0 {
-		return body, 0
-	}
-	encoded, err := json.Marshal(next)
-	if err != nil {
-		return body, 0
-	}
-	return encoded, count
-}
-
-func providerGatewayOmitUnsupportedVisionValue(value any, placeholder string) (any, int) {
-	switch typed := value.(type) {
-	case map[string]any:
-		if typ, _ := typed["type"].(string); strings.EqualFold(strings.TrimSpace(typ), "input_image") {
-			return map[string]any{"type": "input_text", "text": placeholder}, 1
-		} else if strings.EqualFold(strings.TrimSpace(typ), "image_url") {
-			return map[string]any{"type": "text", "text": placeholder}, 1
-		}
-		if _, ok := typed["image_url"]; ok {
-			return map[string]any{"type": "input_text", "text": placeholder}, 1
-		}
-		count := 0
-		for key, child := range typed {
-			nextChild, childCount := providerGatewayOmitUnsupportedVisionValue(child, placeholder)
-			if childCount > 0 {
-				typed[key] = nextChild
-				count += childCount
-			}
-		}
-		return typed, count
-	case []any:
-		count := 0
-		for index, child := range typed {
-			nextChild, childCount := providerGatewayOmitUnsupportedVisionValue(child, placeholder)
-			if childCount > 0 {
-				typed[index] = nextChild
-				count += childCount
-			}
-		}
-		return typed, count
-	default:
-		return value, 0
-	}
 }
 
 func stripModelPrefix(model string, spec *apiKeySpec) string {
@@ -2970,18 +2967,23 @@ func (s *relayServer) handleProviderGatewayRequest(c *gin.Context, gateway *prov
 		}
 	}
 	if providerGatewayRequestHasVisionInput(body) && !supportsVision {
-		var omitted int
-		body, omitted = providerGatewayOmitUnsupportedVisionInput(body, upstreamModel)
+		visionRoutingModel := providerGatewayVisionRoutingModel(gateway)
+		if strings.TrimSpace(visionRoutingModel) == "" {
+			writeAPIError(c, http.StatusBadRequest, fmt.Sprintf("model %s does not support image input", upstreamModel), "unsupported_image_input")
+			return
+		}
+		originalModel := upstreamModel
+		upstreamModel = visionRoutingModel
 		if s.emitter != nil {
 			s.emitter.emit(requestDiagnosticPayload{
-				Type:         "provider_gateway_vision_omitted",
+				Type:         "provider_gateway_vision_routed",
 				RequestID:    internallogging.GetRequestID(c.Request.Context()),
 				Method:       c.Request.Method,
 				Path:         requestPath(c.Request),
 				RequestKind:  requestKindFromPath(requestPath(c.Request)),
 				Model:        upstreamModel,
 				Transport:    diagnosticTransport(c.Request),
-				ErrorMessage: fmt.Sprintf("omitted %d image input(s) because model %s does not support image input", omitted, upstreamModel),
+				ErrorMessage: fmt.Sprintf("routed image input from %s to %s", originalModel, upstreamModel),
 			})
 		}
 	}

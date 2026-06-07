@@ -85,6 +85,7 @@ import {
   findCodexApiProviderPresetById,
   resolveCodexApiProviderPresetId,
 } from "../../utils/codexProviderPresets";
+import { normalizeApiKeyFunOfficialUrl } from "../../utils/apikeyFunLinks";
 import {
   getCodexPlanFilterKey,
   getCodexSubscriptionPresentation,
@@ -172,7 +173,7 @@ function isSponsorProvider(
   provider: CodexModelProvider,
   sponsorTemplates: SponsorProviderTemplate[],
 ): boolean {
-  if (provider.sourceTag?.startsWith("sponsor:")) {
+  if (provider.sourceTag) {
     return sponsorTemplates.some((template) => template.id === provider.sourceTag);
   }
   const normalizedBaseUrl = normalizeCodexModelProviderBaseUrl(provider.baseUrl);
@@ -259,6 +260,7 @@ interface ProviderFormState {
   modelCatalogText: string;
   supportsVision: boolean;
   visionModelText: string;
+  visionRoutingModel: string;
   website: string;
   apiKeyUrl: string;
   wireApi: CodexProviderWireApi;
@@ -275,6 +277,7 @@ const EMPTY_FORM: ProviderFormState = {
   modelCatalogText: "",
   supportsVision: false,
   visionModelText: "",
+  visionRoutingModel: "",
   website: "",
   apiKeyUrl: "",
   wireApi: "responses",
@@ -460,14 +463,14 @@ export function CodexModelProviderManager({
         continue;
       }
       templates.push({
-        id: `sponsor:${sponsor.id}`,
+        id: `relay:${sponsor.id}`,
         sponsor,
         name: sponsor.name,
         baseUrl: integration.baseUrl.trim(),
         modelCatalog: integration.models ?? [],
         supportsVision: integration.supportsVision === true,
-        website: integration.website?.trim() || sponsor.url?.trim() || "",
-        apiKeyUrl: integration.apiKeyUrl?.trim() || sponsor.url?.trim() || "",
+        website: normalizeApiKeyFunOfficialUrl(integration.website || sponsor.url),
+        apiKeyUrl: normalizeApiKeyFunOfficialUrl(integration.apiKeyUrl || sponsor.url),
         wireApi: integration.wireApi ?? null,
         integrationType: integration.type ?? null,
       });
@@ -834,6 +837,7 @@ export function CodexModelProviderManager({
       modelCatalogText: (provider.modelCatalog ?? []).join("\n"),
       supportsVision: provider.supportsVision === true,
       visionModelText: visionModelTextFromCapabilities(provider.modelCapabilities),
+      visionRoutingModel: provider.visionRoutingModel ?? "",
       website: provider.website ?? "",
       apiKeyUrl: provider.apiKeyUrl ?? "",
       wireApi: resolvedWireApi,
@@ -880,6 +884,7 @@ export function CodexModelProviderManager({
         modelCatalogText: (preset.modelCatalog ?? []).join("\n"),
         supportsVision: false,
         visionModelText: "",
+        visionRoutingModel: "",
         website: preset.website ?? "",
         apiKeyUrl: preset.apiKeyUrl ?? "",
         wireApi,
@@ -904,6 +909,7 @@ export function CodexModelProviderManager({
         modelCatalogText: template.modelCatalog.join("\n"),
         supportsVision: template.supportsVision,
         visionModelText: "",
+        visionRoutingModel: "",
         website: template.website,
         apiKeyUrl: template.apiKeyUrl,
         wireApi,
@@ -1032,6 +1038,7 @@ export function CodexModelProviderManager({
     const newApiKey = form.newApiKey.trim();
     const modelCatalog = parseModelCatalogText(form.modelCatalogText);
     const modelCapabilities = parseVisionModelText(form.visionModelText);
+    const visionRoutingModel = form.visionRoutingModel.trim();
     const isCreate = !form.providerId;
     const existingKeyCount = currentEditingProvider?.apiKeys.length ?? 0;
 
@@ -1080,6 +1087,7 @@ export function CodexModelProviderManager({
           modelCatalog,
           supportsVision: form.supportsVision,
           modelCapabilities,
+          visionRoutingModel,
           website: form.website,
           apiKeyUrl: form.apiKeyUrl,
           wireApi: form.wireApi,
@@ -1096,6 +1104,7 @@ export function CodexModelProviderManager({
           modelCatalog,
           supportsVision: form.supportsVision,
           modelCapabilities,
+          visionRoutingModel,
           website: form.website,
           apiKeyUrl: form.apiKeyUrl,
           wireApi: form.wireApi,
@@ -1633,6 +1642,7 @@ export function CodexModelProviderManager({
               capability.supportsVision === true,
             ]),
           ),
+          provider.visionRoutingModel,
           undefined,
           wireApi,
         );
@@ -2257,11 +2267,6 @@ export function CodexModelProviderManager({
                   <span className="account-email" title={provider.name}>
                     {provider.name}
                   </span>
-                  <span
-                    className={`tier-badge ${sponsorProvider ? "sponsor-api" : "new-api-exclusive"}`}
-                  >
-                    {(provider.name || "API_KEY").toUpperCase()}
-                  </span>
                 </div>
                 <div className="account-sub-line">
                   {provider.apiKeys.length > 0 && primaryApiKey ? (
@@ -2520,10 +2525,11 @@ export function CodexModelProviderManager({
                       <button
                         className="card-action-btn"
                         onClick={() => {
-                          const targetUrl =
+                          const targetUrl = normalizeApiKeyFunOfficialUrl(
                             provider.website ||
                             provider.apiKeyUrl ||
-                            provider.baseUrl;
+                            provider.baseUrl,
+                          );
                           if (!targetUrl) return;
                           window.open(targetUrl, "_blank", "noopener,noreferrer");
                         }}
@@ -2677,7 +2683,7 @@ export function CodexModelProviderManager({
                   <p className="api-provider-hint">
                     {t(
                       "codex.modelProviders.sponsorHint",
-                      "已按赞助商推荐自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
+                      "已按专属中转站配置自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
                     )}
                   </p>
                   <div className="api-provider-links">
@@ -2858,16 +2864,39 @@ export function CodexModelProviderManager({
                       placeholder={"qwen-vl-plus\ngpt-4o"}
                       disabled={saving}
                     />
-                    <p className="api-provider-hint">
-                      {t(
-                        "codex.modelProviders.vision.modelsHint",
-                        "每行一个模型名。适合同一供应商里只有部分视觉模型支持粘贴图片的情况。",
-                      )}
-                    </p>
-                  </div>
                   <p className="api-provider-hint">
                     {t(
-                      "codex.modelProviders.gatewayHint",
+                      "codex.modelProviders.vision.modelsHint",
+                      "每行一个模型名。适合同一供应商里只有部分视觉模型支持粘贴图片的情况。",
+                    )}
+                  </p>
+                </div>
+                <div className="form-group">
+                  <label>
+                    {t(
+                      "codex.modelProviders.fields.visionRoutingModel",
+                      "图片请求默认模型",
+                    )}
+                  </label>
+                  <input
+                    className="form-input"
+                    value={form.visionRoutingModel}
+                    onChange={(event) =>
+                      mutateForm({ visionRoutingModel: event.target.value })
+                    }
+                    placeholder={"mimo-v2.5"}
+                    disabled={saving}
+                  />
+                  <p className="api-provider-hint">
+                    {t(
+                      "codex.modelProviders.vision.routingModelHint",
+                      "当前模型不支持图片时，带图片的请求会改用该模型；留空则直接提示不支持。",
+                    )}
+                  </p>
+                </div>
+                <p className="api-provider-hint">
+                  {t(
+                    "codex.modelProviders.gatewayHint",
                       "第三方供应商启动时会使用本地网关隔离实例并完成协议转换；OpenAI 官方供应商保持直连。",
                     )}
                   </p>
@@ -3725,8 +3754,9 @@ export function CodexModelProviderManager({
             variant: "secondary",
             icon: <ExternalLink size={14} />,
             onClick: () => {
-              const targetUrl =
-                provider.website || provider.apiKeyUrl || provider.baseUrl;
+              const targetUrl = normalizeApiKeyFunOfficialUrl(
+                provider.website || provider.apiKeyUrl || provider.baseUrl,
+              );
               if (!targetUrl) return;
               window.open(targetUrl, "_blank", "noopener,noreferrer");
             },

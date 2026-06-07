@@ -10,6 +10,7 @@ import { useCodexAccountStore } from "../stores/useCodexAccountStore";
 import { isCodexApiKeyAccount, type CodexAccount } from "../types/codex";
 import {
   CODEX_API_SERVICE_BIND_ID,
+  CODEX_PROVIDER_GATEWAY_BIND_PREFIX,
   type CodexLaunchCredentialChange,
   type CodexLaunchCredentialType,
   type InstanceProfile,
@@ -316,8 +317,13 @@ export function CodexInstancesContent({
     const launchInfo = await codexInstanceService.getCodexInstanceLaunchCommand(
       instance.id,
     );
-    const boundAccount = instance.bindAccountId
-      ? accountMap.get(instance.bindAccountId)
+    const boundAccountId = instance.bindAccountId?.startsWith(
+      CODEX_PROVIDER_GATEWAY_BIND_PREFIX,
+    )
+      ? instance.bindAccountId.slice(CODEX_PROVIDER_GATEWAY_BIND_PREFIX.length)
+      : instance.bindAccountId;
+    const boundAccount = boundAccountId
+      ? accountMap.get(boundAccountId)
       : undefined;
     const accountLabel =
       instance.bindAccountId === CODEX_API_SERVICE_BIND_ID

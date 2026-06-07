@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}}時間",
         "relativeHoursMinutes": "{{hours}}時間{{minutes}}分",
         "relativeMinutes": "{{minutes}}分",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "残り {{left}}",
@@ -218,7 +218,7 @@
       "desc": "このエリアは全ページの右上に固定表示され、キャンペーン情報やブランド広告の掲載に適しています。",
       "action": "詳細を見る"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "折りたたむ",
     "confirmDelete": "削除を確認",
     "confirmDeleteTag": "タグ削除の確認",
@@ -228,13 +228,13 @@
     "selectAll": "すべて選択"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "アカウント管理",
     "wakeup": "ウェイクアップタスク",
     "settings": "設定",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
     "dashboard": "ダッシュボード",
     "morePlatforms": "その他のプラットフォーム",
     "instances": "マルチインスタンス",
@@ -244,11 +244,11 @@
       "restart": "再起動",
       "installing": "インストール中"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Zed プラットフォーム",
     "expandSidebar": "サイドバーを展開",
     "collapseSidebar": "サイドバーを折りたたむ",
@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "クラシックレイアウトでは、プラットフォームナビゲーションをすべて表示し、サイドバーの折りたたみに対応します。設定 > 一般 > サイドバーレイアウト からいつでも戻せます。",
     "switchClassicLayoutDontAskAgain": "この案内を今後表示しない",
     "switchClassicLayoutConfirm": "今すぐ切り替える",
-    "2faManager": "2FA管理"
+    "2faManager": "2FA管理",
+    "apiRelay": "リレー"
   },
   "sponsors": {
     "pageTitle": "スポンサー",
@@ -520,7 +521,7 @@
       "force": {
         "title": "強制再起動",
         "principle": "--user-data-dir でプロセスを一致させて強制終了（SIGKILL / taskkill /F）し、その後ターゲットインスタンスを起動します。",
-        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"",
+        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"​",
         "commandWin": "Windows: taskkill /F /PID <pid> (--user-data-dir に一致するもの)",
         "pros": "特定のインスタンスを正確に再起動できます。",
         "cons": "「予期しない終了」警告が出る可能性があり、未保存のデータ紛失リスクがあります。"
@@ -813,7 +814,7 @@
       "proxyUrlRequired": "グローバルプロキシを有効にする場合、プロキシ URL は必須です。"
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "プロフェッショナルなアカウント管理ソリューション",
       "author": "著者",
       "wechat": "WeChat 公衆号",
@@ -1040,13 +1041,13 @@
       "authInvalid": "無効な認証情報",
       "refreshFailed": "更新に失敗しました",
       "normal": "通常",
-      "forbidden": "403",
+      "forbidden": "403​",
       "forbidden_tooltip": "APIが403 Forbiddenを返しました。アカウントはGemini Code Assistにアクセスできません",
       "forbidden_msg": "アカウント禁止、自動更新をスキップしました"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "AI クレジット"
@@ -1412,20 +1413,20 @@
     },
     "format": {
       "noReply": "(返信なし)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "トークン={{prompt}}+{{completion}}={{total}}",
       "traceId": "トレースId={{traceId}}",
-      "detailJoiner": ", ",
-      "message": "[[{{model}}]]: {{reply}}{{suffix}}",
-      "none": "--",
+      "detailJoiner": ", ​",
+      "message": "[[{{model}}]]: {{reply}}{{suffix}}​",
+      "none": "--​",
       "today": "今日 {{time}}",
       "tomorrow": "明日 {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "未選択",
       "joiner": "、",
       "moreItems": "{{items}} など{{total}}件",
       "quotaReset": "クォータリセット自動ウェイクアップ",
-      "crontab": "Crontab: {{expr}}",
+      "crontab": "Crontab: {{expr}}​",
       "daily": "毎日 {{times}}{{suffix}}",
       "weekly": "毎週 {{days}} {{times}}{{suffix}}",
       "interval": "{{hours}} 時間ごと ({{start}}-{{end}})",
@@ -1649,7 +1650,7 @@
         },
         "force": {
           "principle": "CODEX_HOME でプロセスを一致させて強制終了（SIGKILL / taskkill /F）し、その後ターゲットインスタンスを起動します。",
-          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"",
+          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"​",
           "commandWin": "Windows: taskkill /F /PID <pid> (CODEX_HOME に一致するもの)"
         }
       }
@@ -1710,7 +1711,7 @@
     },
     "exportFormat": {
       "label": "エクスポート形式",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "sub2api 形式",
       "cpa": "cpa 形式",
       "downloadAll": "すべてダウンロード",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} 件のリクエスト",
         "accountTokens": "{{count}} トークン",
         "accountResult": "成功 {{success}} / 失敗 {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "画像リクエスト",
         "imagesDetail": "生成 {{generate}} / 編集 {{edit}} / 権限 {{blocked}}",
         "estimatedCost": "推定価値",
@@ -1885,7 +1886,7 @@
       "modelIdViewOnly": "表示のみ",
       "quotaPool": {
         "title": "クォータプール",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "週",
         "viewFull": "完全な統計を表示",
         "modalTitle": "APIサービスのクォータプール",
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "ネットワークを確認してください。最新のクォータを取得できませんでした。更新して再試行できます。"
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Code Review 配額を表示"
@@ -2034,7 +2035,7 @@
     "time": {
       "today": "今日 {{time}}",
       "tomorrow": "明日 {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "コンパクト表示"
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "有効化方式",
         "modelCatalog": "モデルカタログ",
         "visionCapability": "画像入力",
-        "visionModels": "画像対応モデル"
+        "visionModels": "画像対応モデル",
+        "visionRoutingModel": "画像ルートモデル"
       },
       "validation": {
         "nameRequired": "プロバイダー名は必須です。",
@@ -2584,13 +2586,14 @@
         "providerDefault": "このプロバイダーは既定で画像入力に対応します",
         "providerDefaultHint": "オフの場合、下に記載したモデルだけが画像入力を受け付け、それ以外はローカルゲートウェイで拒否されます。",
         "modelsHint": "1 行に 1 モデル。プロバイダー内の一部モデルだけが貼り付け画像に対応する場合に使います。",
+        "routingModelHint": "現在のモデルが画像を読めない場合、このモデルを使います。空欄なら唯一の画像対応モデルを自動使用します。",
         "allModels": "画像対応",
         "partialModels": "一部画像",
         "textOnly": "テキストのみ"
       },
-      "sponsorRecommended": "スポンサー推奨",
+      "sponsorRecommended": "リレー推奨",
       "builtinProviders": "組み込みプロバイダー",
-      "sponsorHint": "スポンサー推奨の互換サービス URL を自動入力しました。API Key を入力すると、カードで残高と使用量を自動照会します。",
+      "sponsorHint": "専用リレーの設定に従って互換サービス URL を自動入力しました。API Key を入力すると、カードで残高と使用量を自動照会します。",
       "integration": {
         "sub2api": "Sub2API 互換",
         "newApi": "New API 互換"
@@ -2966,9 +2969,9 @@
       "totalAccounts": "総アカウント数"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "プラン分布",
       "current": "現在のアカウント",
       "recommended": "おすすめアカウント",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "スペース",
       "batchDelimiterComma": "カンマ",
       "batchDelimiterPipe": "パイプ",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "カスタム",
       "batchJsonDesc": "各項目に email と password を含む JSON 配列を貼り付けてください。",
       "batchTextDesc": "1 行に 1 アカウントを入力し、選択した区切り文字で厳密に解析します。",
@@ -3237,7 +3240,7 @@
       "batchPartial": "成功 {{success}} 件、失敗 {{failed}} 件",
       "batchFailed": "一括インポートで {{failed}} 件失敗しました",
       "batchFailureEntryWithLine": "{{line}} 件目（{{email}}）: {{error}}",
-      "batchFailureEntry": "{{email}}: {{error}}",
+      "batchFailureEntry": "{{email}}: {{error}}​",
       "batchFailureMore": "さらに {{count}} 件失敗"
     },
     "oauth": {
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} 使用 / {{total}} 合計",
       "planUsageCoveredLine": "{{used}} が使用されました / {{total}} は計画に含まれています",
       "expiryDays": "{{days}}日",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "すぐにリセットします",
       "resetInHours": "{{hours}}h でリセット",
       "resetInMinutes": "{{minutes}}m 後にリセットされます"
@@ -3306,11 +3309,11 @@
       "estUsage": "EST（東部基準時。使用法"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "未知"
     },
     "flowNotice": {
@@ -3389,7 +3392,7 @@
     "startHint": "開始を押すかスペースキーを押してください",
     "rankTitle": "ローカル履歴ランキング",
     "rankCurrent": "現在",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "リスタート",
     "pause": "一時停止",
     "resume": "再開",
@@ -3403,7 +3406,7 @@
     "historyEmpty": "履歴はまだありません",
     "historyClear": "クリア",
     "historyScoreShort": "スコア {{score}}",
-    "historyLevelShort": "Lv {{level}}",
+    "historyLevelShort": "Lv {{level}}​",
     "historyDurationShort": "時間 {{duration}}",
     "historyReasonGameOver": "ゲームオーバー",
     "historyReasonManualExit": "手動終了",
@@ -3412,7 +3415,7 @@
     "rankingShort": "ローカル",
     "rankingEmpty": "ローカル履歴はまだありません",
     "rankingClear": "ローカル履歴をクリア",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "最小化",
     "resumeGameNav": "ゲームを再開",
     "closeConfirmTitle": "このプレイを終了しますか？",
@@ -3759,8 +3762,8 @@
       "leftOfTotal": "残量 / 総量",
       "usage": "使用量",
       "usageResets": "使用量のリセット",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
       "resetAtWithRelative": "{{absolute}}（{{relative}}）"
     },
     "tierText": {
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "利用状況の概要",
       "viewDetails": "詳細を見る",
       "includedCredits": "プラン内クレジット",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "プランをアップグレードして月間上限を増やす",
       "upgradeAction": "アップグレード"
     },
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "デイリーチェックイン",
@@ -4187,7 +4190,7 @@
     "plan": "プラン",
     "cycle": "周期",
     "status": "状態",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "おすすめ"
     },
@@ -4321,5 +4324,130 @@
     "copyCode": "コードをコピー",
     "copied": "コピー済み",
     "refreshIn": "{{time}}秒"
+  },
+  "relay": {
+    "pageTitle": "専用リレー",
+    "pageDesc": "Cockpit Tools ユーザー向けの提携 API サービスで、Codex API Key アカウントに利用できます。",
+    "loading": "リレーを読み込み中...",
+    "emptyTitle": "リレーは無効です",
+    "emptyDesc": "現在のリモート設定では専用リレーが有効になっていません。",
+    "defaultDescription": "提携 API リレーサービス。",
+    "getApiKey": "API Key を取得",
+    "configTitle": "Codex で有効化",
+    "apiKeyLabel": "API キー",
+    "apiKeyPlaceholder": "リレーで取得した API Key を貼り付け",
+    "apiKeyRequired": "API Key を入力してください。",
+    "baseUrl": "接続先 URL",
+    "protocol": "プロトコル",
+    "vision": "画像入力",
+    "testConnection": "接続テスト",
+    "saveAndEnable": "保存して有効化",
+    "goCodex": "Codex へ",
+    "statusUnavailable": "リレー設定は利用できません。",
+    "testing": "接続をテスト中...",
+    "testSuccess": "接続テストに成功しました。この API Key はリレーで使用できます。",
+    "testFailed": "接続テストに失敗しました。",
+    "saving": "Codex に保存して有効化中...",
+    "saveSuccess": "リレー設定を保存しました。Codex アカウントページで使用できます。",
+    "saveFailed": "リレー設定の保存に失敗しました。",
+    "savedProvider": "保存済みプロバイダー: {{name}}",
+    "modelsTitle": "対応モデル",
+    "modelsEmpty": "固定モデル一覧はリモートで設定されていません。保存後、Codex がサービス機能に応じて使用します。"
+  },
+  "apiKeyFun": {
+    "eyebrow": "中継サービス",
+    "title": "APIKEY.FUN リレー",
+    "description": "Cockpit 公式の中継サービスで、安定したオープンで高コストパフォーマンスな大規模モデル API 接続を提供します。Claude、OpenAI、Gemini などの主要モデルに対応し、Codex、Gemini CLI、Claude Code などの開発ツールで統一して設定できます。Cockpit 専用リンクから登録すると、チャージが永久に最大 5% 割引になります。",
+    "register": "専用登録リンク",
+    "docs": "公式ドキュメント",
+    "viewNow": "今すぐ見る",
+    "queryTitle": "キー残高確認",
+    "queryDesc": "APIKEY.FUN の API Key を入力すると残高を自動確認します。",
+    "keyNotSet": "キー未入力",
+    "apiKeyLabel": "API キー",
+    "apiKeyPlaceholder": "APIKEY.FUN コンソールで作成した API Key を貼り付け",
+    "hideKey": "非表示",
+    "showKey": "表示",
+    "endpointLabel": "接続先",
+    "protocolLabel": "Codex プロトコル",
+    "queryUsage": "残高確認",
+    "querying": "確認中",
+    "saveToCodex": "Codex に書き込む",
+    "saving": "書き込み中",
+    "saveSuccess": "Codex Provider に書き込みました: {{name}}",
+    "toolsTitle": "クライアント設定を書き込み",
+    "toolsDesc": "APIKEY.FUN ドキュメントと CC Switch の保存形式に沿って、ローカル設定ファイルへ直接書き込みます。",
+    "endpoint": {
+      "global": "グローバル回線",
+      "globalDesc": "多くのネットワーク環境向けの公式デフォルト API Base。",
+      "direct": "直通回線",
+      "directDesc": "低遅延が必要な用途向け。"
+    },
+    "wireApi": {
+      "responses": "Responses プロトコル",
+      "responsesDesc": "Codex 推奨。OpenAI Responses プロトコルへ直接接続します。",
+      "chatCompletions": "Chat Completions プロトコル",
+      "chatCompletionsDesc": "ローカルゲートウェイで Chat Completions に対応します。"
+    },
+    "usage": {
+      "remaining": "残高",
+      "used": "使用済み",
+      "todayRequests": "今日",
+      "todayTokens": "今日 Token",
+      "totalRequests": "総リクエスト",
+      "totalTokens": "総 Token"
+    },
+    "tool": {
+      "codexTitle": "Codex プロバイダー",
+      "codexDesc": "現在のエンドポイントの /v1 Base URL で Provider を書き込みます。",
+      "envTitle": "環境変数",
+      "envDesc": "Claude Code、Gemini CLI、Hermes など OpenAI 互換入口の参考設定。",
+      "curlTitle": "API スクリプト",
+      "curlDesc": "Chat Completions 互換リクエストを素早く検証します。"
+    },
+    "docTool": {
+      "codex": "Codex Provider に直接書き込めます。",
+      "claudeCode": "Anthropic Messages 互換パラメータをコピーします。",
+      "geminiCli": "OpenAI 互換 Base URL と API Key をコピーします。",
+      "traeSolo": "公式ドキュメントに必要なリレーパラメータをコピーします。",
+      "openClaw": "OpenAI 互換接続パラメータをコピーします。",
+      "hermes": "Hermes のモデルページ用パラメータをコピーします。",
+      "apiScript": "スクリプト連携用の基本パラメータをコピーします。"
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Responses プロトコルと現在の API Key で ~/.codex/config.toml と auth.json を書き込みます。",
+      "geminiTitle": "Gemini CLI 設定",
+      "geminiDesc": "~/.gemini/.env を書き込み、settings.json の認証方式を gemini-api-key に設定します。",
+      "openclawTitle": "OpenClaw 設定",
+      "openclawDesc": "~/.openclaw/openclaw.json の models.providers.apikeyfun を書き込みます。",
+      "hermesTitle": "Hermes 設定",
+      "hermesDesc": "~/.hermes/config.yaml の custom_providers を書き込み、apikeyfun のデフォルトモデルへ切り替えます。",
+      "button": "設定を書き込む",
+      "applying": "書き込み中",
+      "success": "設定ファイルを書き込みました: {{paths}}",
+      "failed": "設定の書き込みに失敗しました: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "API Key を入力してください。",
+      "queryFailed": "残高確認に失敗しました: {{error}}",
+      "saveFailed": "書き込みに失敗しました: {{error}}"
+    },
+    "keyManager": {
+      "title": "キー管理",
+      "desc": "よく使う API Key を保存し、クリックで切り替えて残高を自動確認できます。",
+      "saveButton": "キーを保存",
+      "savedButton": "保存済み",
+      "empty": "保存済みのキーはありません。",
+      "lastRemaining": "前回残高 {{value}}",
+      "notQueried": "未確認",
+      "deleteButton": "削除",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "{{time}} に追加",
+      "saveFlash": "保存しました"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

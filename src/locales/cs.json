@@ -46,9 +46,9 @@
       },
       "filter": {
         "all": "Vše ({{count}})",
-        "enterprise": "ENTERPRISE ({{count}})",
+        "enterprise": "ENTERPRISE ({{count}})​",
         "free": "ZDARMA ({{count}})",
-        "pro": "PRO ({{count}})",
+        "pro": "PRO ({{count}})​",
         "business": "OBCHOD ({{count}})",
         "individual": "JEDNOTLIVCE ({{count}})",
         "validAccounts": "Platné účty ({{count}})"
@@ -184,7 +184,7 @@
         "relativeHours": "{{hours}} h",
         "relativeHoursMinutes": "{{hours}} h {{minutes}} min",
         "relativeMinutes": "{{minutes}} min",
-        "relativeWithAbsolute": "{{relative}} ({{absolute}})"
+        "relativeWithAbsolute": "{{relative}} ({{absolute}})​"
       },
       "credits": {
         "leftInline": "zbývá {{left}}",
@@ -218,7 +218,7 @@
       "desc": "Tato oblast je pevně umístěná vpravo nahoře na všech stránkách pro kampaně nebo brandové reklamy.",
       "action": "Zobrazit podrobnosti"
     },
-    "appName": "Cockpit Tools",
+    "appName": "Cockpit Tools​",
     "collapse": "Sbalit",
     "confirmDelete": "Potvrdit smazání",
     "confirmDeleteTag": "Potvrdit smazání štítku",
@@ -228,14 +228,14 @@
     "selectAll": "Vybrat vše"
   },
   "nav": {
-    "overview": "Antigravity IDE",
+    "overview": "Antigravity IDE​",
     "accounts": "Účty",
     "wakeup": "Úlohy probuzení",
     "settings": "Nastavení",
-    "codex": "Codex",
-    "githubCopilot": "GitHub Copilot",
-    "windsurf": "Windsurf",
-    "dashboard": "Dashboard",
+    "codex": "Codex​",
+    "githubCopilot": "GitHub Copilot​",
+    "windsurf": "Windsurf​",
+    "dashboard": "Dashboard​",
     "morePlatforms": "Další platformy",
     "instances": "Více instancí",
     "manual": "Uživatelská příručka",
@@ -244,11 +244,11 @@
       "restart": "Restartovat",
       "installing": "Instalace"
     },
-    "gemini": "Gemini Cli",
-    "codebuddy": "CodeBuddy",
-    "qoder": "Qoder",
-    "trae": "Trae",
-    "codebuddyCn": "CodeBuddy CN",
+    "gemini": "Gemini Cli​",
+    "codebuddy": "CodeBuddy​",
+    "qoder": "Qoder​",
+    "trae": "Trae​",
+    "codebuddyCn": "CodeBuddy CN​",
     "zed": "Platforma Zed",
     "expandSidebar": "Rozbalit postranní panel",
     "collapseSidebar": "Sbalit postranní panel",
@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "Klasické rozvržení zobrazuje celou navigaci platforem a podporuje sbalení postranního panelu. Kdykoli se můžete vrátit v Nastavení > Obecné > Rozvržení postranního panelu.",
     "switchClassicLayoutDontAskAgain": "Toto upozornění už nezobrazovat",
     "switchClassicLayoutConfirm": "Přepnout nyní",
-    "2faManager": "Správa 2FA"
+    "2faManager": "Správa 2FA",
+    "apiRelay": "API relay"
   },
   "sponsors": {
     "pageTitle": "Sponzoři",
@@ -374,7 +375,7 @@
       "argsPresent": "Nastaveno"
     },
     "columns": {
-      "instance": "Instance",
+      "instance": "Instance​",
       "email": "Účet",
       "quota": "Stav kvóty",
       "actions": "Akce",
@@ -520,7 +521,7 @@
       "force": {
         "title": "Vynucený restart",
         "principle": "Identifikuje procesy pomocí --user-data-dir a vynutí jejich ukončení (SIGKILL / taskkill /F), poté spustí cílovou instanci.",
-        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"",
+        "commandMac": "macOS/Linux: pkill -9 -f \"--user-data-dir <dir>\"​",
         "commandWin": "Windows: taskkill /F /PID <pid> (shoda s --user-data-dir)",
         "pros": "Může přesně restartovat jednu konkrétní instanci.",
         "cons": "Může způsobit varování o „neočekávaném ukončení“, riziko ztráty neuložených dat."
@@ -584,7 +585,7 @@
       "every15min": "Každých 15 minut",
       "every30min": "Každých 30 minut",
       "every1hour": "Každou hodinu",
-      "minutes": "min",
+      "minutes": "min​",
       "refreshIntervalLimited": "Probuzení při resetu kvóty je povoleno, proto je minimální interval obnovení 2 minuty.",
       "closeBehavior": "Chování při zavírání",
       "closeBehaviorDesc": "Vyberte akci při zavření okna",
@@ -774,7 +775,7 @@
       "codexAppSpeedLaunchFailed": "Nepodařilo se restartovat Codex: {{error}}"
     },
     "network": {
-      "apiTitle": "Antigravity Cockpit API",
+      "apiTitle": "Antigravity Cockpit API​",
       "wsService": "Služba WebSocket",
       "wsServiceDesc": "Povolit připojení externím programům (např. rozšíření VS Code)",
       "preferredPort": "Preferovaný port",
@@ -813,13 +814,13 @@
       "proxyUrlRequired": "Když je globální proxy zapnutá, URL proxy nesmí být prázdná."
     },
     "about": {
-      "appName": "Cockpit Tools",
+      "appName": "Cockpit Tools​",
       "slogan": "Profesionální řešení pro správu účtů",
       "author": "Autor",
-      "wechat": "WeChat",
+      "wechat": "WeChat​",
       "github": "GitHub repozitář",
-      "alipay": "Alipay",
-      "wechatpay": "WeChat Pay",
+      "alipay": "Alipay​",
+      "wechatpay": "WeChat Pay​",
       "sponsor": "Sponzorovat",
       "sponsorDesc": "Podpora rozvoje",
       "feedback": "Zpětná vazba",
@@ -1040,13 +1041,13 @@
       "authInvalid": "Neplatné přihlašovací údaje",
       "refreshFailed": "Obnovení se nezdařilo",
       "normal": "Normální",
-      "forbidden": "403",
+      "forbidden": "403​",
       "forbidden_tooltip": "API vrátilo 403 Forbidden, účet nemá přístup k Gemini Code Assist",
       "forbidden_msg": "Účet zakázán, automatická aktualizace přeskočena"
     },
     "tier": {
-      "pro": "PRO",
-      "ultra": "ULTRA"
+      "pro": "PRO​",
+      "ultra": "ULTRA​"
     },
     "credits": {
       "label": "AI Kredity"
@@ -1068,8 +1069,8 @@
     "filterLabel": "Filtrovat účty",
     "filter": {
       "all": "Vše ({{count}})",
-      "pro": "PRO ({{count}})",
-      "ultra": "ULTRA ({{count}})"
+      "pro": "PRO ({{count}})​",
+      "ultra": "ULTRA ({{count}})​"
     },
     "sortLabel": "Seřadit",
     "sort": {
@@ -1340,7 +1341,7 @@
     "bindFailed": "Vázání selhalo: {{error}}",
     "jsonRequired": "Zadejte nebo vložte obsah JSON",
     "example": "Příklad",
-    "actionRunning": "{{action}}...",
+    "actionRunning": "{{action}}...​",
     "actionSuccess": "{{action}} úspěšné",
     "actionFailed": "{{action}} selhalo: {{error}}"
   },
@@ -1412,20 +1413,20 @@
     },
     "format": {
       "noReply": "(Bez odpovědi)",
-      "durationMs": "{{ms}}ms",
+      "durationMs": "{{ms}}ms​",
       "tokens": "tokeny={{prompt}}+{{completion}}={{total}}",
-      "traceId": "traceId={{traceId}}",
-      "detailJoiner": ", ",
-      "message": "[[{{model}}]]: {{reply}}{{suffix}}",
-      "none": "--",
+      "traceId": "traceId={{traceId}}​",
+      "detailJoiner": ", ​",
+      "message": "[[{{model}}]]: {{reply}}{{suffix}}​",
+      "none": "--​",
       "today": "Dnes {{time}}",
       "tomorrow": "Zítra {{time}}",
-      "weekdayWithTime": "{{day}} {{time}}",
+      "weekdayWithTime": "{{day}} {{time}}​",
       "notSelected": "Nevybráno",
-      "joiner": ", ",
+      "joiner": ", ​",
       "moreItems": "{{items}} ({{total}} položek)",
       "quotaReset": "Automatické probuzení při resetu kvóty",
-      "crontab": "Crontab: {{expr}}",
+      "crontab": "Crontab: {{expr}}​",
       "daily": "Denně {{times}}{{suffix}}",
       "weekly": "Týdně {{days}} {{times}}{{suffix}}",
       "interval": "Každých {{hours}}h ({{start}}-{{end}})",
@@ -1469,7 +1470,7 @@
     },
     "triggerSource": {
       "scheduled": "Plánováno",
-      "crontab": "Crontab",
+      "crontab": "Crontab​",
       "quotaReset": "Reset kvóty",
       "manual": "Ruční test",
       "unknown": "Neznámé",
@@ -1497,7 +1498,7 @@
       "triggerMode": "Režim spouštění",
       "triggerModeHint": "1. Plánováno: spouští se v nastavených časech.\n2. Crontab: definujte výrazem.\n3. Reset kvóty: spustí se jednou při plné kvótě.",
       "modeScheduled": "📅 Plánováno",
-      "modeCrontab": "🧩 Crontab",
+      "modeCrontab": "🧩 Crontab​",
       "modeQuotaReset": "🔄 Reset kvóty",
       "antigravityVersion": "Verze Antigravity IDE",
       "modelSelect": "Výběr modelu",
@@ -1514,7 +1515,7 @@
       "repeatMode": "Režim opakování",
       "repeatDaily": "Denně",
       "repeatWeekly": "Týdně",
-      "repeatInterval": "Interval",
+      "repeatInterval": "Interval​",
       "selectTime": "Vyberte čas",
       "customTime": "Vlastní čas",
       "selectWeekday": "Vyberte den v týdnu",
@@ -1649,7 +1650,7 @@
         },
         "force": {
           "principle": "Identifikuje procesy pomocí CODEX_HOME a vynutí jejich ukončení (SIGKILL / taskkill /F), poté spustí cílovou instanci.",
-          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"",
+          "commandMac": "macOS: pkill -9 -f \"CODEX_HOME=<dir>\"​",
           "commandWin": "Windows: taskkill /F /PID <pid> (shoda s CODEX_HOME)"
         }
       }
@@ -1710,7 +1711,7 @@
     },
     "exportFormat": {
       "label": "Formát exportu",
-      "cockpitTools": "Cockpit Tools",
+      "cockpitTools": "Cockpit Tools​",
       "sub2api": "sub2api formát",
       "cpa": "cpa formát",
       "downloadAll": "Stáhnout vše",
@@ -1820,7 +1821,7 @@
         "accountRequests": "{{count}} požadavků",
         "accountTokens": "{{count}} tokenů",
         "accountResult": "Úspěch {{success}} / Chyba {{failed}}",
-        "accountTokensCompact": "{{value}}",
+        "accountTokensCompact": "{{value}}​",
         "images": "Obrazové požadavky",
         "imagesDetail": "Generování {{generate}} / Úpravy {{edit}} / Oprávnění {{blocked}}",
         "estimatedCost": "Odhad hodnoty",
@@ -1885,7 +1886,7 @@
       "modelIdViewOnly": "Pouze zobrazení",
       "quotaPool": {
         "title": "Fond kvóty",
-        "hourlyShort": "5h",
+        "hourlyShort": "5h​",
         "weeklyShort": "Týden",
         "viewFull": "Zobrazit úplné statistiky",
         "modalTitle": "Fond kvóty služby API",
@@ -2011,7 +2012,7 @@
     "quota": {
       "hourly": "Kvóta 5 hodin",
       "weekly": "Týdenní kvóta",
-      "reset": "Reset",
+      "reset": "Reset​",
       "weeklyBlocksHourly": "Týdenní kvóta je 0, proto není 5hodinová kvóta dostupná"
     },
     "quotaError": {
@@ -2022,11 +2023,11 @@
       "requestFailedManualRetry": "Zkontrolujte síť. Nejnovější kvóta nebyla načtena. Obnovte a zkuste to znovu."
     },
     "plan": {
-      "free": "FREE",
-      "plus": "PLUS",
-      "pro": "PRO",
-      "team": "TEAM",
-      "enterprise": "ENTERPRISE"
+      "free": "FREE​",
+      "plus": "PLUS​",
+      "pro": "PRO​",
+      "team": "TEAM​",
+      "enterprise": "ENTERPRISE​"
     },
     "list": {
       "showCodeReviewQuota": "Zobrazit kvótu Code Review"
@@ -2034,13 +2035,13 @@
     "time": {
       "today": "Dnes {{time}}",
       "tomorrow": "Zítra {{time}}",
-      "dateTime": "{{date}} {{time}}"
+      "dateTime": "{{date}} {{time}}​"
     },
     "view": {
       "compact": "Kompaktní"
     },
     "filter": {
-      "plus": "PLUS ({{count}})",
+      "plus": "PLUS ({{count}})​",
       "team": "TÝM ({{count}})"
     },
     "sort": {
@@ -2343,67 +2344,67 @@
       },
       "providers": {
         "openai_official": {
-          "name": "OpenAI Official"
+          "name": "OpenAI Official​"
         },
         "azure_openai": {
-          "name": "Azure OpenAI"
+          "name": "Azure OpenAI​"
         },
         "packycode": {
-          "name": "PackyCode"
+          "name": "PackyCode​"
         },
         "cubence": {
-          "name": "Cubence"
+          "name": "Cubence​"
         },
         "aigocode": {
-          "name": "AIGoCode"
+          "name": "AIGoCode​"
         },
         "rightcode": {
-          "name": "RightCode"
+          "name": "RightCode​"
         },
         "sssaicode": {
-          "name": "SSSAiCode"
+          "name": "SSSAiCode​"
         },
         "micu": {
-          "name": "Micu"
+          "name": "Micu​"
         },
         "x_code_api": {
-          "name": "X-Code API"
+          "name": "X-Code API​"
         },
         "ctok_ai": {
-          "name": "CTok.ai"
+          "name": "CTok.ai​"
         },
         "aihubmix": {
-          "name": "AiHubMix"
+          "name": "AiHubMix​"
         },
         "dmxapi": {
-          "name": "DMXAPI"
+          "name": "DMXAPI​"
         },
         "compshare": {
-          "name": "Compshare"
+          "name": "Compshare​"
         },
         "openrouter": {
-          "name": "OpenRouter"
+          "name": "OpenRouter​"
         },
         "aicodemirror": {
-          "name": "AICodeMirror"
+          "name": "AICodeMirror​"
         },
         "aicoding": {
-          "name": "AICoding"
+          "name": "AICoding​"
         },
         "crazyrouter": {
-          "name": "CrazyRouter"
+          "name": "CrazyRouter​"
         },
         "deepseek": {
-          "name": "DeepSeek"
+          "name": "DeepSeek​"
         },
         "moonshot": {
-          "name": "Moonshot"
+          "name": "Moonshot​"
         },
         "siliconflow": {
-          "name": "SiliconFlow"
+          "name": "SiliconFlow​"
         },
         "cockpit_api": {
-          "name": "Cockpit Api"
+          "name": "Cockpit Api​"
         }
       },
       "oauthBinding": {
@@ -2454,7 +2455,8 @@
         "enableMode": "Režim zapnutí",
         "modelCatalog": "Katalog modelů",
         "visionCapability": "Vstup obrázků",
-        "visionModels": "Vizuální modely"
+        "visionModels": "Vizuální modely",
+        "visionRoutingModel": "Model pro obrázky"
       },
       "validation": {
         "nameRequired": "Název poskytovatele je povinný.",
@@ -2557,7 +2559,7 @@
         "models": "Chyba endpointu modelů",
         "parse": "Zpracování odpovědi selhalo",
         "httpStatus": "Stav {{status}}",
-        "message": "{{title}}: {{detail}}. {{suggestion}}"
+        "message": "{{title}}: {{detail}}. {{suggestion}}​"
       },
       "testSuggestion": {
         "addApiKey": "Před testem přidejte pro tohoto poskytovatele API Key.",
@@ -2584,13 +2586,14 @@
         "providerDefault": "Tento poskytovatel ve výchozím stavu podporuje obrázky",
         "providerDefaultHint": "Když je vypnuto, obrázky přijmou jen níže uvedené modely; ostatní místní brána odmítne.",
         "modelsHint": "Jeden model na řádek. Hodí se, když obrázky podporuje jen část modelů poskytovatele.",
+        "routingModelHint": "Když aktuální model nečte obrázky, požadavek použije tento model; prázdné pole automaticky použije jediný vizuální model.",
         "allModels": "Obrázky",
         "partialModels": "Část obrázků",
         "textOnly": "Jen text"
       },
-      "sponsorRecommended": "Doporučení sponzorů",
+      "sponsorRecommended": "Doporučený relay",
       "builtinProviders": "Vestavění poskytovatelé",
-      "sponsorHint": "Byla vyplněna adresa kompatibilní služby doporučená sponzorem. Po zadání API Key bude karta automaticky načítat zůstatek a využití.",
+      "sponsorHint": "Adresa exkluzivní relay služby byla vyplněna. Po zadání API Key bude karta automaticky načítat zůstatek a využití.",
       "integration": {
         "sub2api": "Kompatibilní se Sub2API",
         "newApi": "Kompatibilní s New API"
@@ -2966,9 +2969,9 @@
       "totalAccounts": "Celkem účtů"
     },
     "panels": {
-      "antigravity": "Antigravity IDE",
-      "codex": "Codex",
-      "githubCopilot": "GitHub Copilot",
+      "antigravity": "Antigravity IDE​",
+      "codex": "Codex​",
+      "githubCopilot": "GitHub Copilot​",
       "planDistribution": "Rozložení plánů",
       "current": "Aktuální účet",
       "recommended": "Doporučený účet",
@@ -3214,7 +3217,7 @@
       "batchDelimiterSpace": "Mezera",
       "batchDelimiterComma": "Čárka",
       "batchDelimiterPipe": "Svislítko",
-      "batchDelimiterDash": "----",
+      "batchDelimiterDash": "----​",
       "batchDelimiterCustom": "Vlastní",
       "batchJsonDesc": "Vložte pole JSON, kde každá položka obsahuje email a password.",
       "batchTextDesc": "Zadejte jeden účet na řádek; parsování proběhne přesně podle zvoleného oddělovače.",
@@ -3237,7 +3240,7 @@
       "batchPartial": "Úspěšně {{success}}, neúspěšně {{failed}}",
       "batchFailed": "Hromadný import selhal u {{failed}} účtů",
       "batchFailureEntryWithLine": "Položka {{line}} ({{email}}): {{error}}",
-      "batchFailureEntry": "{{email}}: {{error}}",
+      "batchFailureEntry": "{{email}}: {{error}}​",
       "batchFailureMore": "Dalších {{count}} selhalo"
     },
     "oauth": {
@@ -3294,7 +3297,7 @@
       "bonusUsageLine": "{{used}} použitá / {{total}} celkem",
       "planUsageCoveredLine": "{{used}} použitá / {{total}} pokrytá v plánu",
       "expiryDays": "{{days}} dnů",
-      "expiryUnknown": "—",
+      "expiryUnknown": "—​",
       "resetNow": "Resetovat brzy",
       "resetInHours": "Resetuje se za {{hours}}h",
       "resetInMinutes": "Resetuje se za {{minutes}}m"
@@ -3306,11 +3309,11 @@
       "estUsage": "Odhad. Používání"
     },
     "plan": {
-      "free": "Kiro Free",
-      "individual": "Kiro Individual",
-      "pro": "Kiro Pro",
-      "business": "Kiro Business",
-      "enterprise": "Kiro Enterprise",
+      "free": "Kiro Free​",
+      "individual": "Kiro Individual​",
+      "pro": "Kiro Pro​",
+      "business": "Kiro Business​",
+      "enterprise": "Kiro Enterprise​",
       "unknown": "Neznámý"
     },
     "flowNotice": {
@@ -3389,7 +3392,7 @@
     "startHint": "Klikni na start nebo stiskni mezerník",
     "rankTitle": "Místní historické pořadí",
     "rankCurrent": "Aktuální",
-    "rankNoData": "--",
+    "rankNoData": "--​",
     "restart": "Restartovat",
     "pause": "Pozastavit",
     "resume": "Pokračovat",
@@ -3403,7 +3406,7 @@
     "historyEmpty": "Zatím bez záznamů",
     "historyClear": "Vymazat",
     "historyScoreShort": "Skóre {{score}}",
-    "historyLevelShort": "Lv {{level}}",
+    "historyLevelShort": "Lv {{level}}​",
     "historyDurationShort": "Čas {{duration}}",
     "historyReasonGameOver": "Konec hry",
     "historyReasonManualExit": "Ruční ukončení",
@@ -3412,7 +3415,7 @@
     "rankingShort": "Místní",
     "rankingEmpty": "Zatím bez místních záznamů",
     "rankingClear": "Vymazat místní pořadí",
-    "rankingRankShort": "#{{rank}}",
+    "rankingRankShort": "#{{rank}}​",
     "minimize": "Minimalizovat",
     "resumeGameNav": "Pokračovat ve hře",
     "closeConfirmTitle": "Ukončit tuto hru?",
@@ -3759,9 +3762,9 @@
       "leftOfTotal": "Zbývá / Celkem",
       "usage": "Využito",
       "usageResets": "Reset využití",
-      "usedPercent": "{{value}}%",
-      "remainingOfTotal": "{{remaining}} / {{total}}",
-      "resetAtWithRelative": "{{absolute}} ({{relative}})"
+      "usedPercent": "{{value}}%​",
+      "remainingOfTotal": "{{remaining}} / {{total}}​",
+      "resetAtWithRelative": "{{absolute}} ({{relative}})​"
     },
     "tierText": {
       "pro": "Gemini Code Assist v Google One AI Pro",
@@ -3866,7 +3869,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     }
   },
   "qoder": {
@@ -3888,8 +3891,8 @@
       "title": "Přehled využití",
       "viewDetails": "Zobrazit podrobnosti",
       "includedCredits": "Kredity v rámci tarifu",
-      "usedOfTotal": "{{used}} / {{total}}",
-      "usedEmpty": "-- / --",
+      "usedOfTotal": "{{used}} / {{total}}​",
+      "usedEmpty": "-- / --​",
       "upgradeHint": "Upgradujte tarif pro navýšení měsíčního limitu",
       "upgradeAction": "Upgradovat"
     },
@@ -4080,7 +4083,7 @@
       }
     },
     "quota": {
-      "usedOfTotal": "{{used}} / {{total}}"
+      "usedOfTotal": "{{used}} / {{total}}​"
     },
     "checkin": {
       "title": "Denní check-in",
@@ -4187,7 +4190,7 @@
     "plan": "Tarif",
     "cycle": "Cyklus",
     "status": "Stav",
-    "pager": "{{current}} / {{total}}",
+    "pager": "{{current}} / {{total}}​",
     "badges": {
       "recommended": "Doporučeno"
     },
@@ -4270,8 +4273,8 @@
     "manualAdd": "Ručně přidat přihlašovací údaj",
     "add": "Přidat",
     "credentialList": "Seznam přihlašovacích údajů",
-    "import": "Import",
-    "export": "Export",
+    "import": "Import​",
+    "export": "Export​",
     "accountName": "Název účtu",
     "dynamicCode": "Dynamický kód",
     "remark": "Poznámka",
@@ -4321,5 +4324,130 @@
     "copyCode": "Kopírovat kód",
     "copied": "Zkopírováno",
     "refreshIn": "{{time}} s"
+  },
+  "relay": {
+    "pageTitle": "Exkluzivní relay",
+    "pageDesc": "Partnerská API služba pro uživatele Cockpit Tools použitelná s účty Codex API Key.",
+    "loading": "Načítání relay...",
+    "emptyTitle": "Relay vypnutý",
+    "emptyDesc": "Vzdálená konfigurace exkluzivní relay nepovolila.",
+    "defaultDescription": "Partnerská API relay služba.",
+    "getApiKey": "Získat API Key",
+    "configTitle": "Povolit v Codex",
+    "apiKeyLabel": "Klíč API",
+    "apiKeyPlaceholder": "Vložte API Key z relay",
+    "apiKeyRequired": "Zadejte API Key.",
+    "baseUrl": "URL API",
+    "protocol": "Protokol",
+    "vision": "Obrázky",
+    "testConnection": "Otestovat",
+    "saveAndEnable": "Uložit a povolit",
+    "goCodex": "Do Codex",
+    "statusUnavailable": "Konfigurace relay není dostupná.",
+    "testing": "Testování připojení...",
+    "testSuccess": "Test připojení prošel. Tento API Key lze použít s relay.",
+    "testFailed": "Test připojení selhal.",
+    "saving": "Ukládání a povolení v Codex...",
+    "saveSuccess": "Konfigurace relay uložena. Můžete ji použít na stránce účtů Codex.",
+    "saveFailed": "Uložení konfigurace relay selhalo.",
+    "savedProvider": "Uložený poskytovatel: {{name}}",
+    "modelsTitle": "Podporované modely",
+    "modelsEmpty": "Vzdáleně není nastaven pevný seznam modelů. Po uložení Codex použije schopnosti služby."
+  },
+  "apiKeyFun": {
+    "eyebrow": "Přepojení",
+    "title": "Relay APIKEY.FUN",
+    "description": "Oficiální relay Cockpit poskytuje stabilní, otevřený a cenově výhodný API přístup k velkým modelům. Podporuje hlavní modely jako Claude, OpenAI a Gemini a hodí se pro jednotnou konfiguraci v Codex, Gemini CLI, Claude Code a dalších vývojářských nástrojích. Registrací přes exkluzivní odkaz Cockpit můžete získat trvalou slevu až 5% na dobíjení.",
+    "register": "Exkluzivní odkaz",
+    "docs": "Oficiální dokumentace",
+    "viewNow": "Zobrazit",
+    "queryTitle": "Kvóta klíče",
+    "queryDesc": "Zadejte API Key APIKEY.FUN pro automatickou kontrolu kvóty.",
+    "keyNotSet": "Klíč nezadán",
+    "apiKeyLabel": "Klíč API",
+    "apiKeyPlaceholder": "Vložte API Key vytvořený v konzoli APIKEY.FUN",
+    "hideKey": "Skrýt",
+    "showKey": "Zobrazit",
+    "endpointLabel": "Přístupový bod",
+    "protocolLabel": "Protokol Codex",
+    "queryUsage": "Zkontrolovat kvótu",
+    "querying": "Kontrola",
+    "saveToCodex": "Zapsat do Codex",
+    "saving": "Zápis",
+    "saveSuccess": "Zapsáno do Codex Provider: {{name}}",
+    "toolsTitle": "Zapsat config klienta",
+    "toolsDesc": "Přímo zapisuje lokální konfigurační soubory podle dokumentace APIKEY.FUN a rozložení CC Switch.",
+    "endpoint": {
+      "global": "Globální linka",
+      "globalDesc": "Oficiální výchozí API Base pro většinu sítí.",
+      "direct": "Přímá linka",
+      "directDesc": "Pro scénáře citlivé na latenci."
+    },
+    "wireApi": {
+      "responses": "Protokol Responses",
+      "responsesDesc": "Doporučeno pro Codex, přímý protokol OpenAI Responses.",
+      "chatCompletions": "Protokol Chat Completions",
+      "chatCompletionsDesc": "Kompatibilita přes lokální bránu."
+    },
+    "usage": {
+      "remaining": "Zbývá",
+      "used": "Použito",
+      "todayRequests": "Dnes",
+      "todayTokens": "Tokeny dnes",
+      "totalRequests": "Požadavky celkem",
+      "totalTokens": "Tokeny celkem"
+    },
+    "tool": {
+      "codexTitle": "Poskytovatel Codex",
+      "codexDesc": "Zapíše Provider s /v1 Base URL aktuálního endpointu.",
+      "envTitle": "Prostředí",
+      "envDesc": "Reference pro Claude Code, Gemini CLI, Hermes a OpenAI kompatibilní vstupy.",
+      "curlTitle": "API skript",
+      "curlDesc": "Rychle ověří požadavek kompatibilní s Chat Completions."
+    },
+    "docTool": {
+      "codex": "Lze zapsat přímo do Codex Provider.",
+      "claudeCode": "Kopírovat parametry kompatibilní s Anthropic Messages.",
+      "geminiCli": "Kopírovat OpenAI kompatibilní Base URL a API Key.",
+      "traeSolo": "Kopírovat relay parametry z oficiální dokumentace.",
+      "openClaw": "Kopírovat OpenAI kompatibilní parametry připojení.",
+      "hermes": "Kopírovat parametry pro stránku modelů Hermes.",
+      "apiScript": "Kopírovat základní parametry pro skript."
+    },
+    "apply": {
+      "codexTitle": "Codex​",
+      "codexDesc": "Zapíše ~/.codex/config.toml a auth.json s protokolem Responses a aktuálním API Key.",
+      "geminiTitle": "Konfig Gemini CLI",
+      "geminiDesc": "Zapíše ~/.gemini/.env a nastaví auth režim v settings.json na gemini-api-key.",
+      "openclawTitle": "Konfig OpenClaw",
+      "openclawDesc": "Zapíše models.providers.apikeyfun do ~/.openclaw/openclaw.json.",
+      "hermesTitle": "Konfig Hermes",
+      "hermesDesc": "Zapíše custom_providers do ~/.hermes/config.yaml a přepne na výchozí model apikeyfun.",
+      "button": "Zapsat config",
+      "applying": "Zápis",
+      "success": "Konfigurační soubory zapsány: {{paths}}",
+      "failed": "Zápis konfigurace selhal: {{error}}"
+    },
+    "error": {
+      "missingApiKey": "Zadejte API Key.",
+      "queryFailed": "Kontrola kvóty selhala: {{error}}",
+      "saveFailed": "Zápis selhal: {{error}}"
+    },
+    "keyManager": {
+      "title": "Správa klíčů",
+      "desc": "Ukládejte API Keys pro rychlé přepínání a automatickou kontrolu kvóty.",
+      "saveButton": "Uložit klíč",
+      "savedButton": "Uloženo",
+      "empty": "Žádné uložené klíče.",
+      "lastRemaining": "Poslední zůstatek {{value}}",
+      "notQueried": "Nekontrolováno",
+      "deleteButton": "Odstranit",
+      "editAlias": "Edit alias​",
+      "renamePlaceholder": "Enter alias...​",
+      "createdAt": "Přidáno {{time}}",
+      "saveFlash": "Uloženo"
+    },
+    "copyKey": "Copy Key​",
+    "clearKey": "Clear input​"
   }
 }

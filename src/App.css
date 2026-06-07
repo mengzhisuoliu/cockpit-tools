@@ -200,6 +200,13 @@
   box-shadow: var(--shadow-md);
 }
 
+.log-entry-fab-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  display: block;
+}
+
 .update-quick-action-btn {
   height: 36px;
   border-radius: 12px;

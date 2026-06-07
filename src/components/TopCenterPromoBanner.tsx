@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { useTopRightAdStore } from '../stores/useTopRightAdStore';
+import { normalizeApiKeyFunOfficialUrl } from '../utils/apikeyFunLinks';
 
 interface TopCenterPromoBannerProps {
   reserveWhenEmpty?: boolean;
@@ -35,7 +36,7 @@ export function TopCenterPromoBanner({ reserveWhenEmpty = true }: TopCenterPromo
   }, [ads.length, hasCarousel, paused]);
 
   const handleClick = useCallback(async () => {
-    const target = ad?.ctaUrl?.trim();
+    const target = normalizeApiKeyFunOfficialUrl(ad?.ctaUrl);
     if (!target || !/^https?:\/\//i.test(target)) {
       return;
     }

@@ -27,6 +27,7 @@ export interface CodexModelProvider {
   modelCatalog?: string[];
   supportsVision?: boolean;
   modelCapabilities?: Record<string, { supportsVision?: boolean }>;
+  visionRoutingModel?: string;
   boundInstanceId?: string;
   website?: string;
   apiKeyUrl?: string;
@@ -75,6 +76,7 @@ interface UpsertFromCredentialInput {
   modelCatalog?: string[];
   supportsVision?: boolean;
   modelCapabilities?: Record<string, { supportsVision?: boolean }>;
+  visionRoutingModel?: string | null;
   website?: string | null;
   apiKeyUrl?: string | null;
   wireApi?: CodexProviderWireApi | null;
@@ -206,6 +208,7 @@ function cloneProviders(providers: CodexModelProvider[]): CodexModelProvider[] {
           ]),
         )
       : undefined,
+    visionRoutingModel: sanitizeName(provider.visionRoutingModel ?? '') || undefined,
     apiKeys: provider.apiKeys.map((apiKey) => ({ ...apiKey })),
   }));
 }
@@ -372,6 +375,7 @@ export async function createCodexModelProvider(input: {
   modelCatalog?: string[];
   supportsVision?: boolean;
   modelCapabilities?: Record<string, { supportsVision?: boolean }>;
+  visionRoutingModel?: string;
   boundInstanceId?: string;
   website?: string;
   apiKeyUrl?: string;
@@ -403,6 +407,7 @@ export async function createCodexModelProvider(input: {
       presetModelCatalogForBaseUrl(baseUrl),
     supportsVision: input.supportsVision === true,
     modelCapabilities: normalizeModelCapabilities(input.modelCapabilities),
+    visionRoutingModel: sanitizeName(input.visionRoutingModel ?? '') || undefined,
     boundInstanceId: normalizeBoundInstanceId(input.boundInstanceId),
     website: sanitizeName(input.website ?? '') || undefined,
     apiKeyUrl: sanitizeName(input.apiKeyUrl ?? '') || undefined,
@@ -430,6 +435,7 @@ export async function updateCodexModelProvider(
     modelCatalog?: string[] | null;
     supportsVision?: boolean;
     modelCapabilities?: Record<string, { supportsVision?: boolean }> | null;
+    visionRoutingModel?: string | null;
     boundInstanceId?: string | null;
     website?: string;
     apiKeyUrl?: string;
@@ -481,6 +487,12 @@ export async function updateCodexModelProvider(
       patch.modelCapabilities === null
         ? undefined
         : normalizeModelCapabilities(patch.modelCapabilities);
+  }
+  if (patch.visionRoutingModel !== undefined) {
+    provider.visionRoutingModel =
+      patch.visionRoutingModel === null
+        ? undefined
+        : sanitizeName(patch.visionRoutingModel) || undefined;
   }
   if (patch.boundInstanceId !== undefined) {
     provider.boundInstanceId =
@@ -616,6 +628,7 @@ export async function upsertCodexModelProviderFromCredential(
         presetModelCatalogForBaseUrl(apiBaseUrl),
       supportsVision: input.supportsVision === true,
       modelCapabilities: normalizeModelCapabilities(input.modelCapabilities),
+      visionRoutingModel: sanitizeName(input.visionRoutingModel ?? '') || undefined,
       integrationType: normalizeIntegrationType(input.integrationType),
       website: sanitizeName(input.website ?? '') || undefined,
       apiKeyUrl: sanitizeName(input.apiKeyUrl ?? '') || undefined,
@@ -647,6 +660,9 @@ export async function upsertCodexModelProviderFromCredential(
   }
   if (input.modelCapabilities !== undefined) {
     provider.modelCapabilities = normalizeModelCapabilities(input.modelCapabilities);
+  }
+  if (input.visionRoutingModel !== undefined) {
+    provider.visionRoutingModel = sanitizeName(input.visionRoutingModel ?? '') || undefined;
   }
   if (input.website !== undefined) {
     provider.website = sanitizeName(input.website ?? '') || undefined;

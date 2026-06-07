@@ -260,7 +260,8 @@
     "switchClassicLayoutDesc": "經典佈局會完整顯示平台導覽，並支援側邊欄收合。你可以隨時在「設定 > 一般 > 側邊欄佈局」切回。",
     "switchClassicLayoutDontAskAgain": "不再顯示此提示",
     "switchClassicLayoutConfirm": "立即切換",
-    "2faManager": "2FA 管理"
+    "2faManager": "2FA 管理",
+    "apiRelay": "中轉站"
   },
   "sponsors": {
     "pageTitle": "贊助商",
@@ -2454,7 +2455,8 @@
         "newApiKey": "新 API Key",
         "modelCatalog": "模型目錄",
         "visionCapability": "圖片輸入能力",
-        "visionModels": "支援圖片的模型"
+        "visionModels": "支援圖片的模型",
+        "visionRoutingModel": "圖片請求預設模型"
       },
       "validation": {
         "nameRequired": "供應商名稱不能為空",
@@ -2584,13 +2586,14 @@
         "providerDefault": "此供應商預設支援圖片輸入",
         "providerDefaultHint": "關閉時，只有下方列出的模型會允許圖片輸入；其他模型會由本機閘道直接提示不支援。",
         "modelsHint": "每行一個模型名。適合同一供應商只有部分視覺模型支援貼上圖片的情況。",
+        "routingModelHint": "目前模型不支援讀取圖片時，含圖片請求會改用此模型；留空且只有一個視覺模型時自動使用。",
         "allModels": "圖片輸入",
         "partialModels": "部分圖片",
         "textOnly": "僅文字"
       },
-      "sponsorRecommended": "贊助商推薦",
+      "sponsorRecommended": "中轉站推薦",
       "builtinProviders": "內建供應商",
-      "sponsorHint": "已依贊助商推薦自動填入相容服務位址。輸入 API Key 後，卡片會自動查詢餘額與用量。",
+      "sponsorHint": "已依專屬中轉站設定自動填入相容服務位址。輸入 API Key 後，卡片會自動查詢餘額與用量。",
       "integration": {
         "sub2api": "Sub2API 相容",
         "newApi": "New API 相容"
@@ -4321,5 +4324,130 @@
     "copyCode": "複製驗證碼",
     "copied": "已複製",
     "refreshIn": "{{time}}秒"
+  },
+  "relay": {
+    "pageTitle": "專屬中轉站",
+    "pageDesc": "為 Cockpit Tools 使用者提供的合作 API 服務，可用於 Codex API Key 帳號。",
+    "loading": "正在載入中轉站...",
+    "emptyTitle": "中轉站未開啟",
+    "emptyDesc": "目前遠端設定未開啟專屬中轉站。",
+    "defaultDescription": "合作 API 中轉服務。",
+    "getApiKey": "取得 API Key",
+    "configTitle": "啟用到 Codex",
+    "apiKeyLabel": "API 金鑰",
+    "apiKeyPlaceholder": "貼上從中轉站取得的 API Key",
+    "apiKeyRequired": "請輸入 API Key。",
+    "baseUrl": "介面位址",
+    "protocol": "協定",
+    "vision": "圖片輸入",
+    "testConnection": "測試連線",
+    "saveAndEnable": "儲存並啟用",
+    "goCodex": "前往 Codex",
+    "statusUnavailable": "目前中轉站設定不可用。",
+    "testing": "正在測試連線...",
+    "testSuccess": "連線測試通過，已確認此 API Key 可用於中轉站。",
+    "testFailed": "連線測試失敗。",
+    "saving": "正在儲存並啟用到 Codex...",
+    "saveSuccess": "已儲存中轉站設定，可在 Codex 帳號頁使用。",
+    "saveFailed": "儲存中轉站設定失敗。",
+    "savedProvider": "已儲存供應商：{{name}}",
+    "modelsTitle": "支援模型",
+    "modelsEmpty": "遠端尚未設定固定模型清單，儲存後可由 Codex 依服務能力使用。"
+  },
+  "apiKeyFun": {
+    "eyebrow": "中轉站",
+    "title": "APIKEY.FUN 中轉站",
+    "description": "Cockpit 官方中轉站，為使用者提供穩定、開放、高性價比的大模型 API 接入服務。支援 Claude、OpenAI、Gemini 等主流模型，適合在 Codex、Gemini CLI、Claude Code 及其他開發工具中統一配置使用。透過 Cockpit 專屬連結註冊，可享最高儲值永久 95 折優惠。",
+    "register": "專屬註冊連結",
+    "docs": "官方文件",
+    "viewNow": "立即查看",
+    "queryTitle": "金鑰額度查詢",
+    "queryDesc": "輸入 APIKEY.FUN 的 API Key 後會自動查詢額度。",
+    "keyNotSet": "尚未輸入金鑰",
+    "apiKeyLabel": "API 金鑰",
+    "apiKeyPlaceholder": "貼上在 APIKEY.FUN 控制台建立的 API Key",
+    "hideKey": "隱藏",
+    "showKey": "顯示",
+    "endpointLabel": "接入端點",
+    "protocolLabel": "Codex 協議",
+    "queryUsage": "查詢額度",
+    "querying": "查詢中",
+    "saveToCodex": "寫入 Codex",
+    "saving": "寫入中",
+    "saveSuccess": "已寫入 Codex Provider：{{name}}",
+    "toolsTitle": "一鍵寫入客戶端",
+    "toolsDesc": "依照 APIKEY.FUN 文件與 CC Switch 的落盤方式，直接寫入本機客戶端設定檔。",
+    "endpoint": {
+      "global": "全球線路",
+      "globalDesc": "官方預設 API Base，適合多數網路環境。",
+      "direct": "專線直連",
+      "directDesc": "適合對延遲敏感的場景。"
+    },
+    "wireApi": {
+      "responses": "Responses 協議",
+      "responsesDesc": "Codex 優先使用，直連 OpenAI Responses 協議。",
+      "chatCompletions": "Chat Completions 協議",
+      "chatCompletionsDesc": "透過本機閘道相容 Chat Completions 協議。"
+    },
+    "usage": {
+      "remaining": "剩餘額度",
+      "used": "已用額度",
+      "todayRequests": "今日請求",
+      "todayTokens": "今日 Token",
+      "totalRequests": "總請求",
+      "totalTokens": "總 Token"
+    },
+    "tool": {
+      "codexTitle": "Codex 供應商",
+      "codexDesc": "寫入模型 Provider，Base URL 使用目前線路的 /v1 位址。",
+      "envTitle": "環境變數",
+      "envDesc": "適合 Claude Code、Gemini CLI、Hermes 等 OpenAI 相容入口參考。",
+      "curlTitle": "API 腳本",
+      "curlDesc": "快速驗證 Chat Completions 相容請求。"
+    },
+    "docTool": {
+      "codex": "可直接一鍵寫入 Codex Provider。",
+      "claudeCode": "複製 Anthropic Messages 相容參數。",
+      "geminiCli": "複製 OpenAI 相容 Base URL 與 API Key。",
+      "traeSolo": "複製官方文件需要的中轉參數。",
+      "openClaw": "複製 OpenAI 相容接入參數。",
+      "hermes": "複製 Hermes 模型頁可填寫的參數。",
+      "apiScript": "複製腳本接入的基礎參數。"
+    },
+    "apply": {
+      "codexTitle": "Codex",
+      "codexDesc": "寫入 ~/.codex/config.toml 與 auth.json，使用 Responses 協議和目前 API Key。",
+      "geminiTitle": "Gemini CLI 設定",
+      "geminiDesc": "寫入 ~/.gemini/.env，並把 settings.json 的認證模式設為 gemini-api-key。",
+      "openclawTitle": "OpenClaw 設定",
+      "openclawDesc": "寫入 ~/.openclaw/openclaw.json 的 models.providers.apikeyfun。",
+      "hermesTitle": "Hermes 設定",
+      "hermesDesc": "寫入 ~/.hermes/config.yaml 的 custom_providers，並切到 apikeyfun 預設模型。",
+      "button": "寫入設定",
+      "applying": "寫入中",
+      "success": "已寫入設定檔：{{paths}}",
+      "failed": "寫入設定失敗：{{error}}"
+    },
+    "error": {
+      "missingApiKey": "請輸入 API Key。",
+      "queryFailed": "額度查詢失敗：{{error}}",
+      "saveFailed": "一鍵寫入失敗：{{error}}"
+    },
+    "keyManager": {
+      "title": "金鑰管理",
+      "desc": "保存常用 API Key，點擊即可切換並自動查詢額度。",
+      "saveButton": "保存金鑰",
+      "savedButton": "已保存",
+      "empty": "暫無保存的金鑰。",
+      "lastRemaining": "上次餘額 {{value}}",
+      "notQueried": "未查詢",
+      "deleteButton": "刪除",
+      "editAlias": "修改別名",
+      "renamePlaceholder": "輸入新別名...",
+      "createdAt": "新增於 {{time}}",
+      "saveFlash": "剛剛保存"
+    },
+    "copyKey": "複製金鑰",
+    "clearKey": "清除輸入"
   }
 }

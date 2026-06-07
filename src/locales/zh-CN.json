@@ -291,6 +291,7 @@
     "logs": "日志",
     "sponsors": "赞助商",
     "sponsorAppreciation": "赞赏",
+    "apiRelay": "中转站",
     "instances": "多开实例",
     "manual": "使用手册",
     "quickUpdate": {
@@ -317,6 +318,131 @@
     "listAriaLabel": "赞助商列表",
     "defaultDescription": "感谢支持 Cockpit Tools。",
     "openSponsor": "查看"
+  },
+  "relay": {
+    "pageTitle": "专属中转站",
+    "pageDesc": "为 Cockpit Tools 用户提供的合作 API 服务，可用于 Codex API Key 账号。",
+    "loading": "正在加载中转站...",
+    "emptyTitle": "中转站未开启",
+    "emptyDesc": "当前远端配置未开启专属中转站。",
+    "defaultDescription": "合作 API 中转服务。",
+    "getApiKey": "获取 API Key",
+    "configTitle": "启用到 Codex",
+    "apiKeyLabel": "API 密钥",
+    "apiKeyPlaceholder": "粘贴从中转站获取的 API Key",
+    "apiKeyRequired": "请输入 API Key。",
+    "baseUrl": "接口地址",
+    "protocol": "协议",
+    "vision": "图片输入",
+    "testConnection": "测试连接",
+    "saveAndEnable": "保存并启用",
+    "goCodex": "前往 Codex",
+    "statusUnavailable": "当前中转站配置不可用。",
+    "testing": "正在测试连接...",
+    "testSuccess": "连接测试通过，已确认该 API Key 可用于中转站。",
+    "testFailed": "连接测试失败。",
+    "saving": "正在保存并启用到 Codex...",
+    "saveSuccess": "已保存中转站配置，可在 Codex 账号页使用。",
+    "saveFailed": "保存中转站配置失败。",
+    "savedProvider": "已保存供应商：{{name}}",
+    "modelsTitle": "支持模型",
+    "modelsEmpty": "远端暂未配置固定模型列表，保存后可由 Codex 侧按服务能力使用。"
+  },
+  "apiKeyFun": {
+    "eyebrow": "中转站",
+    "title": "APIKEY.FUN 中转站",
+    "description": "Cockpit 官方中转站，为用户提供稳定、开放、高性价比的大模型 API 接入服务。支持 Claude、OpenAI、Gemini 等主流模型，适合在 Codex、Gemini CLI、Claude Code 及其他开发工具中统一配置使用。通过 Cockpit 专属链接注册，可享受最高充值永久 95 折优惠。",
+    "register": "专属注册链接",
+    "docs": "官方文档",
+    "viewNow": "立即查看",
+    "queryTitle": "密钥额度查询",
+    "queryDesc": "输入 APIKEY.FUN 的 API Key 后自动查询额度。",
+    "keyNotSet": "未输入秘钥",
+    "apiKeyLabel": "API 密钥",
+    "apiKeyPlaceholder": "粘贴 APIKEY.FUN 控制台创建的 API Key",
+    "hideKey": "隐藏",
+    "showKey": "显示",
+    "endpointLabel": "接入端点",
+    "protocolLabel": "Codex 协议",
+    "queryUsage": "查询额度",
+    "querying": "查询中",
+    "saveToCodex": "一键写入 Codex",
+    "saving": "写入中",
+    "saveSuccess": "已写入 Codex Provider：{{name}}",
+    "toolsTitle": "一键写入客户端",
+    "toolsDesc": "按 APIKEY.FUN 文档和 CC Switch 的落盘方式，直接写入本机客户端配置文件。",
+    "endpoint": {
+      "global": "全球线路",
+      "globalDesc": "官方默认 API Base，适合大多数网络环境。",
+      "direct": "专线直连",
+      "directDesc": "适合对延迟敏感的场景使用。"
+    },
+    "wireApi": {
+      "responses": "Responses 协议",
+      "responsesDesc": "Codex 优先使用，直连 OpenAI Responses 协议。",
+      "chatCompletions": "Chat Completions 协议",
+      "chatCompletionsDesc": "通过本地网关兼容 Chat Completions 协议。"
+    },
+    "usage": {
+      "remaining": "剩余额度",
+      "used": "已用额度",
+      "todayRequests": "今日请求",
+      "todayTokens": "今日 Token",
+      "totalRequests": "总请求",
+      "totalTokens": "总 Token"
+    },
+    "tool": {
+      "codexTitle": "Codex 供应商",
+      "codexDesc": "写入模型 Provider，Base URL 使用当前线路的 /v1 地址。",
+      "envTitle": "环境变量",
+      "envDesc": "适合 Claude Code、Gemini CLI、Hermes 等 OpenAI 兼容入口参考。",
+      "curlTitle": "API 脚本",
+      "curlDesc": "快速验证 Chat Completions 兼容请求。"
+    },
+    "docTool": {
+      "codex": "可直接一键写入 Codex Provider。",
+      "claudeCode": "复制 Anthropic Messages 兼容参数。",
+      "geminiCli": "复制 OpenAI 兼容 Base URL 与 API Key。",
+      "traeSolo": "复制官方文档所需的中转参数。",
+      "openClaw": "复制 OpenAI 兼容接入参数。",
+      "hermes": "复制 Hermes 模型页可填写的参数。",
+      "apiScript": "复制脚本接入的基础参数。"
+    },
+    "apply": {
+      "codexTitle": "Codex",
+      "codexDesc": "写入 ~/.codex/config.toml 与 auth.json，使用 Responses 协议和当前 API Key。",
+      "geminiTitle": "Gemini CLI 配置",
+      "geminiDesc": "写入 ~/.gemini/.env，并把 settings.json 的认证模式设为 gemini-api-key。",
+      "openclawTitle": "OpenClaw 配置",
+      "openclawDesc": "写入 ~/.openclaw/openclaw.json 的 models.providers.apikeyfun。",
+      "hermesTitle": "Hermes 配置",
+      "hermesDesc": "写入 ~/.hermes/config.yaml 的 custom_providers，并切到 apikeyfun 默认模型。",
+      "button": "写入配置",
+      "applying": "写入中",
+      "success": "已写入配置文件：{{paths}}",
+      "failed": "写入配置失败：{{error}}"
+    },
+    "error": {
+      "missingApiKey": "请输入 API Key。",
+      "queryFailed": "额度查询失败：{{error}}",
+      "saveFailed": "一键写入失败：{{error}}"
+    },
+    "copyKey": "复制密钥",
+    "clearKey": "清空输入",
+    "keyManager": {
+      "title": "密钥管理",
+      "desc": "保存常用 API Key，点击即可切换并自动查询额度。",
+      "saveButton": "保存密钥",
+      "savedButton": "已保存",
+      "empty": "暂无保存的密钥。",
+      "lastRemaining": "上次余额 {{value}}",
+      "notQueried": "未查询",
+      "deleteButton": "删除",
+      "editAlias": "修改别名",
+      "renamePlaceholder": "输入新别名...",
+      "createdAt": "添加于 {{time}}",
+      "saveFlash": "刚刚保存"
+    }
   },
   "platformLayout": {
     "title": "平台布局",
@@ -1664,8 +1790,8 @@
       "comingSoon": "多开实例功能即将上线",
       "comingSoonDesc": "支持以不同账号同时运行多个 Codex.app 实例，敬请期待。",
       "unsupported": {
-        "title": "暂不支持目前系统",
-        "desc": "Codex 多开实例仅支持 macOS 和 Windows。"
+        "desc": "Codex 多开实例仅支持 macOS 和 Windows。",
+        "title": "暂不支持当前系统"
       },
       "quota": {
         "hourly": "5小时",
@@ -2228,7 +2354,8 @@
         "newApiKeyName": "新增 Key 名称（可选）",
         "newApiKey": "新增 API Key",
         "visionCapability": "图片输入能力",
-        "visionModels": "支持图片的模型"
+        "visionModels": "支持图片的模型",
+        "visionRoutingModel": "图片请求默认模型"
       },
       "validation": {
         "nameRequired": "供应商名称不能为空",
@@ -2354,13 +2481,14 @@
         "providerDefault": "该供应商默认支持图片输入",
         "providerDefaultHint": "关闭时，只有下方列出的模型会允许图片输入；其他模型会在本地网关直接提示不支持。",
         "modelsHint": "每行一个模型名。适合同一供应商里只有部分视觉模型支持粘贴图片的情况。",
+        "routingModelHint": "当前模型不支持图片时，带图片请求会改用该模型；留空且只有一个视觉模型时自动使用。",
         "allModels": "图片输入",
         "partialModels": "部分图片",
         "textOnly": "仅文本"
       },
-      "sponsorRecommended": "赞助商推荐",
+      "sponsorRecommended": "中转站推荐",
       "builtinProviders": "内置供应商",
-      "sponsorHint": "已按赞助商推荐自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
+      "sponsorHint": "已按专属中转站配置自动填写兼容服务地址。输入 API Key 后，卡片会自动查询余额和用量。",
       "integration": {
         "sub2api": "Sub2API 兼容",
         "newApi": "New API 兼容"
