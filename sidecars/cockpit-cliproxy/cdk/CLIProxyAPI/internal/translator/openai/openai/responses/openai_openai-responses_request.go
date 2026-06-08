@@ -16,6 +16,13 @@ const chatToolNameMaxLen = 64
 
 var chatToolNameInvalidChars = regexp.MustCompile(`[^A-Za-z0-9_-]`)
 
+func responsesServiceTier(value string) string {
+	if strings.ToLower(strings.TrimSpace(value)) == "priority" {
+		return "priority"
+	}
+	return ""
+}
+
 func isResponsesToolCallItem(itemType string) bool {
 	return itemType == "function_call" || itemType == "custom_tool_call" || itemType == "tool_search_call"
 }
@@ -270,6 +277,10 @@ func ConvertOpenAIResponsesRequestToOpenAIChatCompletions(modelName string, inpu
 
 	if parallelToolCalls := root.Get("parallel_tool_calls"); parallelToolCalls.Exists() {
 		out, _ = sjson.SetBytes(out, "parallel_tool_calls", parallelToolCalls.Bool())
+	}
+
+	if serviceTier := responsesServiceTier(root.Get("service_tier").String()); serviceTier != "" {
+		out, _ = sjson.SetBytes(out, "service_tier", serviceTier)
 	}
 
 	// Convert instructions to system message

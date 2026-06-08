@@ -246,6 +246,10 @@ pub fn get_app_speed_config() -> Result<CodexAppSpeedConfig, String> {
     Ok(official)
 }
 
+pub fn get_app_speed_config_for_dir(base_dir: &Path) -> Result<CodexAppSpeedConfig, String> {
+    read_official_app_speed_config_from_config_toml(&get_config_toml_path_for_dir(base_dir))
+}
+
 fn write_app_speed_for_config_toml_path(
     path: PathBuf,
     speed: CodexAppSpeed,
@@ -326,7 +330,7 @@ pub fn apply_api_service_speed_to_official_state() -> Result<CodexAppSpeedConfig
 #[cfg(test)]
 mod tests {
     use super::{
-        normalize_service_tier_speed, read_desktop_service_tier_from_doc,
+        get_app_speed_config_for_dir, normalize_service_tier_speed, read_desktop_service_tier_from_doc,
         sync_legacy_service_tier_state, write_app_speed_for_config_toml_path,
         DESKTOP_DEFAULT_SERVICE_TIER_KEY, DESKTOP_SECTION_KEY, ELECTRON_PERSISTED_ATOM_STATE_KEY,
         GLOBAL_STATE_FILE, HAS_USER_CHANGED_SERVICE_TIER_KEY,
@@ -422,6 +426,30 @@ appearanceTheme = "system"
             .is_none());
 
         let _ = fs::remove_file(config_path);
+    }
+
+    #[test]
+    fn reads_profile_app_speed_from_config_toml() {
+        let base_dir = unique_temp_dir("codex-speed-profile-read");
+        fs::create_dir_all(&base_dir).expect("create base dir");
+        fs::write(
+            base_dir.join("config.toml"),
+            r#"
+[desktop]
+default-service-tier = "priority"
+"#,
+        )
+        .expect("write config");
+
+        let config = get_app_speed_config_for_dir(&base_dir).expect("read speed");
+
+        assert_eq!(config.speed, CodexAppSpeed::Fast);
+        assert_eq!(
+            config.global_state_path,
+            base_dir.join("config.toml").to_string_lossy()
+        );
+
+        let _ = fs::remove_dir_all(base_dir);
     }
 
     #[test]

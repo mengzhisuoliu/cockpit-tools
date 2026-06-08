@@ -157,6 +157,7 @@ pub fn save_codex_api_service_app_speed(
             let _ = crate::modules::codex_instance::update_default_app_speed(speed);
         }
     }
+    codex_local_access::trigger_gateway_reload_in_background("保存 API 服务速度配置");
     Ok(saved)
 }
 
@@ -168,14 +169,30 @@ pub fn update_codex_account_app_speed(
     let account = codex_account::update_account_app_speed(&account_id, speed)?;
     let account_speed = account.app_speed.clone();
     let current_account_id = codex_account::load_account_index().current_account_id;
+    let provider_gateway_bind_account_id =
+        crate::modules::codex_instance::provider_gateway_bind_account_id(&account_id);
     let default_bind_account_id = crate::modules::codex_instance::load_default_settings()
         .ok()
         .and_then(|settings| settings.bind_account_id);
+    let default_bind_matches_provider_gateway = provider_gateway_bind_account_id
+        .as_deref()
+        .map(|bind_account_id| default_bind_account_id.as_deref() == Some(bind_account_id))
+        .unwrap_or(false);
     if current_account_id.as_deref() == Some(account_id.as_str())
         || default_bind_account_id.as_deref() == Some(account_id.as_str())
+        || default_bind_matches_provider_gateway
     {
         codex_speed::write_official_app_speed(account_speed.clone())?;
         let _ = crate::modules::codex_instance::update_default_app_speed(account_speed.clone());
+        if default_bind_matches_provider_gateway {
+            if let Ok(default_dir) = crate::modules::codex_instance::get_default_codex_home() {
+                codex_local_access::reload_provider_gateway_for_profile_in_background(
+                    default_dir,
+                    account_id.clone(),
+                    "更新默认 provider gateway 账号速度配置",
+                );
+            }
+        }
     }
 
     let bound_instances = crate::modules::codex_instance::update_bound_instances_app_speed(
@@ -187,6 +204,25 @@ pub fn update_codex_account_app_speed(
             std::path::Path::new(&instance.user_data_dir),
             account_speed.clone(),
         )?;
+    }
+
+    if let Some(provider_gateway_bind_account_id) = provider_gateway_bind_account_id.as_deref() {
+        let provider_gateway_bound_instances =
+            crate::modules::codex_instance::update_bound_instances_app_speed(
+                provider_gateway_bind_account_id,
+                account_speed.clone(),
+            )?;
+        for instance in provider_gateway_bound_instances {
+            codex_speed::write_app_speed_for_dir(
+                std::path::Path::new(&instance.user_data_dir),
+                account_speed.clone(),
+            )?;
+            codex_local_access::reload_provider_gateway_for_profile_in_background(
+                std::path::PathBuf::from(instance.user_data_dir),
+                account_id.clone(),
+                "更新 provider gateway 账号速度配置",
+            );
+        }
     }
     Ok(account)
 }

@@ -947,6 +947,7 @@ async fn codex_start_instance_internal(
         let _ = modules::codex_instance::update_instance_pid(&instance.id, None)?;
     }
     modules::codex_local_access::stop_provider_gateways_for_profile(instance_dir).await;
+    modules::codex_speed::write_app_speed_for_dir(instance_dir, instance.app_speed.clone())?;
 
     if let Some(ref account_id) = instance.bind_account_id {
         inject_bound_account_to_profile(instance_dir, account_id).await?;
@@ -961,7 +962,6 @@ async fn codex_start_instance_internal(
         previous_provider,
         read_launch_provider_for_dir(instance_dir),
     );
-    modules::codex_speed::write_app_speed_for_dir(instance_dir, instance.app_speed.clone())?;
     repair_session_visibility_before_launch("before-start-instance", &launch_provider_change)?;
     let launch_credential_change = launch_provider_change
         .as_ref()
