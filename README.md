@@ -32,7 +32,7 @@
       </a>
     </td>
     <td>
-      感谢 <a href="https://apikey.fun/register?aff=cockpit"><strong>APIKEY.FUN</strong></a> 赞助本项目！APIKEY.FUN 中转站是 Cockpit 官方合作中转站，为用户提供稳定、开放、高性价比的大模型 API 接入服务。支持 Claude、OpenAI、Gemini 等主流模型，适合在 Codex、Gemini CLI、Claude Code 及其他开发工具中统一配置使用。通过 Cockpit <a href="https://apikey.fun/register?aff=cockpit"><strong>专属链接</strong></a> 注册，可享受最高充值永久 95 折优惠。
+      <a href="https://apikey.fun/register?aff=cockpit"><strong>APIKEY.FUN</strong></a> 中转站是 Cockpit 官方合作中转站，为用户提供稳定、开放、高性价比的大模型 API 接入服务。支持 Claude、OpenAI、Gemini 等主流模型，适合在 Codex、Gemini CLI、Claude Code 及其他开发工具中统一配置使用。通过 Cockpit <a href="https://apikey.fun/register?aff=cockpit"><strong>专属链接</strong></a> 注册，可享受最高充值永久 95 折优惠。
     </td>
   </tr>
   <tr>
@@ -42,7 +42,7 @@
       </a>
     </td>
     <td>
-      感谢 <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser（Roxy浏览器）</strong></a> 赞助本项目！RoxyBrowser 是面向多账号运营与 AI 自动化场景的指纹浏览器，支持独立浏览器指纹环境、Cookie / 存储隔离、Roxy 原生住宅 IP、团队协作与 API / MCP 自动化能力，适合需要管理 AI 账号矩阵、降低账号关联风险、提升长期使用稳定性的用户。通过 Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>邀请链接</strong></a> 注册或购买，可享受 10% 粉丝折扣。
+      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser（Roxy浏览器）</strong></a> 是面向多账号运营与 AI 自动化场景的指纹浏览器，支持独立浏览器指纹环境、Cookie / 存储隔离、Roxy 原生住宅 IP、团队协作与 API / MCP 自动化能力，适合需要管理 AI 账号矩阵、降低账号关联风险、提升长期使用稳定性的用户。通过 Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>邀请链接</strong></a> 注册或购买，可享受 10% 粉丝折扣。
     </td>
   </tr>
 </table>

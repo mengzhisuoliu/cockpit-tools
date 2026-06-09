@@ -31,7 +31,7 @@ A **universal AI IDE account management tool**, currently supporting **Antigravi
       </a>
     </td>
     <td>
-      Thanks to <a href="https://apikey.fun/register?aff=cockpit"><strong>APIKEY.FUN</strong></a> for sponsoring this project. APIKEY.FUN Relay is the official Cockpit partner relay, providing stable, open, and cost-effective large-model API access. It supports mainstream models such as Claude, OpenAI, and Gemini, and is suitable for unified configuration across Codex, Gemini CLI, Claude Code, and other developer tools. Register through the Cockpit <a href="https://apikey.fun/register?aff=cockpit"><strong>exclusive link</strong></a> to get a permanent top-up discount of up to 5%.
+      <a href="https://apikey.fun/register?aff=cockpit"><strong>APIKEY.FUN</strong></a> Relay is the official Cockpit partner relay, providing stable, open, and cost-effective large-model API access. It supports mainstream models such as Claude, OpenAI, and Gemini, and is suitable for unified configuration across Codex, Gemini CLI, Claude Code, and other developer tools. Register through the Cockpit <a href="https://apikey.fun/register?aff=cockpit"><strong>exclusive link</strong></a> to get a permanent top-up discount of up to 5%.
     </td>
   </tr>
   <tr>
@@ -41,7 +41,7 @@ A **universal AI IDE account management tool**, currently supporting **Antigravi
       </a>
     </td>
     <td>
-      Thanks to <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser</strong></a> for sponsoring this project. RoxyBrowser is an anti-detect browser for multi-account operations and AI automation, supporting isolated browser fingerprint environments, Cookie / storage isolation, Roxy native residential IPs, team collaboration, and API / MCP automation. It helps users manage AI account matrices, reduce account association risk, and improve long-term stability. Register or purchase through the Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>invite link</strong></a> to get a 10% fan discount.
+      <a href="https://roxybrowser.cn?code=0326VTDA"><strong>RoxyBrowser</strong></a> is an anti-detect browser for multi-account operations and AI automation, supporting isolated browser fingerprint environments, Cookie / storage isolation, Roxy native residential IPs, team collaboration, and API / MCP automation. It helps users manage AI account matrices, reduce account association risk, and improve long-term stability. Register or purchase through the Cockpit <a href="https://roxybrowser.cn?code=0326VTDA"><strong>invite link</strong></a> to get a 10% fan discount.
     </td>
   </tr>
 </table>
