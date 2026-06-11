@@ -162,6 +162,51 @@ func TestConvertOpenAIResponsesRequestToOpenAIChatCompletions_IncludesUsageForSt
 	}
 }
 
+func TestConvertOpenAIResponsesRequestToOpenAIChatCompletions_PreservesServiceTier(t *testing.T) {
+	out := ConvertOpenAIResponsesRequestToOpenAIChatCompletions(
+		"gpt-5.4-mini",
+		[]byte(`{"input":"hello","service_tier":"priority"}`),
+		false,
+	)
+
+	if got := gjson.GetBytes(out, "service_tier").String(); got != "priority" {
+		t.Fatalf("service_tier = %q, want priority; out=%s", got, out)
+	}
+}
+
+func TestConvertOpenAIResponsesRequestToOpenAIChatCompletions_PreservesServiceTierForStreamingReasoning(t *testing.T) {
+	out := ConvertOpenAIResponsesRequestToOpenAIChatCompletions(
+		"gpt-5.4-mini",
+		[]byte(`{"input":"hello","stream":true,"reasoning":{"effort":"low"},"service_tier":"priority"}`),
+		true,
+	)
+
+	if got := gjson.GetBytes(out, "stream").Bool(); !got {
+		t.Fatalf("stream = %v, want true; out=%s", got, out)
+	}
+	if got := gjson.GetBytes(out, "stream_options.include_usage").Bool(); !got {
+		t.Fatalf("stream_options.include_usage = %v, want true; out=%s", got, out)
+	}
+	if got := gjson.GetBytes(out, "reasoning_effort").String(); got != "low" {
+		t.Fatalf("reasoning_effort = %q, want low; out=%s", got, out)
+	}
+	if got := gjson.GetBytes(out, "service_tier").String(); got != "priority" {
+		t.Fatalf("service_tier = %q, want priority; out=%s", got, out)
+	}
+}
+
+func TestConvertOpenAIResponsesRequestToOpenAIChatCompletions_DoesNotInventServiceTier(t *testing.T) {
+	out := ConvertOpenAIResponsesRequestToOpenAIChatCompletions(
+		"gpt-5.4-mini",
+		[]byte(`{"input":"hello"}`),
+		false,
+	)
+
+	if got := gjson.GetBytes(out, "service_tier"); got.Exists() {
+		t.Fatalf("service_tier should be absent; out=%s", out)
+	}
+}
+
 func TestConvertOpenAIResponsesRequestToOpenAIChatCompletions_ConvertsInputImages(t *testing.T) {
 	raw := []byte(`{
 		"input": [{

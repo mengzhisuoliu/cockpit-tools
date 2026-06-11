@@ -1,4 +1,4 @@
-use crate::models::codex::{CodexAccount, CodexApiProviderMode, CodexAuthMode};
+use crate::models::codex::{CodexAccount, CodexApiProviderMode, CodexAppSpeed, CodexAuthMode};
 use crate::models::codex_local_access::{
     CodexLocalAccessAccountCooldown, CodexLocalAccessAccountHealth,
     CodexLocalAccessAccountModelRule, CodexLocalAccessAccountStats, CodexLocalAccessApiKey,
@@ -69,6 +69,9 @@ const CODEX_LOCAL_ACCESS_SIDECAR_CONFIG_FILE: &str = "config.json";
 const CODEX_LOCAL_ACCESS_SIDECAR_MANIFEST_FILE: &str = "manifest.json";
 const CODEX_LOCAL_ACCESS_SIDECAR_AUTHS_DIR: &str = "auths";
 const CODEX_LOCAL_ACCESS_SIDECAR_BIN_NAME: &str = "cockpit-cliproxy";
+const SIDECAR_SERVICE_TIER_SUPPORTED_MODEL_PATTERN: &str = "*";
+const SIDECAR_SERVICE_TIER_SUPPORTED_PAYLOAD_FORMATS: &[&str] =
+    &["codex", "openai", "openai-response"];
 const CODEX_LOCAL_ACCESS_LOCALHOST_BIND_HOST: &str = "127.0.0.1";
 const CODEX_LOCAL_ACCESS_LAN_BIND_HOST: &str = "0.0.0.0";
 const CODEX_LOCAL_ACCESS_DEFAULT_CLIENT_URL_HOST: &str = "localhost";
@@ -2973,6 +2976,15 @@ fn build_responses_body_from_chat_completions(
         }
     }
 
+    if let Some(service_tier) = request_obj.get("service_tier").and_then(Value::as_str) {
+        if let Some(normalized) = normalize_proxy_service_tier(service_tier) {
+            responses_obj.insert(
+                "service_tier".to_string(),
+                Value::String(normalized.to_string()),
+            );
+        }
+    }
+
     let mut text_obj = Map::new();
     if let Some(response_format) = request_obj
         .get("response_format")
@@ -3020,8 +3032,68 @@ fn build_responses_body_from_chat_completions(
     Ok((Value::Object(responses_obj), stream, model))
 }
 
-fn prepare_gateway_request(
+fn normalize_proxy_service_tier(value: &str) -> Option<&'static str> {
+    match value.trim().to_ascii_lowercase().as_str() {
+        "priority" => Some("priority"),
+        _ => None,
+    }
+}
+
+fn apply_default_service_tier_if_missing(body_value: &mut Value, service_tier: Option<&str>) {
+    let Some(service_tier) = service_tier.and_then(normalize_proxy_service_tier) else {
+        return;
+    };
+    let Some(body_obj) = body_value.as_object_mut() else {
+        return;
+    };
+    if body_obj.contains_key("service_tier") {
+        return;
+    }
+    body_obj.insert(
+        "service_tier".to_string(),
+        Value::String(service_tier.to_string()),
+    );
+}
+
+fn request_body_has_service_tier(body_value: &Value) -> bool {
+    body_value
+        .as_object()
+        .map(|body_obj| body_obj.contains_key("service_tier"))
+        .unwrap_or(false)
+}
+
+fn api_service_default_service_tier() -> Result<Option<&'static str>, String> {
+    crate::modules::codex_speed::get_api_service_app_speed_config()
+        .map(|config| codex_app_speed_service_tier(&config.speed))
+}
+
+fn sidecar_payload_default_service_tier(default_service_tier: Option<&str>) -> Option<Value> {
+    let service_tier = default_service_tier.and_then(normalize_proxy_service_tier)?;
+    let models = SIDECAR_SERVICE_TIER_SUPPORTED_PAYLOAD_FORMATS
+        .iter()
+        .map(|payload_format| {
+            json!({
+                "name": SIDECAR_SERVICE_TIER_SUPPORTED_MODEL_PATTERN,
+                "protocol": payload_format,
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut params = Map::new();
+    params.insert(
+        "service_tier".to_string(),
+        Value::String(service_tier.to_string()),
+    );
+    let mut rule = Map::new();
+    rule.insert("models".to_string(), Value::Array(models));
+    rule.insert("params".to_string(), Value::Object(params));
+    let mut payload = Map::new();
+    payload.insert("default".to_string(), Value::Array(vec![Value::Object(rule)]));
+    Some(Value::Object(payload))
+}
+
+fn prepare_gateway_request_with_default_service_tier(
     mut request: ParsedRequest,
+    default_service_tier: Option<&str>,
 ) -> Result<(ParsedRequest, GatewayResponseAdapter), String> {
     if is_images_generations_request(&request.target) {
         if !request.method.eq_ignore_ascii_case("POST") {
@@ -3094,8 +3166,12 @@ fn prepare_gateway_request(
             }
             let mut body_value = parse_request_body_json(&request.body)
                 .ok_or("responses 请求体必须是合法 JSON".to_string())?;
+            let request_has_service_tier = request_body_has_service_tier(&body_value);
             rewrite_request_model_alias_value(&mut body_value);
             codex_protocol::normalize_responses_body_for_codex(&mut body_value);
+            if !request_has_service_tier {
+                apply_default_service_tier_if_missing(&mut body_value, default_service_tier);
+            }
             request.body = serde_json::to_vec(&body_value)
                 .map_err(|e| format!("序列化 responses 请求体失败: {}", e))?;
             request
@@ -3110,8 +3186,12 @@ fn prepare_gateway_request(
             }
             let mut body_value = parse_request_body_json(&request.body)
                 .ok_or("responses/compact 请求体必须是合法 JSON".to_string())?;
+            let request_has_service_tier = request_body_has_service_tier(&body_value);
             rewrite_request_model_alias_value(&mut body_value);
             codex_protocol::normalize_responses_body_for_codex(&mut body_value);
+            if !request_has_service_tier {
+                apply_default_service_tier_if_missing(&mut body_value, default_service_tier);
+            }
             if let Some(body_obj) = body_value.as_object_mut() {
                 body_obj.remove("stream");
             }
@@ -3139,9 +3219,13 @@ fn prepare_gateway_request(
 
     let body_value = parse_request_body_json(&request.body)
         .ok_or("chat/completions 请求体必须是合法 JSON".to_string())?;
+    let request_has_service_tier = request_body_has_service_tier(&body_value);
     let original_request_body = request.body.clone();
-    let (responses_body, stream, requested_model) =
+    let (mut responses_body, stream, requested_model) =
         build_responses_body_from_chat_completions(&body_value)?;
+    if !request_has_service_tier {
+        apply_default_service_tier_if_missing(&mut responses_body, default_service_tier);
+    }
     request.target = RESPONSES_PATH.to_string();
     request.body = serde_json::to_vec(&responses_body)
         .map_err(|e| format!("序列化 responses 请求体失败: {}", e))?;
@@ -3160,6 +3244,13 @@ fn prepare_gateway_request(
             original_request_body,
         },
     ))
+}
+
+#[cfg(test)]
+fn prepare_gateway_request(
+    request: ParsedRequest,
+) -> Result<(ParsedRequest, GatewayResponseAdapter), String> {
+    prepare_gateway_request_with_default_service_tier(request, None)
 }
 
 fn response_payload_root(value: &Value) -> &Value {
@@ -6301,6 +6392,13 @@ fn sidecar_api_key_manifest_values(collection: &CodexLocalAccessCollection) -> V
     values
 }
 
+fn codex_app_speed_service_tier(speed: &CodexAppSpeed) -> Option<&'static str> {
+    match speed {
+        CodexAppSpeed::Fast => Some("priority"),
+        CodexAppSpeed::Standard => None,
+    }
+}
+
 fn effective_api_key_account_ids(
     collection: &CodexLocalAccessCollection,
     api_key: &CodexLocalAccessApiKey,
@@ -6778,14 +6876,21 @@ async fn prepare_sidecar_launch_config(
         let runtime = gateway_runtime().lock().await;
         runtime.account_health.clone()
     };
-    prepare_sidecar_launch_config_in_dir(collection, local_access_sidecar_dir()?, health_snapshot)
-        .await
+    let default_service_tier = api_service_default_service_tier()?;
+    prepare_sidecar_launch_config_in_dir(
+        collection,
+        local_access_sidecar_dir()?,
+        health_snapshot,
+        default_service_tier,
+    )
+    .await
 }
 
 async fn prepare_sidecar_launch_config_in_dir(
     collection: &CodexLocalAccessCollection,
     base_dir: PathBuf,
     health_snapshot: HashMap<String, RuntimeAccountHealth>,
+    default_service_tier: Option<&str>,
 ) -> Result<SidecarLaunchConfig, String> {
     let auths_dir = sidecar_auths_dir(&base_dir);
     if auths_dir.exists() {
@@ -6962,6 +7067,9 @@ async fn prepare_sidecar_launch_config_in_dir(
             "beta-features": CODEX_RESPONSES_WEBSOCKET_BETA_HEADER_VALUE,
         }),
     );
+    if let Some(payload) = sidecar_payload_default_service_tier(default_service_tier) {
+        config.insert("payload".to_string(), payload);
+    }
 
     let config_path = sidecar_config_path(&base_dir);
     let manifest_path = sidecar_manifest_path(&base_dir);
@@ -9298,9 +9406,12 @@ async fn ensure_gateway_matches_runtime() -> Result<(), String> {
     ensure_gateway_matches_runtime_locked().await
 }
 
-fn trigger_gateway_reload_in_background(reason: &'static str) {
-    tokio::spawn(async move {
-        match ensure_gateway_matches_runtime().await {
+fn reload_gateway_in_background<F>(reason: &'static str, reload: F)
+where
+    F: std::future::Future<Output = Result<(), String>> + Send + 'static,
+{
+    tauri::async_runtime::spawn(async move {
+        match reload.await {
             Ok(()) => {
                 let mut runtime = gateway_runtime().lock().await;
                 runtime.last_error = None;
@@ -9319,6 +9430,10 @@ fn trigger_gateway_reload_in_background(reason: &'static str) {
             }
         }
     });
+}
+
+pub fn trigger_gateway_reload_in_background(reason: &'static str) {
+    reload_gateway_in_background(reason, ensure_runtime_loaded());
 }
 
 async fn ensure_gateway_matches_runtime_locked() -> Result<(), String> {
@@ -11093,8 +11208,16 @@ pub async fn ensure_provider_gateway_for_dir(
     }
 
     let sidecar_dir = provider_gateway_sidecar_dir(profile_dir, account_id)?;
-    let launch_config =
-        prepare_sidecar_launch_config_in_dir(&collection, sidecar_dir, HashMap::new()).await?;
+    let default_service_tier =
+        crate::modules::codex_speed::get_app_speed_config_for_dir(profile_dir)
+            .map(|config| codex_app_speed_service_tier(&config.speed))?;
+    let launch_config = prepare_sidecar_launch_config_in_dir(
+        &collection,
+        sidecar_dir,
+        HashMap::new(),
+        default_service_tier,
+    )
+    .await?;
     if probe_sidecar_ready_once(&collection, Duration::from_millis(250))
         .await
         .is_ok()
@@ -11123,6 +11246,42 @@ pub async fn ensure_provider_gateway_for_dir(
         },
     );
     Ok(())
+}
+
+pub fn reload_provider_gateway_for_profile_in_background(
+    profile_dir: PathBuf,
+    account_id: String,
+    reason: &'static str,
+) {
+    let account_id = account_id.trim().to_string();
+    if account_id.is_empty() {
+        return;
+    }
+    tauri::async_runtime::spawn(async move {
+        let runtime_key = provider_gateway_runtime_key(&profile_dir, &account_id);
+        let is_running = {
+            let runtimes = provider_gateway_runtime_store().lock().await;
+            runtimes.contains_key(&runtime_key)
+        };
+        if !is_running {
+            return;
+        }
+        match ensure_provider_gateway_for_dir(&profile_dir, &account_id).await {
+            Ok(()) => logger::log_codex_api_info(&format!(
+                "[CodexLocalAccess][provider-gateway] sidecar 重载完成: reason={}, profile={}, account_id={}",
+                reason,
+                profile_dir.display(),
+                account_id
+            )),
+            Err(error) => logger::log_codex_api_warn(&format!(
+                "[CodexLocalAccess][provider-gateway] sidecar 重载失败: reason={}, profile={}, account_id={}, error={}",
+                reason,
+                profile_dir.display(),
+                account_id,
+                error
+            )),
+        }
+    });
 }
 
 #[derive(Debug, Clone)]
@@ -15756,11 +15915,16 @@ async fn read_initial_websocket_payload(
 fn prepare_websocket_initial_request(
     request: &mut ParsedRequest,
     api_key: &ResolvedLocalApiKey,
+    default_service_tier: Option<&str>,
 ) -> Result<(), String> {
     let mut body_value = parse_request_body_json(&request.body)
         .ok_or_else(|| "WebSocket response.create 消息必须是合法 JSON".to_string())?;
+    let request_has_service_tier = request_body_has_service_tier(&body_value);
     rewrite_request_model_alias_value(&mut body_value);
     codex_protocol::normalize_responses_body_for_codex(&mut body_value);
+    if !request_has_service_tier {
+        apply_default_service_tier_if_missing(&mut body_value, default_service_tier);
+    }
     let body_obj = body_value
         .as_object_mut()
         .ok_or_else(|| "WebSocket response.create 消息必须是 JSON 对象".to_string())?;
@@ -16761,7 +16925,8 @@ async fn handle_websocket_connection(
             }
         };
     parsed.body = initial_payload;
-    prepare_websocket_initial_request(&mut parsed, &resolved_api_key)?;
+    let default_service_tier = api_service_default_service_tier()?;
+    prepare_websocket_initial_request(&mut parsed, &resolved_api_key, default_service_tier)?;
     let stats_context = RequestStatsContext {
         request_kind: CodexLocalAccessRequestKind::Text,
         model_id: stats_model_id_for_request_kind(&parsed.body, CodexLocalAccessRequestKind::Text),
@@ -17220,15 +17385,15 @@ async fn handle_connection(
         }
         return Ok(());
     }
-    let (mut prepared_request, response_adapter) = match prepare_gateway_request(parsed) {
-        Ok(prepared) => prepared,
+    let default_service_tier = match api_service_default_service_tier() {
+        Ok(service_tier) => service_tier,
         Err(err) => {
             write_json_error_response(
                 &mut stream,
                 Some(&addr),
                 None,
-                400,
-                "Bad Request",
+                500,
+                "Internal Server Error",
                 err.as_str(),
                 None,
                 None,
@@ -17238,6 +17403,25 @@ async fn handle_connection(
             return Ok(());
         }
     };
+    let (mut prepared_request, response_adapter) =
+        match prepare_gateway_request_with_default_service_tier(parsed, default_service_tier) {
+            Ok(prepared) => prepared,
+            Err(err) => {
+                write_json_error_response(
+                    &mut stream,
+                    Some(&addr),
+                    None,
+                    400,
+                    "Bad Request",
+                    err.as_str(),
+                    None,
+                    None,
+                    Some(started_at.elapsed().as_millis() as u64),
+                )
+                .await?;
+                return Ok(());
+            }
+        };
     if let Err(err) = align_codex_prompt_cache(&mut prepared_request, &resolved_api_key) {
         write_json_error_response(
             &mut stream,
@@ -17474,7 +17658,8 @@ mod tests {
         model_pricing, normalize_account_model_rules, normalize_custom_routing_rules,
         normalized_sidecar_error_category, parse_codex_retry_after,
         parse_responses_payload_from_upstream, parse_websocket_upstream_error,
-        prepare_gateway_request, profile_base_url_matches,
+        prepare_gateway_request, prepare_gateway_request_with_default_service_tier,
+        prepare_websocket_initial_request, profile_base_url_matches,
         provider_gateway_default_model_for_account, provider_gateway_models_for_account,
         read_http_request, recover_invalid_stats_file, remove_account_refs_from_collection,
         remove_codex_local_access_config, resolve_plan_rank, resolve_supported_model_alias,
@@ -17482,7 +17667,8 @@ mod tests {
         sanitize_collection_with_accounts, scutil_proxy_map,
         should_retry_single_account_upstream_status, should_treat_response_as_stream,
         should_try_next_account, sidecar_codex_api_key_auth_id, sidecar_config_fingerprint,
-        sidecar_stable_id, system_proxy_target_scheme, system_proxy_value_url,
+        sidecar_payload_default_service_tier, sidecar_stable_id, system_proxy_target_scheme,
+        system_proxy_value_url,
         validate_client_model_visible, visible_codex_model_ids_for_api_key, websocket_accept_value,
         websocket_connect_error_from_http_response, windows_proxy_url_from_server,
         windows_reg_dword_enabled, windows_reg_query_map,
@@ -17581,6 +17767,49 @@ mod tests {
             sidecar_stable_id("codex:apikey", &["sk-test", "https://api.deepseek.com/v1"]),
             "codex:apikey:b1193dcdb71b"
         );
+    }
+
+    #[test]
+    fn sidecar_payload_default_service_tier_builds_supported_format_priority_default_rule() {
+        let payload =
+            sidecar_payload_default_service_tier(Some("priority")).expect("payload should exist");
+        let rules = payload
+            .get("default")
+            .and_then(Value::as_array)
+            .expect("default rules should exist");
+
+        assert_eq!(rules.len(), 1);
+        assert_eq!(
+            rules[0]
+                .get("params")
+                .and_then(|params| params.get("service_tier"))
+                .and_then(Value::as_str),
+            Some("priority")
+        );
+
+        let models = rules[0]
+            .get("models")
+            .and_then(Value::as_array)
+            .expect("model rules should exist");
+        let payload_formats = models
+            .iter()
+            .filter_map(|model| model.get("protocol").and_then(Value::as_str))
+            .collect::<HashSet<_>>();
+
+        assert_eq!(models.len(), 3);
+        assert!(models.iter().all(|model| {
+            model.get("name").and_then(Value::as_str) == Some("*")
+        }));
+        assert!(payload_formats.contains("codex"));
+        assert!(payload_formats.contains("openai"));
+        assert!(payload_formats.contains("openai-response"));
+    }
+
+    #[test]
+    fn sidecar_payload_default_service_tier_skips_none_and_unsupported_values() {
+        assert!(sidecar_payload_default_service_tier(None).is_none());
+        assert!(sidecar_payload_default_service_tier(Some("fast")).is_none());
+        assert!(sidecar_payload_default_service_tier(Some("standard")).is_none());
     }
 
     #[test]
@@ -19433,6 +19662,171 @@ data: {"type":"response.completed","response":{"id":"resp_123","usage":{"input_t
     }
 
     #[test]
+    fn legacy_responses_requests_inject_default_priority_service_tier() {
+        let cases = [
+            (
+                br#"{"model":"gpt-5.4","input":"hello"}"#.as_slice(),
+                None,
+                None,
+            ),
+            (
+                br#"{"model":"gpt-5.4","stream":true,"reasoning":{"effort":"low"},"input":"hello"}"#
+                    .as_slice(),
+                Some(true),
+                Some("low"),
+            ),
+        ];
+
+        for (body, expected_stream, expected_effort) in cases {
+            let request = ParsedRequest {
+                method: "POST".to_string(),
+                target: "/v1/responses".to_string(),
+                headers: HashMap::new(),
+                body: body.to_vec(),
+            };
+
+            let (prepared, _) =
+                prepare_gateway_request_with_default_service_tier(request, Some("priority"))
+                    .expect("request should map");
+            let mapped_body: Value =
+                serde_json::from_slice(&prepared.body).expect("mapped body should be json");
+            assert_eq!(
+                mapped_body.get("service_tier").and_then(Value::as_str),
+                Some("priority")
+            );
+            if let Some(expected_stream) = expected_stream {
+                assert_eq!(
+                    mapped_body.get("stream").and_then(Value::as_bool),
+                    Some(expected_stream)
+                );
+            }
+            if let Some(expected_effort) = expected_effort {
+                assert_eq!(
+                    mapped_body
+                        .get("reasoning")
+                        .and_then(|reasoning| reasoning.get("effort"))
+                        .and_then(Value::as_str),
+                    Some(expected_effort)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_chat_completions_requests_inject_default_priority_service_tier() {
+        let cases = [
+            (
+                br#"{"model":"gpt-5.4","messages":[{"role":"user","content":"hello"}]}"#
+                    .as_slice(),
+                None,
+                None,
+            ),
+            (
+                br#"{"model":"gpt-5.4","stream":true,"reasoning_effort":"low","messages":[{"role":"user","content":"hello"}]}"#
+                    .as_slice(),
+                Some(true),
+                Some("low"),
+            ),
+        ];
+
+        for (body, expected_stream, expected_effort) in cases {
+            let request = ParsedRequest {
+                method: "POST".to_string(),
+                target: "/v1/chat/completions".to_string(),
+                headers: HashMap::new(),
+                body: body.to_vec(),
+            };
+
+            let (prepared, adapter) =
+                prepare_gateway_request_with_default_service_tier(request, Some("priority"))
+                    .expect("request should map");
+            let mapped_body: Value =
+                serde_json::from_slice(&prepared.body).expect("mapped body should be json");
+            assert_eq!(
+                mapped_body.get("service_tier").and_then(Value::as_str),
+                Some("priority")
+            );
+            if let Some(expected_stream) = expected_stream {
+                assert_eq!(
+                    mapped_body.get("stream").and_then(Value::as_bool),
+                    Some(expected_stream)
+                );
+                match adapter {
+                    GatewayResponseAdapter::ChatCompletions { stream, .. } => {
+                        assert_eq!(stream, expected_stream)
+                    }
+                    _ => panic!("expected chat completions adapter"),
+                }
+            }
+            if let Some(expected_effort) = expected_effort {
+                assert_eq!(
+                    mapped_body
+                        .get("reasoning")
+                        .and_then(|reasoning| reasoning.get("effort"))
+                        .and_then(Value::as_str),
+                    Some(expected_effort)
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn legacy_chat_completions_requests_preserve_explicit_service_tier() {
+        let cases = [
+            (
+                br#"{"model":"gpt-5.4","service_tier":"priority","messages":[{"role":"user","content":"hello"}]}"#
+                    .as_slice(),
+                None,
+                None,
+            ),
+            (
+                br#"{"model":"gpt-5.4","stream":true,"reasoning_effort":"low","service_tier":"priority","messages":[{"role":"user","content":"hello"}]}"#
+                    .as_slice(),
+                Some(true),
+                Some("low"),
+            ),
+        ];
+
+        for (body, expected_stream, expected_effort) in cases {
+            let request = ParsedRequest {
+                method: "POST".to_string(),
+                target: "/v1/chat/completions".to_string(),
+                headers: HashMap::new(),
+                body: body.to_vec(),
+            };
+
+            let (prepared, adapter) = prepare_gateway_request(request).expect("request should map");
+            let mapped_body: Value =
+                serde_json::from_slice(&prepared.body).expect("mapped body should be json");
+            assert_eq!(
+                mapped_body.get("service_tier").and_then(Value::as_str),
+                Some("priority")
+            );
+            if let Some(expected_stream) = expected_stream {
+                assert_eq!(
+                    mapped_body.get("stream").and_then(Value::as_bool),
+                    Some(expected_stream)
+                );
+                match adapter {
+                    GatewayResponseAdapter::ChatCompletions { stream, .. } => {
+                        assert_eq!(stream, expected_stream)
+                    }
+                    _ => panic!("expected chat completions adapter"),
+                }
+            }
+            if let Some(expected_effort) = expected_effort {
+                assert_eq!(
+                    mapped_body
+                        .get("reasoning")
+                        .and_then(|reasoning| reasoning.get("effort"))
+                        .and_then(Value::as_str),
+                    Some(expected_effort)
+                );
+            }
+        }
+    }
+
+    #[test]
     fn prepares_images_generation_request_for_responses_proxy() {
         let request = ParsedRequest {
             method: "POST".to_string(),
@@ -20384,6 +20778,64 @@ data: {"error":{"code":"server_error","type":"upstream","message":"stream aborte
                 .as_deref(),
             Some("cache-123")
         );
+    }
+
+    #[test]
+    fn legacy_websocket_initial_requests_inject_default_priority_service_tier() {
+        let api_key = ResolvedLocalApiKey {
+            id: "client-key-1".to_string(),
+            label: "Client".to_string(),
+            provider_gateway: None,
+            account_ids: Vec::new(),
+            model_prefix: None,
+            allowed_models: Vec::new(),
+            excluded_models: Vec::new(),
+        };
+        let cases = [
+            (
+                br#"{"model":"gpt-5.4","input":"hello"}"#.as_slice(),
+                None,
+                None,
+            ),
+            (
+                br#"{"model":"gpt-5.4","stream":true,"reasoning":{"effort":"low"},"input":"hello"}"#
+                    .as_slice(),
+                Some(true),
+                Some("low"),
+            ),
+        ];
+
+        for (request_body, expected_stream, expected_effort) in cases {
+            let mut request = ParsedRequest {
+                method: "GET".to_string(),
+                target: "/v1/responses".to_string(),
+                headers: HashMap::new(),
+                body: request_body.to_vec(),
+            };
+
+            prepare_websocket_initial_request(&mut request, &api_key, Some("priority"))
+                .expect("websocket request should map");
+            let body = serde_json::from_slice::<Value>(&request.body).unwrap();
+            assert_eq!(
+                body.get("service_tier").and_then(Value::as_str),
+                Some("priority")
+            );
+            assert_eq!(
+                body.get("type").and_then(Value::as_str),
+                Some("response.create")
+            );
+            if let Some(expected_stream) = expected_stream {
+                assert_eq!(body.get("stream").and_then(Value::as_bool), Some(expected_stream));
+            }
+            if let Some(expected_effort) = expected_effort {
+                assert_eq!(
+                    body.get("reasoning")
+                        .and_then(|reasoning| reasoning.get("effort"))
+                        .and_then(Value::as_str),
+                    Some(expected_effort)
+                );
+            }
+        }
     }
 
     #[test]

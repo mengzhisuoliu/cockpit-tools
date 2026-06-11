@@ -45,6 +45,17 @@ pub fn parse_provider_gateway_bind_account_id(account_id: &str) -> Option<String
         .map(str::to_string)
 }
 
+pub fn provider_gateway_bind_account_id(account_id: &str) -> Option<String> {
+    let account_id = account_id.trim();
+    if account_id.is_empty() {
+        return None;
+    }
+    Some(format!(
+        "{}{}",
+        CODEX_PROVIDER_GATEWAY_BIND_ACCOUNT_PREFIX, account_id
+    ))
+}
+
 #[derive(Debug, Clone)]
 pub struct CreateInstanceParams {
     pub name: String,
