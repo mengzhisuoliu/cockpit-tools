@@ -102,8 +102,6 @@ static CLAUDE_PENDING_OAUTH_LOGIN: std::sync::LazyLock<Mutex<Option<PendingClaud
 static CLAUDE_PENDING_DESKTOP_LOGIN: std::sync::LazyLock<
     Mutex<Option<PendingClaudeDesktopLoginState>>,
 > = std::sync::LazyLock::new(|| Mutex::new(None));
-static CLAUDE_DESKTOP_AUTH_RESOURCE_DIR: std::sync::LazyLock<Mutex<Option<PathBuf>>> =
-    std::sync::LazyLock::new(|| Mutex::new(None));
 static EMAIL_RE: std::sync::LazyLock<Regex> = std::sync::LazyLock::new(|| {
     Regex::new(r"(?i)[a-z0-9._%+\-]{1,64}@[a-z0-9.\-]{2,253}\.[a-z]{2,24}")
         .expect("valid email regex")
@@ -218,19 +216,6 @@ fn now_ts() -> i64 {
 
 fn now_ts_ms() -> i64 {
     chrono::Utc::now().timestamp_millis()
-}
-
-pub fn set_desktop_auth_resource_dir(path: Option<PathBuf>) {
-    if let Ok(mut guard) = CLAUDE_DESKTOP_AUTH_RESOURCE_DIR.lock() {
-        *guard = path;
-    }
-}
-
-fn get_desktop_auth_resource_dir() -> Option<PathBuf> {
-    CLAUDE_DESKTOP_AUTH_RESOURCE_DIR
-        .lock()
-        .ok()
-        .and_then(|guard| guard.clone())
 }
 
 fn normalize_non_empty(value: Option<&str>) -> Option<String> {
@@ -2703,9 +2688,6 @@ fn backup_current_desktop_profile(target_dir: &Path) -> Result<Option<PathBuf>, 
 
 fn find_desktop_auth_helper_script() -> Result<PathBuf, String> {
     let mut candidates = Vec::new();
-    if let Some(resource_dir) = get_desktop_auth_resource_dir() {
-        candidates.push(resource_dir.join(CLAUDE_DESKTOP_AUTH_HELPER_SCRIPT));
-    }
     if let Ok(current_dir) = std::env::current_dir() {
         candidates.push(current_dir.join(CLAUDE_DESKTOP_AUTH_HELPER_SCRIPT));
     }
@@ -2738,112 +2720,30 @@ fn find_electron_executable_for_desktop_auth() -> Result<PathBuf, String> {
         }
     }
 
+    let bin_name = if cfg!(target_os = "windows") {
+        "electron.cmd"
+    } else {
+        "electron"
+    };
     let mut candidates = Vec::new();
-    if let Some(resource_dir) = get_desktop_auth_resource_dir() {
-        candidates.extend(electron_resource_executable_candidates(&resource_dir));
-    }
     if let Ok(current_dir) = std::env::current_dir() {
-        candidates.extend(electron_node_modules_executable_candidates(&current_dir));
-        candidates.extend(electron_resource_executable_candidates(
-            &current_dir.join("src-tauri").join("resources"),
-        ));
+        candidates.push(current_dir.join("node_modules").join(".bin").join(bin_name));
     }
     if let Ok(exe) = std::env::current_exe() {
         let mut current = exe.parent();
         while let Some(dir) = current {
-            candidates.extend(electron_node_modules_executable_candidates(dir));
-            candidates.extend(electron_resource_executable_candidates(
-                &dir.join("src-tauri").join("resources"),
-            ));
+            candidates.push(dir.join("node_modules").join(".bin").join(bin_name));
             current = dir.parent();
         }
     }
 
-    let checked = candidates
-        .iter()
-        .map(|path| {
-            format!(
-                "{} [{}]",
-                path.display(),
-                if path.exists() { "exists" } else { "missing" }
-            )
+    candidates
+        .into_iter()
+        .find(|path| path.exists())
+        .ok_or_else(|| {
+            "未找到 Electron 运行时，无法在平台内打开 Claude Desktop 授权窗口。请先执行 npm install，或设置 CLAUDE_DESKTOP_AUTH_ELECTRON。"
+                .to_string()
         })
-        .collect::<Vec<_>>()
-        .join("; ");
-
-    for path in candidates {
-        if path.exists() {
-            logger::log_info(&format!(
-                "[Claude Desktop Auth] 使用 Electron: {}",
-                path.display()
-            ));
-            return Ok(path);
-        }
-    }
-
-    Err(format!(
-        "未找到 Electron 运行时，无法在平台内打开 Claude Desktop 授权窗口。请确认安装包包含 electron 资源；开发环境请先执行 npm install，或设置 CLAUDE_DESKTOP_AUTH_ELECTRON。已检查: {}",
-        checked
-    ))
-}
-
-fn electron_resource_executable_candidates(resource_dir: &Path) -> Vec<PathBuf> {
-    let electron_root = resource_dir.join("electron");
-    let mut candidates = Vec::new();
-    #[cfg(target_os = "windows")]
-    {
-        candidates.push(electron_root.join("electron.exe"));
-        candidates.push(electron_root.join("dist").join("electron.exe"));
-    }
-    #[cfg(target_os = "macos")]
-    {
-        candidates.push(
-            electron_root
-                .join("Electron.app")
-                .join("Contents")
-                .join("MacOS")
-                .join("Electron"),
-        );
-        candidates.push(electron_root.join("electron"));
-    }
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        candidates.push(electron_root.join("electron"));
-        candidates.push(electron_root.join("dist").join("electron"));
-    }
-    candidates
-}
-
-fn electron_node_modules_executable_candidates(root: &Path) -> Vec<PathBuf> {
-    let mut candidates = Vec::new();
-    let electron_pkg = root.join("node_modules").join("electron");
-    let electron_bin = root.join("node_modules").join(".bin");
-
-    #[cfg(target_os = "windows")]
-    {
-        candidates.push(electron_pkg.join("dist").join("electron.exe"));
-        candidates.push(electron_bin.join("electron.exe"));
-        candidates.push(electron_bin.join("electron.cmd"));
-    }
-    #[cfg(target_os = "macos")]
-    {
-        candidates.push(
-            electron_pkg
-                .join("dist")
-                .join("Electron.app")
-                .join("Contents")
-                .join("MacOS")
-                .join("Electron"),
-        );
-        candidates.push(electron_bin.join("electron"));
-    }
-    #[cfg(all(not(target_os = "windows"), not(target_os = "macos")))]
-    {
-        candidates.push(electron_pkg.join("dist").join("electron"));
-        candidates.push(electron_bin.join("electron"));
-    }
-
-    candidates
 }
 
 fn launch_platform_desktop_auth_helper(
@@ -2870,17 +2770,7 @@ fn launch_platform_desktop_auth_helper_with_args(
 ) -> Result<u32, String> {
     let helper_script = find_desktop_auth_helper_script()?;
     let electron = find_electron_executable_for_desktop_auth()?;
-    let stdout_log = user_data_dir.join("claude_desktop_auth_helper.stdout.log");
-    let stderr_log = user_data_dir.join("claude_desktop_auth_helper.stderr.log");
     let mut command = std::process::Command::new(electron);
-    logger::log_info(&format!(
-        "[Claude Desktop Auth] 启动 helper: script={}, mode={}, user_data_dir={}, status_file={}, export_file={}",
-        helper_script.display(),
-        mode,
-        user_data_dir.display(),
-        status_file.display(),
-        export_file.display()
-    ));
     command
         .arg(helper_script)
         .arg("--user-data-dir")
@@ -2901,16 +2791,8 @@ fn launch_platform_desktop_auth_helper_with_args(
         .arg("15000")
         .env("ELECTRON_DISABLE_SECURITY_WARNINGS", "true")
         .stdin(std::process::Stdio::null())
-        .stdout(
-            fs::File::create(&stdout_log)
-                .map(std::process::Stdio::from)
-                .unwrap_or_else(|_| std::process::Stdio::null()),
-        )
-        .stderr(
-            fs::File::create(&stderr_log)
-                .map(std::process::Stdio::from)
-                .unwrap_or_else(|_| std::process::Stdio::null()),
-        );
+        .stdout(std::process::Stdio::null())
+        .stderr(std::process::Stdio::null());
     for (name, path) in extra_args {
         command.arg(name).arg(path);
     }
@@ -2919,39 +2801,10 @@ fn launch_platform_desktop_auth_helper_with_args(
         use std::os::windows::process::CommandExt;
         command.creation_flags(0x08000000);
     }
-    let mut child = command
+    let child = command
         .spawn()
         .map_err(|e| format!("启动 Claude Desktop 授权窗口失败: {}", e))?;
-    let child_id = child.id();
-    std::thread::sleep(Duration::from_millis(300));
-    if let Some(status) = child
-        .try_wait()
-        .map_err(|e| format!("检查 Claude Desktop 授权窗口进程失败: {}", e))?
-    {
-        let stderr = fs::read_to_string(&stderr_log).unwrap_or_default();
-        let stdout = fs::read_to_string(&stdout_log).unwrap_or_default();
-        let detail = [stderr.trim(), stdout.trim()]
-            .into_iter()
-            .filter(|value| !value.is_empty())
-            .collect::<Vec<_>>()
-            .join("\n");
-        return Err(format!(
-            "Claude Desktop 授权窗口启动后立即退出: {}{}",
-            status,
-            if detail.is_empty() {
-                "".to_string()
-            } else {
-                format!("；日志: {}", detail)
-            }
-        ));
-    }
-    logger::log_info(&format!(
-        "[Claude Desktop Auth] helper 已启动: pid={}, stdout={}, stderr={}",
-        child_id,
-        stdout_log.display(),
-        stderr_log.display()
-    ));
-    Ok(child_id)
+    Ok(child.id())
 }
 
 fn terminate_desktop_auth_helper(pid: Option<u32>) {

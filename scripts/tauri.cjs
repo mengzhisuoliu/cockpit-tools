@@ -39,13 +39,11 @@ function runFinal(command, args, options = {}) {
 
 function runTauriDirect() {
   run('npm.cmd', ['run', 'sync-version'], { shell: process.platform === 'win32' });
-  run(process.execPath, ['scripts/prepare-tauri.cjs']);
   runFinal('npx.cmd', ['tauri', ...process.argv.slice(2)], { shell: process.platform === 'win32' });
 }
 
 if (process.platform !== 'win32') {
   run('npm', ['run', 'sync-version']);
-  run(process.execPath, ['scripts/prepare-tauri.cjs']);
   runFinal('npx', ['tauri', ...process.argv.slice(2)]);
 }
 
@@ -78,8 +76,6 @@ const scriptBody = [
   `call "${vcvars64Path}"`,
   'if errorlevel 1 exit /b %errorlevel%',
   'call npm.cmd run sync-version',
-  'if errorlevel 1 exit /b %errorlevel%',
-  `call "${process.execPath}" "scripts\\prepare-tauri.cjs"`,
   'if errorlevel 1 exit /b %errorlevel%',
   `call "${tauriCliPath}" ${quotedArgs.join(' ')}`.trim(),
 ].join('\r\n');

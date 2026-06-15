@@ -76,9 +76,7 @@
       "../src/assets/icons/trae.png": "native-menu-icons/trae.png",
       "../src/assets/icons/windsurf.svg": "native-menu-icons/windsurf.svg",
       "../src/assets/icons/workbuddy.png": "native-menu-icons/workbuddy.png",
-      "../src/assets/icons/zed.png": "native-menu-icons/zed.png",
-      "../scripts/claude-desktop-auth-helper.cjs": "scripts/claude-desktop-auth-helper.cjs",
-      "resources/electron": "electron"
+      "../src/assets/icons/zed.png": "native-menu-icons/zed.png"
     },
     "macOS": {
       "bundleName": "Cockpit Tools",

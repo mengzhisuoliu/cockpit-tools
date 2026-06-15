@@ -17,15 +17,6 @@ if (syncResult.status !== 0) {
   process.exit(syncResult.status ?? 1);
 }
 
-const prepareResult = spawnSync(process.execPath, ['scripts/prepare-tauri.cjs'], {
-  stdio: 'inherit',
-  env,
-});
-
-if (prepareResult.status !== 0) {
-  process.exit(prepareResult.status ?? 1);
-}
-
 const tauriResult = spawnSync(
   'tauri',
   ['dev', '--config', 'src-tauri/tauri.dev.conf.json', ...extraArgs],
