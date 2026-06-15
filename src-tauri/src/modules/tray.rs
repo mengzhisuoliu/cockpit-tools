@@ -1424,7 +1424,11 @@ fn build_gemini_display_info(lang: &str) -> AccountDisplayInfo {
 
     for (bucket_id, label_key, default_label) in [
         ("gemini-5h", "gemini.quota.gemini5h", "Gemini 5h"),
-        ("gemini-weekly", "gemini.quota.geminiweekly", "Gemini Weekly"),
+        (
+            "gemini-weekly",
+            "gemini.quota.geminiweekly",
+            "Gemini Weekly",
+        ),
         ("3p-5h", "gemini.quota.3p5h", "Claude 5h"),
         ("3p-weekly", "gemini.quota.3pweekly", "Claude Weekly"),
     ] {
@@ -1440,7 +1444,11 @@ fn build_gemini_display_info(lang: &str) -> AccountDisplayInfo {
             get_text("reset_unknown", lang)
         };
         let label = get_text(label_key, lang);
-        let label_ref = if label.is_empty() { default_label } else { &label };
+        let label_ref = if label.is_empty() {
+            default_label
+        } else {
+            &label
+        };
         quota_lines.push(format_quota_line(
             lang,
             label_ref,
@@ -3613,9 +3621,7 @@ fn get_text(key: &str, lang: &str) -> String {
         ("usage_status", "zh-cn") => "用量状态".to_string(),
         ("plan", "zh-cn") => "订阅".to_string(),
         ("claude_current_session", "zh-cn") => "Current session".to_string(),
-        ("claude_current_week_all_models", "zh-cn") => {
-            "Current week (all models)".to_string()
-        },
+        ("claude_current_week_all_models", "zh-cn") => "Current week (all models)".to_string(),
         ("token_spend", "zh-cn") => "Token 消耗".to_string(),
         ("edit_predictions", "zh-cn") => "编辑预测".to_string(),
         ("overdue_field", "zh-cn") => "是否欠费".to_string(),
@@ -3687,9 +3693,7 @@ fn get_text(key: &str, lang: &str) -> String {
         ("usage_status", "en") => "Usage Status".to_string(),
         ("plan", "en") => "Plan".to_string(),
         ("claude_current_session", "en") => "Current session".to_string(),
-        ("claude_current_week_all_models", "en") => {
-            "Current week (all models)".to_string()
-        },
+        ("claude_current_week_all_models", "en") => "Current week (all models)".to_string(),
         ("token_spend", "en") => "Token Spend".to_string(),
         ("edit_predictions", "en") => "Edit Predictions".to_string(),
         ("overdue_field", "en") => "Overdue".to_string(),
@@ -3763,9 +3767,7 @@ fn get_text(key: &str, lang: &str) -> String {
         ("usage_status", "ru") => "Статус использования".to_string(),
         ("plan", "ru") => "План".to_string(),
         ("claude_current_session", "ru") => "Текущая сессия".to_string(),
-        ("claude_current_week_all_models", "ru") => {
-            "Текущая неделя (все модели)".to_string()
-        },
+        ("claude_current_week_all_models", "ru") => "Текущая неделя (все модели)".to_string(),
         ("token_spend", "ru") => "Token Spend".to_string(),
         ("edit_predictions", "ru") => "Edit Predictions".to_string(),
         ("overdue_field", "ru") => "Есть задолженность".to_string(),
@@ -3801,9 +3803,7 @@ fn get_text(key: &str, lang: &str) -> String {
         ("usage_status", _) => "Usage Status".to_string(),
         ("plan", _) => "Plan".to_string(),
         ("claude_current_session", _) => "Current session".to_string(),
-        ("claude_current_week_all_models", _) => {
-            "Current week (all models)".to_string()
-        },
+        ("claude_current_week_all_models", _) => "Current week (all models)".to_string(),
         ("token_spend", _) => "Token Spend".to_string(),
         ("edit_predictions", _) => "Edit Predictions".to_string(),
         ("overdue_field", _) => "Overdue".to_string(),

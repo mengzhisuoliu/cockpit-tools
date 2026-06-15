@@ -3646,7 +3646,11 @@ mod imp {
                 let mut rows = Vec::new();
                 for (bucket_id, label_key, default_label) in [
                     ("gemini-5h", "gemini.quota.gemini5h", "Gemini 5h"),
-                    ("gemini-weekly", "gemini.quota.geminiweekly", "Gemini Weekly"),
+                    (
+                        "gemini-weekly",
+                        "gemini.quota.geminiweekly",
+                        "Gemini Weekly",
+                    ),
                     ("3p-5h", "gemini.quota.3p5h", "Claude 5h"),
                     ("3p-weekly", "gemini.quota.3pweekly", "Claude Weekly"),
                 ] {

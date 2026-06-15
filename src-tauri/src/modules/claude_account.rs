@@ -93,6 +93,8 @@ const CLAUDE_DESKTOP_LOCAL_PROFILE_SCAN_DIRS: &[&str] = &[
 const CLAUDE_DESKTOP_PROFILE_ITEMS: &[&str] = &[
     "Local State",
     "Preferences",
+    "Cookies",
+    "Cookies-journal",
     "Network",
     "DIPS",
     "DIPS-wal",
@@ -849,12 +851,7 @@ fn find_windows_store_claude_desktop_user_data_dir() -> Option<PathBuf> {
         candidates.push((has_cookies, modified_at, profile_dir));
     }
 
-    candidates.sort_by(|left, right| {
-        right
-            .0
-            .cmp(&left.0)
-            .then_with(|| right.1.cmp(&left.1))
-    });
+    candidates.sort_by(|left, right| right.0.cmp(&left.0).then_with(|| right.1.cmp(&left.1)));
     candidates.into_iter().map(|(_, _, path)| path).next()
 }
 
@@ -1715,7 +1712,38 @@ fn build_desktop_account_id(label: &str) -> String {
 }
 
 fn desktop_cookies_path(profile_dir: &Path) -> PathBuf {
+    resolve_desktop_cookies_path(profile_dir)
+        .unwrap_or_else(|| default_desktop_cookies_path(profile_dir))
+}
+
+fn default_desktop_cookies_path(profile_dir: &Path) -> PathBuf {
     profile_dir.join("Network").join("Cookies")
+}
+
+fn desktop_cookie_path_candidates(profile_dir: &Path) -> Vec<PathBuf> {
+    vec![
+        profile_dir.join("Network").join("Cookies"),
+        profile_dir.join("Cookies"),
+        profile_dir.join("Default").join("Network").join("Cookies"),
+        profile_dir.join("Default").join("Cookies"),
+    ]
+}
+
+fn resolve_desktop_cookies_path(profile_dir: &Path) -> Option<PathBuf> {
+    let candidates = desktop_cookie_path_candidates(profile_dir);
+    let mut first_existing = None;
+    for candidate in &candidates {
+        if !candidate.exists() {
+            continue;
+        }
+        if first_existing.is_none() {
+            first_existing = Some(candidate.clone());
+        }
+        if matches!(cookies_db_has_required_desktop_session(candidate), Ok(true)) {
+            return Some(candidate.clone());
+        }
+    }
+    first_existing
 }
 
 fn cookies_db_has_required_desktop_session(cookies_path: &Path) -> Result<bool, String> {
@@ -1750,13 +1778,24 @@ fn ensure_desktop_profile_logged_in(profile_dir: &Path) -> Result<(), String> {
             profile_dir.display()
         ));
     }
-    if !cookies_db_has_required_desktop_session(&desktop_cookies_path(profile_dir))? {
-        return Err(
-            "未检测到 Claude Desktop 登录态，请在授权窗口或官方 Claude Desktop 完成登录后再导入。"
-                .to_string(),
-        );
+    let mut last_error = None;
+    for cookies_path in desktop_cookie_path_candidates(profile_dir) {
+        if !cookies_path.exists() {
+            continue;
+        }
+        match cookies_db_has_required_desktop_session(&cookies_path) {
+            Ok(true) => return Ok(()),
+            Ok(false) => {}
+            Err(error) => last_error = Some(error),
+        }
     }
-    Ok(())
+    if let Some(error) = last_error {
+        return Err(error);
+    }
+    Err(
+        "未检测到 Claude Desktop 登录态，请在授权窗口或官方 Claude Desktop 完成登录后再导入。"
+            .to_string(),
+    )
 }
 
 fn chromium_cookie_expires_utc_to_unix_ms(expires_utc: i64) -> Option<i64> {
@@ -2691,8 +2730,8 @@ fn rewrite_desktop_cookies_with_exported_plaintext(
             .map_err(|e| format!("写入 Claude Desktop plaintext cookie 失败: {}", e))?;
         }
         if CLAUDE_DESKTOP_REQUIRED_COOKIE_NAMES
-                .iter()
-                .any(|name| *name == cookie.name)
+            .iter()
+            .any(|name| *name == cookie.name)
         {
             updated_required_names.insert(cookie.name.as_str());
         }
@@ -3249,7 +3288,9 @@ fn quit_claude_desktop_for_profile_write() -> Result<(), String> {
         std::thread::sleep(std::time::Duration::from_millis(250));
     }
 
-    logger::log_warn("[Claude Desktop] claude.exe still running; forcing close before profile write");
+    logger::log_warn(
+        "[Claude Desktop] claude.exe still running; forcing close before profile write",
+    );
     let force = std::process::Command::new("taskkill")
         .args(["/IM", "claude.exe", "/T", "/F"])
         .creation_flags(CREATE_NO_WINDOW)
@@ -3259,7 +3300,9 @@ fn quit_claude_desktop_for_profile_write() -> Result<(), String> {
         .output()
         .map_err(|e| format!("退出 Claude Desktop 失败: {}", e))?;
     if !force.status.success() && is_claude_desktop_running() {
-        return Err("Claude Desktop 仍在运行，无法安全写入登录态。请先退出 Claude 后重试。".to_string());
+        return Err(
+            "Claude Desktop 仍在运行，无法安全写入登录态。请先退出 Claude 后重试。".to_string(),
+        );
     }
 
     for _ in 0..20 {
@@ -3329,7 +3372,9 @@ fn launch_default_claude_desktop() {
     const CREATE_NO_WINDOW: u32 = 0x08000000;
 
     let Some(app_id) = find_windows_claude_start_app_id() else {
-        logger::log_warn("[Claude Desktop] Windows Start Apps entry not found; Claude was not relaunched");
+        logger::log_warn(
+            "[Claude Desktop] Windows Start Apps entry not found; Claude was not relaunched",
+        );
         return;
     };
 

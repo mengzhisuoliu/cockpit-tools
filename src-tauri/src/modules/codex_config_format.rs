@@ -19,9 +19,8 @@ fn clear_windows_config_file_attributes(path: &Path) -> Result<(), String> {
     use std::os::windows::ffi::OsStrExt;
     use windows::core::PCWSTR;
     use windows::Win32::Storage::FileSystem::{
-        GetFileAttributesW, SetFileAttributesW, FILE_ATTRIBUTE_HIDDEN,
-        FILE_ATTRIBUTE_READONLY, FILE_ATTRIBUTE_SYSTEM, FILE_FLAGS_AND_ATTRIBUTES,
-        INVALID_FILE_ATTRIBUTES,
+        GetFileAttributesW, SetFileAttributesW, FILE_ATTRIBUTE_HIDDEN, FILE_ATTRIBUTE_READONLY,
+        FILE_ATTRIBUTE_SYSTEM, FILE_FLAGS_AND_ATTRIBUTES, INVALID_FILE_ATTRIBUTES,
     };
 
     let wide_path = path

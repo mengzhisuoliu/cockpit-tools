@@ -13,6 +13,7 @@ const REMOTE_CONFIG_CACHE_FILE: &str = "remote_config_cache.json";
 const REMOTE_CONFIG_LOCAL_OVERRIDE_FILE: &str = "remote-config.local.json";
 const CACHE_TTL_MS: i64 = 3_600_000;
 const DEFAULT_REFRESH_INTERVAL_MS: i64 = 3_600_000;
+const BUILTIN_HIDDEN_PLATFORM_IDS: &[&str] = &["claude", "claude_cli"];
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -193,8 +194,8 @@ fn save_cache(payload: &RemoteConfigPayload) -> Result<(), String> {
         time: Utc::now().timestamp_millis(),
         data: payload.clone(),
     };
-    let content =
-        serde_json::to_string_pretty(&cache).map_err(|e| format!("序列化远端配置缓存失败: {}", e))?;
+    let content = serde_json::to_string_pretty(&cache)
+        .map_err(|e| format!("序列化远端配置缓存失败: {}", e))?;
     crate::modules::atomic_write::write_string_atomic(&get_cache_path()?, &content)
         .map_err(|e| format!("写入远端配置缓存失败: {}", e))
 }
@@ -368,6 +369,20 @@ fn build_state(payload: RemoteConfigPayload, updated_at: i64) -> RemoteConfigSta
     let current_version = env!("CARGO_PKG_VERSION");
     let mut hidden = BTreeSet::new();
     let mut applied_rules = Vec::new();
+
+    for platform_id in BUILTIN_HIDDEN_PLATFORM_IDS
+        .iter()
+        .filter_map(|platform_id| normalize_platform_id(platform_id))
+    {
+        if hidden.insert(platform_id.clone()) {
+            applied_rules.push(RemoteConfigAppliedRule {
+                platform_ids: vec![platform_id],
+                reason: Some(
+                    "Temporarily hidden while Claude platform is being verified.".to_string(),
+                ),
+            });
+        }
+    }
 
     for platform_id in normalize_platform_ids(&payload.hidden_platform_ids) {
         hidden.insert(platform_id.clone());

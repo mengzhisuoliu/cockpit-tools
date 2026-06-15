@@ -125,8 +125,7 @@ fn inject_bound_account_for_cli_instance_start(
     }
 
     let config_dir = Path::new(user_data_dir);
-    let _ =
-        modules::claude_account::sync_cli_account_from_config_dir_if_same(bind_id, config_dir)?;
+    let _ = modules::claude_account::sync_cli_account_from_config_dir_if_same(bind_id, config_dir)?;
     modules::claude_account::inject_to_claude_config(bind_id, Some(Path::new(user_data_dir)))?;
     crate::modules::provider_current_state::set_current_account_id("claude_cli", Some(bind_id))?;
     Ok(())

@@ -93,10 +93,7 @@ fn default_platform_groups() -> Vec<TrayLayoutGroup> {
         TrayLayoutGroup {
             id: DEFAULT_CLAUDE_GROUP_ID.to_string(),
             name: "Claude".to_string(),
-            platform_ids: vec![
-                PLATFORM_CLAUDE.to_string(),
-                PLATFORM_CLAUDE_CLI.to_string(),
-            ],
+            platform_ids: vec![PLATFORM_CLAUDE.to_string(), PLATFORM_CLAUDE_CLI.to_string()],
             default_platform_id: PLATFORM_CLAUDE.to_string(),
         },
         TrayLayoutGroup {

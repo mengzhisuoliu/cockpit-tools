@@ -930,10 +930,20 @@ fn build_quota_data_from_response(
             for group in groups {
                 if let Some(buckets) = group.get("buckets").and_then(|v| v.as_array()) {
                     for bucket in buckets {
-                        let bucket_id = bucket.get("bucketId").and_then(|v| v.as_str()).map(|s| s.to_string());
-                        let display_name = bucket.get("displayName").and_then(|v| v.as_str()).map(|s| s.to_string());
-                        let remaining_fraction = bucket.get("remainingFraction").and_then(|v| v.as_f64());
-                        let reset_time = bucket.get("resetTime").and_then(|v| v.as_str()).map(|s| s.to_string());
+                        let bucket_id = bucket
+                            .get("bucketId")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        let display_name = bucket
+                            .get("displayName")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
+                        let remaining_fraction =
+                            bucket.get("remainingFraction").and_then(|v| v.as_f64());
+                        let reset_time = bucket
+                            .get("resetTime")
+                            .and_then(|v| v.as_str())
+                            .map(|s| s.to_string());
 
                         if let (Some(id), Some(fraction)) = (bucket_id, remaining_fraction) {
                             let percentage = (fraction * 100.0) as i32;
@@ -1099,18 +1109,26 @@ pub async fn fetch_quota_with_context(
                                     "[Quota] retrieveUserQuotaSummary 响应长度: {}",
                                     summary_body.len()
                                 ));
-                                if let Ok(val) = serde_json::from_str::<serde_json::Value>(&summary_body) {
+                                if let Ok(val) =
+                                    serde_json::from_str::<serde_json::Value>(&summary_body)
+                                {
                                     quota_summary_val = Some(val.clone());
                                     // Merge into payload_value for caching
                                     if let Some(obj) = payload_value.as_object_mut() {
                                         obj.insert("quota_summary".to_string(), val);
-                                        crate::modules::logger::log_info("[Quota] 成功将 quota_summary 合并到 payload_value");
+                                        crate::modules::logger::log_info(
+                                            "[Quota] 成功将 quota_summary 合并到 payload_value",
+                                        );
                                     }
                                 } else {
-                                    crate::modules::logger::log_error("[Quota] retrieveUserQuotaSummary JSON 解析失败");
+                                    crate::modules::logger::log_error(
+                                        "[Quota] retrieveUserQuotaSummary JSON 解析失败",
+                                    );
                                 }
                             } else {
-                                crate::modules::logger::log_error("[Quota] retrieveUserQuotaSummary 读取 body 失败");
+                                crate::modules::logger::log_error(
+                                    "[Quota] retrieveUserQuotaSummary 读取 body 失败",
+                                );
                             }
                         } else {
                             let err_text = res.text().await.unwrap_or_default();

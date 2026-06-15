@@ -13,6 +13,7 @@ import {
   EyeOff,
   FileText,
   FileJson,
+  FolderOpen,
   Globe,
   KeyRound,
   Layers,
@@ -106,6 +107,7 @@ import type { InstanceProfile } from '../types/instance';
 const CLAUDE_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.claude.flow_notice_collapsed';
 const CLAUDE_ACCOUNTS_VIEW_MODE_KEY = 'agtools.claude.accounts_view_mode';
 const CLAUDE_API_KEY_USAGE_CACHE_KEY = 'agtools.claude.apiKeyUsage.cache.v1';
+const CLAUDE_CLI_LAST_WORKING_DIR_KEY = 'agtools.claude.cli.last_working_dir';
 const CLAUDE_API_KEY_USAGE_REFRESH_THROTTLE_MS = 10 * 1000;
 const claudeApiKeyUsageInFlight = new Set<string>();
 const claudeApiKeyUsageAutoRefreshAt: Record<string, number> = {};
@@ -138,10 +140,11 @@ interface DeleteConfirmState {
 interface ClaudeCliLaunchModalState {
   accountId: string;
   accountEmail: string;
-  instanceId: string;
+  instanceId: string | null;
   workingDir: string;
   instanceName: string;
   launchCommand: string;
+  preparing: boolean;
   copied: boolean;
   executing: boolean;
   executeMessage: string | null;
@@ -160,6 +163,24 @@ function normalizePathForCompare(value?: string | null): string {
 
 function sanitizeClaudeCliInstanceName(value: string): string {
   return value.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim() || 'Claude CLI';
+}
+
+function readLastClaudeCliWorkingDir(): string {
+  try {
+    return localStorage.getItem(CLAUDE_CLI_LAST_WORKING_DIR_KEY)?.trim() || '';
+  } catch {
+    return '';
+  }
+}
+
+function persistLastClaudeCliWorkingDir(value: string): void {
+  const trimmed = value.trim();
+  if (!trimmed) return;
+  try {
+    localStorage.setItem(CLAUDE_CLI_LAST_WORKING_DIR_KEY, trimmed);
+  } catch {
+    // Ignore storage errors. The selected workspace is only a UI convenience.
+  }
 }
 
 function formatDate(timestamp: number): string {
@@ -1176,25 +1197,80 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
   };
 
   const handleLaunchClaudeCli = async (account: ClaudeAccount) => {
-    if (cliLaunchingAccountId) return;
     setMessage(null);
+    setCliLaunchModal({
+      accountId: account.id,
+      accountEmail: getClaudeAccountDisplayEmail(account),
+      instanceId: null,
+      workingDir: readLastClaudeCliWorkingDir(),
+      instanceName: t('instances.messages.launchPrepared', '启动命令已准备'),
+      launchCommand: '',
+      preparing: false,
+      copied: false,
+      executing: false,
+      executeMessage: null,
+      executeError: null,
+    });
+  };
+
+  const prepareClaudeCliLaunch = async (
+    modal: ClaudeCliLaunchModalState,
+  ): Promise<ClaudeCliLaunchModalState | null> => {
+    if (modal.instanceId && modal.launchCommand.trim()) {
+      return modal;
+    }
+    const selected = modal.workingDir.trim();
+    if (!selected) {
+      setCliLaunchModal((prev) =>
+        prev && prev.accountId === modal.accountId
+          ? {
+              ...prev,
+              executeMessage: null,
+              executeError: t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录'),
+            }
+          : prev,
+      );
+      return null;
+    }
+
+    const account = useClaudeAccountStore
+      .getState()
+      .accounts.find((item) => item.id === modal.accountId);
+    if (!account) {
+      setCliLaunchModal((prev) =>
+        prev && prev.accountId === modal.accountId
+          ? {
+              ...prev,
+              executeMessage: null,
+              executeError: t('instances.messages.accountMissing', '账号不存在'),
+            }
+          : prev,
+      );
+      return null;
+    }
+
     setCliLaunchingAccountId(account.id);
+    setCliLaunchModal((prev) =>
+      prev && prev.accountId === modal.accountId
+        ? {
+            ...prev,
+            preparing: true,
+            executing: false,
+            executeMessage: null,
+            executeError: null,
+            copied: false,
+          }
+        : prev,
+    );
     try {
-      const selected = await openFileDialog({
-        directory: true,
-        multiple: false,
-        title: t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录'),
-      });
-      if (!selected || typeof selected !== 'string') {
-        return;
-      }
       const instance = await resolveClaudeCliInstanceForAccount(account, selected);
       const prepared = await claudeInstanceService.startInstance(instance.id);
       const launchInfo = await claudeInstanceService.getClaudeInstanceLaunchCommand(prepared.id);
       await claudeInstanceStore.refreshInstances();
       await store.fetchAccounts();
       setCurrentAccountId(account.id);
-      setCliLaunchModal({
+      persistLastClaudeCliWorkingDir(prepared.workingDir || selected);
+      const nextModal: ClaudeCliLaunchModalState = {
         accountId: account.id,
         accountEmail: getClaudeAccountDisplayEmail(account),
         instanceId: prepared.id,
@@ -1203,27 +1279,67 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
           ? t('instances.defaultName', '默认实例')
           : prepared.name || t('instances.defaultName', '默认实例'),
         launchCommand: launchInfo.launchCommand,
+        preparing: false,
         copied: false,
         executing: false,
         executeMessage: null,
         executeError: null,
-      });
+      };
+      setCliLaunchModal((prev) => (prev && prev.accountId === modal.accountId ? nextModal : prev));
+      return nextModal;
     } catch (error) {
-      setMessage({
-        text: t('claude.cli.launchFailed', '启动 Claude CLI 失败：{{error}}', {
-          error: String(error).replace(/^Error:\s*/, ''),
-        }),
-        tone: 'error',
-      });
+      setCliLaunchModal((prev) =>
+        prev && prev.accountId === modal.accountId
+          ? {
+              ...prev,
+              preparing: false,
+              executing: false,
+              executeMessage: null,
+              executeError: String(error).replace(/^Error:\s*/, ''),
+            }
+          : prev,
+      );
+      return null;
     } finally {
       setCliLaunchingAccountId(null);
     }
   };
 
+  const updateCliLaunchWorkingDir = (value: string) => {
+    setCliLaunchModal((prev) =>
+      prev
+        ? {
+            ...prev,
+            workingDir: value,
+            instanceId: null,
+            instanceName: t('instances.messages.launchPrepared', '启动命令已准备'),
+            launchCommand: '',
+            copied: false,
+            executeMessage: null,
+            executeError: null,
+          }
+        : prev,
+    );
+  };
+
+  const handleChooseCliWorkingDir = async () => {
+    if (!cliLaunchModal || cliLaunchModal.preparing || cliLaunchModal.executing) return;
+    const selected = await openFileDialog({
+      directory: true,
+      multiple: false,
+      title: t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录'),
+    });
+    if (!selected || typeof selected !== 'string') return;
+    persistLastClaudeCliWorkingDir(selected);
+    updateCliLaunchWorkingDir(selected);
+  };
+
   const handleCopyCliLaunchCommand = async () => {
     if (!cliLaunchModal) return;
+    const prepared = await prepareClaudeCliLaunch(cliLaunchModal);
+    if (!prepared) return;
     try {
-      await navigator.clipboard.writeText(cliLaunchModal.launchCommand);
+      await navigator.clipboard.writeText(prepared.launchCommand);
       setCliLaunchModal((prev) => (prev ? { ...prev, copied: true, executeError: null } : prev));
       window.setTimeout(() => {
         setCliLaunchModal((prev) => (prev ? { ...prev, copied: false } : prev));
@@ -1242,6 +1358,8 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
 
   const handleExecuteCliInTerminal = async () => {
     if (!cliLaunchModal || cliLaunchModal.executing) return;
+    const prepared = await prepareClaudeCliLaunch(cliLaunchModal);
+    if (!prepared?.instanceId) return;
     setCliLaunchModal((prev) =>
       prev
         ? {
@@ -1254,12 +1372,12 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
     );
     try {
       const result = await claudeInstanceService.executeClaudeInstanceLaunchCommand(
-        cliLaunchModal.instanceId,
+        prepared.instanceId,
         selectedTerminal,
       );
       await store.fetchAccounts();
       await claudeInstanceStore.refreshInstances();
-      setCurrentAccountId(cliLaunchModal.accountId);
+      setCurrentAccountId(prepared.accountId);
       setCliLaunchModal((prev) =>
         prev
           ? {
@@ -2700,10 +2818,36 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
                 />
               </div>
               <div className="form-group">
+                <label>{t('instances.form.workingDir', '工作目录')}</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    className="form-input"
+                    value={cliLaunchModal.workingDir}
+                    placeholder={t('instances.form.workingDirPlaceholder', '默认当前路径')}
+                    onChange={(event) => updateCliLaunchWorkingDir(event.target.value)}
+                    disabled={cliLaunchModal.preparing || cliLaunchModal.executing}
+                  />
+                  <button
+                    className="btn btn-secondary"
+                    type="button"
+                    onClick={() => void handleChooseCliWorkingDir()}
+                    disabled={cliLaunchModal.preparing || cliLaunchModal.executing}
+                    title={t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录')}
+                    aria-label={t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录')}
+                  >
+                    <FolderOpen size={16} />
+                  </button>
+                </div>
+                <p className="form-hint">
+                  {t('instances.form.workingDirDesc', '启动时将首先切换到此目录')}
+                </p>
+              </div>
+              <div className="form-group">
                 <label>{t('instances.launchDialog.command', '启动命令')}</label>
                 <textarea
                   className="form-input instance-args-input"
                   value={cliLaunchModal.launchCommand}
+                  placeholder={t('claude.cli.selectWorkingDir', '选择 Claude CLI 工作目录')}
                   readOnly
                 />
                 <p className="form-hint">
@@ -2719,7 +2863,7 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
                   value={selectedTerminal}
                   onChange={setSelectedTerminal}
                   options={terminalOptions}
-                  disabled={cliLaunchModal.executing}
+                  disabled={cliLaunchModal.preparing || cliLaunchModal.executing}
                   ariaLabel={t('instances.launchDialog.terminal', '终端')}
                 />
               </div>
@@ -2737,17 +2881,24 @@ export function ClaudeAccountsPage({ subPlatform = 'desktop' }: ClaudeAccountsPa
               <button
                 className="btn btn-secondary"
                 onClick={() => void handleCopyCliLaunchCommand()}
+                disabled={cliLaunchModal.preparing || cliLaunchModal.executing}
               >
                 <Copy size={16} />
-                {cliLaunchModal.copied ? t('common.success', '成功') : t('common.copy', '复制')}
+                {cliLaunchModal.preparing
+                  ? t('common.loading', '加载中...')
+                  : cliLaunchModal.copied
+                    ? t('common.success', '成功')
+                    : t('common.copy', '复制')}
               </button>
               <button
                 className="btn btn-primary"
                 onClick={() => void handleExecuteCliInTerminal()}
-                disabled={cliLaunchModal.executing}
+                disabled={cliLaunchModal.preparing || cliLaunchModal.executing}
               >
-                <Play size={16} />
-                {cliLaunchModal.executing
+                {cliLaunchModal.preparing || cliLaunchModal.executing
+                  ? <RefreshCw size={16} className="loading-spinner" />
+                  : <Play size={16} />}
+                {cliLaunchModal.preparing || cliLaunchModal.executing
                   ? t('common.loading', '加载中...')
                   : t('instances.launchDialog.runInTerminal', '终端执行')}
               </button>
