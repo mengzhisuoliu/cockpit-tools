@@ -25,44 +25,104 @@ use tauri_plugin_opener::OpenerExt;
 
 static CODEX_POST_REFRESH_CHECK_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
 
-fn codex_launch_credential_kind_for_provider(provider: &str) -> &'static str {
-    if provider == "openai" {
-        "account"
-    } else {
+#[derive(Clone)]
+struct CodexLaunchCredentialSnapshot {
+    kind: String,
+    source: String,
+}
+
+fn codex_launch_credential_kind_for_account(account: &CodexAccount) -> &'static str {
+    if account.is_api_key_auth() {
         "api"
+    } else {
+        "account"
     }
 }
 
-fn repair_codex_session_visibility_after_provider_change(
-    context: &str,
-    before_provider: Option<String>,
-    after_provider: Option<String>,
-) -> Result<(), String> {
-    let (Some(before), Some(after)) = (before_provider, after_provider) else {
-        return Ok(());
-    };
-    if before == after {
-        return Ok(());
+fn codex_launch_credential_snapshot_for_account(
+    account: &CodexAccount,
+    source_prefix: &str,
+) -> CodexLaunchCredentialSnapshot {
+    CodexLaunchCredentialSnapshot {
+        kind: codex_launch_credential_kind_for_account(account).to_string(),
+        source: format!("{}{}", source_prefix, account.id),
     }
-    if codex_launch_credential_kind_for_provider(&before)
-        == codex_launch_credential_kind_for_provider(&after)
-    {
-        return Ok(());
+}
+
+fn codex_launch_credential_snapshot_for_account_id(
+    account_id: &str,
+    source_prefix: &str,
+) -> Option<CodexLaunchCredentialSnapshot> {
+    let account_id = account_id.trim();
+    if account_id.is_empty() {
+        return None;
     }
 
-    let started = Instant::now();
-    let summary = codex_session_visibility::repair_session_visibility_across_instances()?;
+    if crate::modules::codex_instance::is_api_service_bind_account_id(account_id)
+        || crate::modules::codex_instance::parse_provider_gateway_bind_account_id(account_id)
+            .is_some()
+        || codex_local_access::is_local_access_runtime_account_id(account_id)
+    {
+        return Some(CodexLaunchCredentialSnapshot {
+            kind: "api".to_string(),
+            source: format!("{}{}", source_prefix, account_id),
+        });
+    }
+
+    codex_account::load_account(account_id)
+        .map(|account| codex_launch_credential_snapshot_for_account(&account, source_prefix))
+}
+
+fn read_current_codex_launch_credential_snapshot() -> Option<CodexLaunchCredentialSnapshot> {
+    let codex_home = codex_account::get_codex_home();
+    if let Some(account_id) =
+        codex_account::read_managed_projection_account_id_from_dir(&codex_home)
+    {
+        if let Some(snapshot) =
+            codex_launch_credential_snapshot_for_account_id(&account_id, "profile:")
+        {
+            return Some(snapshot);
+        }
+    }
+
+    if let Ok(settings) = crate::modules::codex_instance::load_default_settings() {
+        if let Some(bind_account_id) = settings.bind_account_id.as_deref() {
+            if let Some(snapshot) =
+                codex_launch_credential_snapshot_for_account_id(bind_account_id, "default-bind:")
+            {
+                return Some(snapshot);
+            }
+        }
+    }
+
+    codex_account::get_current_account()
+        .as_ref()
+        .map(|account| codex_launch_credential_snapshot_for_account(account, "current-index:"))
+}
+
+fn repair_codex_session_visibility_after_credential_kind_change(
+    context: &str,
+    before: Option<CodexLaunchCredentialSnapshot>,
+    after: Option<CodexLaunchCredentialSnapshot>,
+    auto_repair_mode: Option<codex_session_visibility::CodexSessionVisibilityAutoRepairMode>,
+) {
+    let (Some(before), Some(after)) = (before, after) else {
+        return;
+    };
+    if before.kind == after.kind {
+        return;
+    }
+
+    let auto_repair_mode = auto_repair_mode.unwrap_or_default();
     logger::log_info(&format!(
-        "[Codex Session Visibility] {}: repaired after account switch, from_provider={}, to_provider={}, mutated_instances={}, rollout_files={}, sqlite_rows={}, elapsed_ms={}",
+        "[Codex Session Visibility] {}: credential kind changed, defer quick repair to frontend notice, mode={}, from_kind={}, to_kind={}, from_source={}, to_source={}",
         context,
-        before,
-        after,
-        summary.mutated_instance_count,
-        summary.changed_rollout_file_count,
-        summary.updated_sqlite_row_count,
-        started.elapsed().as_millis()
+        auto_repair_mode.label(),
+        before.kind,
+        after.kind,
+        before.source,
+        after.source
     ));
-    Ok(())
 }
 
 fn restart_codex_specified_app_if_enabled(user_config: &config::UserConfig) {
@@ -238,22 +298,56 @@ pub async fn refresh_codex_account_profile(account_id: String) -> Result<CodexAc
 pub async fn switch_codex_account(
     app: AppHandle,
     account_id: String,
+    auto_repair_mode: Option<codex_session_visibility::CodexSessionVisibilityAutoRepairMode>,
 ) -> Result<CodexAccount, String> {
-    let codex_home = codex_account::get_codex_home();
-    let previous_provider =
-        codex_session_visibility::read_history_visibility_provider_for_dir(&codex_home).ok();
-
+    let flow_started = Instant::now();
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] switch_codex_account started: account_id={}",
+        account_id
+    ));
+    let previous_credential = read_current_codex_launch_credential_snapshot();
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] previous credential resolved: account_id={}, elapsed_ms={}",
+        account_id,
+        flow_started.elapsed().as_millis()
+    ));
     // 切换账号（写入 auth.json）
+    let switch_started = Instant::now();
     let account = codex_account::switch_account_managed(&account_id).await?;
-    repair_codex_session_visibility_after_provider_change(
-        "switch-codex-account",
-        previous_provider,
-        codex_session_visibility::read_history_visibility_provider_for_dir(&codex_home).ok(),
-    )?;
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] switch_account_managed finished: account_id={}, elapsed_ms={}, total_ms={}",
+        account_id,
+        switch_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     let account_speed = account.app_speed.clone();
+    let speed_started = Instant::now();
     codex_speed::write_official_app_speed(account_speed.clone())?;
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] write official app speed finished: account_id={}, elapsed_ms={}, total_ms={}",
+        account_id,
+        speed_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
+    let repair_started = Instant::now();
+    repair_codex_session_visibility_after_credential_kind_change(
+        "after-account-switch",
+        previous_credential,
+        Some(codex_launch_credential_snapshot_for_account(
+            &account,
+            "target-account:",
+        )),
+        auto_repair_mode,
+    );
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] session visibility repair stage finished: account_id={}, elapsed_ms={}, total_ms={}",
+        account_id,
+        repair_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
     // 同步更新 Codex 默认实例的绑定账号（不同步到 Antigravity，因为账号体系不同）
+    let default_settings_started = Instant::now();
     if let Err(e) = crate::modules::codex_instance::update_default_settings(
         Some(Some(account_id.clone())),
         None,
@@ -271,6 +365,12 @@ pub async fn switch_codex_account(
     if let Err(e) = crate::modules::codex_instance::update_default_app_speed(account_speed) {
         logger::log_warn(&format!("更新 Codex 默认实例速度失败: {}", e));
     }
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] default settings update finished: account_id={}, elapsed_ms={}, total_ms={}",
+        account_id,
+        default_settings_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
     let user_config = config::get_user_config();
 
@@ -322,6 +422,7 @@ pub async fn switch_codex_account(
     }
 
     if user_config.codex_launch_on_switch {
+        let launch_started = Instant::now();
         #[cfg(target_os = "macos")]
         if process::is_codex_running() {
             logger::log_info("检测到 Codex 正在运行，将按默认实例 PID 逻辑重启");
@@ -338,13 +439,33 @@ pub async fn switch_codex_account(
                 }
             }
         }
+        logger::log_info(&format!(
+            "[Codex Switch][Backend] codex_start_default_with_prepared_profile finished: account_id={}, elapsed_ms={}, total_ms={}",
+            account_id,
+            launch_started.elapsed().as_millis(),
+            flow_started.elapsed().as_millis()
+        ));
     } else {
         logger::log_info("已关闭切换 Codex 时自动启动 Codex App");
     }
 
+    let restart_specified_started = Instant::now();
     restart_codex_specified_app_if_enabled(&user_config);
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] restart specified app stage finished: account_id={}, elapsed_ms={}, total_ms={}",
+        account_id,
+        restart_specified_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
+    let tray_started = Instant::now();
     let _ = crate::modules::tray::update_tray_menu(&app);
+    logger::log_info(&format!(
+        "[Codex Switch][Backend] switch_codex_account finished: account_id={}, tray_elapsed_ms={}, total_ms={}",
+        account_id,
+        tray_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     Ok(account)
 }
 
@@ -359,7 +480,7 @@ async fn run_codex_post_refresh_checks(app: &AppHandle) {
     match codex_account::pick_auto_switch_target_if_needed() {
         Ok(Some(target)) => {
             let target_id = target.id.clone();
-            match switch_codex_account(app.clone(), target_id.clone()).await {
+            match switch_codex_account(app.clone(), target_id.clone(), None).await {
                 Ok(switched_account) => {
                     logger::log_info(&format!(
                         "[AutoSwitch][Codex] 自动切号完成: target_id={}, email={}",
@@ -1981,16 +2102,45 @@ pub async fn codex_local_access_set_enabled(
 }
 
 #[tauri::command]
-pub async fn codex_local_access_activate(app: AppHandle) -> Result<CodexLocalAccessState, String> {
+pub async fn codex_local_access_activate(
+    app: AppHandle,
+    auto_repair_mode: Option<codex_session_visibility::CodexSessionVisibilityAutoRepairMode>,
+) -> Result<CodexLocalAccessState, String> {
+    let flow_started = Instant::now();
+    logger::log_info("[Codex API Service Switch][Backend] codex_local_access_activate started");
     let codex_home = codex_account::get_codex_home();
+    let previous_credential = read_current_codex_launch_credential_snapshot();
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] previous credential resolved: elapsed_ms={}",
+        flow_started.elapsed().as_millis()
+    ));
+    let activate_started = Instant::now();
     let state = codex_local_access::activate_local_access_for_dir(&codex_home).await?;
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] activate_local_access_for_dir finished: elapsed_ms={}, total_ms={}",
+        activate_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     let api_service_speed = codex_speed::get_api_service_app_speed_config()?.speed;
+    let speed_started = Instant::now();
     codex_speed::write_official_app_speed(api_service_speed.clone())?;
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] write official app speed finished: elapsed_ms={}, total_ms={}",
+        speed_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
+    let index_started = Instant::now();
     let mut index = codex_account::load_account_index();
     index.current_account_id = None;
     codex_account::save_account_index(&index)?;
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] account index cleared: elapsed_ms={}, total_ms={}",
+        index_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
+    let default_settings_started = Instant::now();
     if let Err(e) = crate::modules::codex_instance::update_default_settings(
         Some(Some(
             crate::modules::codex_instance::CODEX_API_SERVICE_BIND_ACCOUNT_ID.to_string(),
@@ -2007,12 +2157,36 @@ pub async fn codex_local_access_activate(app: AppHandle) -> Result<CodexLocalAcc
     if let Err(e) = crate::modules::codex_instance::update_default_app_speed(api_service_speed) {
         logger::log_warn(&format!("更新 Codex 默认实例 API 服务速度失败: {}", e));
     }
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] default settings update finished: elapsed_ms={}, total_ms={}",
+        default_settings_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
+    let repair_started = Instant::now();
+    repair_codex_session_visibility_after_credential_kind_change(
+        "after-api-service-activate",
+        previous_credential,
+        Some(CodexLaunchCredentialSnapshot {
+            kind: "api".to_string(),
+            source: format!(
+                "target-bind:{}",
+                crate::modules::codex_instance::CODEX_API_SERVICE_BIND_ACCOUNT_ID
+            ),
+        }),
+        auto_repair_mode,
+    );
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] session visibility repair stage finished: elapsed_ms={}, total_ms={}",
+        repair_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
     let user_config = config::get_user_config();
 
     logger::log_info("API 服务启动模式下跳过 OpenCode / OpenClaw OAuth 同步");
 
     if user_config.codex_launch_on_switch {
+        let launch_started = Instant::now();
         #[cfg(target_os = "macos")]
         if process::is_codex_running() {
             logger::log_info("检测到 Codex 正在运行，将按默认实例 PID 逻辑重启");
@@ -2029,11 +2203,22 @@ pub async fn codex_local_access_activate(app: AppHandle) -> Result<CodexLocalAcc
                 }
             }
         }
+        logger::log_info(&format!(
+            "[Codex API Service Switch][Backend] codex_start_default_with_prepared_profile finished: elapsed_ms={}, total_ms={}",
+            launch_started.elapsed().as_millis(),
+            flow_started.elapsed().as_millis()
+        ));
     } else {
         logger::log_info("已关闭切换 Codex 时自动启动 Codex App");
     }
 
+    let tray_started = Instant::now();
     let _ = crate::modules::tray::update_tray_menu(&app);
+    logger::log_info(&format!(
+        "[Codex API Service Switch][Backend] codex_local_access_activate finished: tray_elapsed_ms={}, total_ms={}",
+        tray_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     Ok(state)
 }
 

@@ -252,7 +252,18 @@ export async function setCodexLocalAccessEnabled(
 }
 
 export async function activateCodexLocalAccess(): Promise<CodexLocalAccessState> {
-  return await invoke("codex_local_access_activate");
+  const startedAt = performance.now();
+  console.info("[Codex API Service Switch][Service] invoke codex_local_access_activate started");
+  try {
+    return await invoke("codex_local_access_activate", {
+      autoRepairMode: null,
+    });
+  } finally {
+    console.info(
+      "[Codex API Service Switch][Service] invoke codex_local_access_activate finished",
+      { elapsedMs: Math.round(performance.now() - startedAt) },
+    );
+  }
 }
 
 export async function testCodexLocalAccess(): Promise<CodexLocalAccessTestResult> {

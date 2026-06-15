@@ -2441,7 +2441,7 @@
     },
     "sessionManager": {
       "title": "Manajer Sesi",
-      "desc": "Sinkronisasi dan pembersihan ada di sini bersama: gunakan tindakan atas untuk menyinkronkan ke semua instansi, lalu perluas setiap proyek untuk meninjau dan menghapus sesi.",
+      "desc": "Sinkronisasi, perbaikan visibilitas, pembersihan, dan pemulihan ada di sini: gunakan aksi atas untuk menyinkronkan sesi, memperbaiki visibilitas, atau memulihkan dari Sampah; lalu buka tiap proyek untuk meninjau dan membuang sesi.",
       "actions": {
         "moveToTrash": "Pindahkan ke Sampah",
         "syncSessions": "Sinkronkan Sesi",
@@ -2450,7 +2450,7 @@
         "repairVisibility": "Perbaiki visibilitas",
         "restoreSessions": "Pulihkan sesi",
         "copySessionId": "Salin ID sesi",
-        "selectAllSessions": "Pilih semua",
+        "selectAllSessions": "Pilih semua sesi",
         "clearSelectedSessions": "Batal pilih",
         "copyToInstance": "Salin ke instans"
       },
@@ -2458,7 +2458,7 @@
         "title": "Pindahkan ke Sampah",
         "message": "Sesi yang dipilih akan dipindahkan ke Sampah dari instansinya sehingga dapat dipulihkan nanti. Instansi yang berjalan mungkin perlu dimulai ulang sebelum perubahan muncul. Lanjutkan?",
         "syncMessage": "Thread yang hilang dan data sesinya akan disinkronkan ke semua instansi. Konten yang ada tidak akan ditulis lagi, dan berkas instansi target akan dicadangkan sebelum penulisan terjadi. Lanjutkan?",
-        "repairVisibilityMessage": "Tindakan ini akan memperbaiki metadata penyedia di file rollout dan state_5.sqlite menggunakan model_provider dari config.toml root setiap instance (jika tidak ada, default-nya openai). File yang akan diubah akan dicadangkan sebelum ditulis. Instance yang sedang berjalan mungkin perlu dimulai ulang sebelum perubahan terlihat. Lanjutkan?"
+        "repairVisibilityMessage": "Memperbarui catatan state DB resmi Codex yang mengontrol daftar sesi di bilah samping. File state DB dicadangkan sebelum ditulis."
       },
       "empty": {
         "title": "Tidak ada sesi untuk dikelola",
@@ -2494,6 +2494,62 @@
         "selectedCount": "{{count}} sesi dipilih",
         "existingCount": "{{count}} sudah ada di tujuan",
         "confirm": "Salin sesi"
+      },
+      "repairModal": {
+        "quickTitle": "Perbaiki visibilitas",
+        "quickDesc": "Memperbarui catatan state DB resmi Codex untuk bilah samping.",
+        "deepTitle": "Perbaiki visibilitas",
+        "deepDesc": "Memperbarui catatan state DB resmi Codex untuk bilah samping.",
+        "quickProgressTitle": "Progres perbaikan",
+        "deepProgressTitle": "Progres perbaikan",
+        "running": "Memperbaiki...",
+        "startQuick": "Perbaiki",
+        "startDeep": "Perbaiki",
+        "progress": {
+          "queued": "Memulai tugas perbaikan...",
+          "collectInstances": "Mengumpulkan instance Codex...",
+          "scanInstances": "Menyiapkan pemindaian instance...",
+          "scanInstance": "Memindai {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Mencadangkan {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Menulis {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Menyegarkan status sesi resmi untuk {{instance}}...",
+          "pruneBackups": "Membersihkan cadangan lama...",
+          "done": "Perbaikan selesai",
+          "writeSqliteProvider": "Menulis visibilitas SQLite untuk {{instance}}...",
+          "writeRolloutFiles": "Melewati penulisan file sesi lama...",
+          "writeSqliteTimestamps": "Memperbaiki waktu SQLite untuk {{instance}}...",
+          "writeSessionIndex": "Melewati penulisan indeks lama..."
+        },
+        "targetProvider": "Provider tujuan",
+        "defaultProvider": "Default",
+        "loadingProviders": "Memuat provider...",
+        "noProvider": "Provider tidak ditemukan",
+        "providerLoadFailed": "Gagal memuat kandidat provider: {{error}}",
+        "scopeTitle": "Cakupan sesi",
+        "scopeAll": "Semua sesi",
+        "scopeAllDesc": "Perbaiki {{count}} sesi di daftar saat ini.",
+        "scopeSelected": "Sesi terpilih",
+        "scopeSelectedDesc": "Perbaiki hanya {{count}} sesi terpilih.",
+        "scopeSelectedEmpty": "Pilih sesi di daftar terlebih dahulu.",
+        "providerSource": {
+          "config": "Konfigurasi",
+          "rollout": "Sesi",
+          "sqlite": "Basis SQLite"
+        },
+        "targetInstance": "Instans target",
+        "loadingInstances": "Memuat instans...",
+        "noInstance": "Instans tidak ditemukan",
+        "instanceLoadFailed": "Gagal memuat instans: {{error}}",
+        "defaultInstance": "Instans default",
+        "runningInstance": "Berjalan",
+        "instanceProvider": "Provider saat ini",
+        "instanceScopeTitle": "Cakupan instans",
+        "instanceScopeTarget": "Target saja",
+        "instanceScopeTargetDesc": "Hanya memperbaiki instans terpilih, biasanya lebih cepat.",
+        "instanceScopeAll": "Semua instans",
+        "instanceScopeAllDesc": "Memperbaiki semua instans Codex saat pemulihan bersama.",
+        "progressTitle": "Progres perbaikan",
+        "start": "Perbaiki"
       }
     },
     "modelProviders": {
@@ -2755,15 +2811,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sesi Codex tersembunyi",
-      "message": "Terdeteksi Codex beralih dari {{from}} ke {{to}}. Karena perilaku resmi, sesi yang ada mungkin tidak muncul otomatis setelah beralih langsung antara API dan akun. Visibilitas sesi sedang diperbaiki otomatis; Anda juga dapat memakai Manajemen Sesi > Perbaiki Visibilitas nanti.",
+      "message": "Codex beralih dari {{from}} ke {{to}}. Karena perilaku resmi, sesi yang sudah ada mungkin tidak muncul otomatis setelah jenis perpindahan ini. Visibilitas sesi sedang diperbaiki otomatis; nanti juga bisa diperbaiki manual dari Manajemen Sesi.",
       "repairing": "Memperbaiki visibilitas sesi Codex...",
-      "repairFailed": "Perbaikan otomatis gagal. Anda dapat mencoba lagi nanti dari Manajemen Sesi > Perbaiki Visibilitas.",
+      "repairFailed": "Perbaikan visibilitas gagal. Anda dapat mencoba lagi nanti dari Manajemen sesi.",
       "type": {
         "api": "Mode API",
         "apiKey": "Kunci API",
         "apiService": "Layanan API",
         "account": "Akun"
-      }
+      },
+      "manualMessage": "Perbaiki visibilitas memperbarui catatan state DB resmi Codex yang mengontrol daftar sesi di bilah samping. Ini dipakai untuk memulihkan sesi setelah berpindah antara akun dan API Keys.",
+      "repairFailedWithError": "Perbaikan visibilitas gagal: {{error}}"
     },
     "accountNote": {
       "title": "Catatan Akun",
@@ -3012,6 +3070,13 @@
       "selectAllAccounts": "Pilih semua akun",
       "selectReady": "Pilih akun OK",
       "clearSelection": "Hapus pilihan"
+    },
+    "autoRepairMode": {
+      "label": "Logika perbaikan otomatis",
+      "tooltip": "Pilih logika perbaikan visibilitas sesi saat berpindah",
+      "legacyBefore4eb75d96": "Sebelum 4eb75d96",
+      "legacy4eb75d96": "Logika 4eb75d96",
+      "current": "Logika saat ini"
     }
   },
   "codebuddy": {

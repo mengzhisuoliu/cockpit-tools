@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Gestor de sesiones",
-      "desc": "La sincronización y la limpieza se gestionan aquí: usa la acción superior para sincronizar con todas las instancias y luego expande cada proyecto para revisar las sesiones y moverlas a la papelera.",
+      "desc": "Sincronización, reparación de visibilidad, limpieza y restauración están aquí: usa las acciones superiores para sincronizar sesiones, reparar la visibilidad o restaurar desde la papelera; luego despliega cada proyecto para revisar y enviar sesiones a la papelera.",
       "actions": {
         "moveToTrash": "Mover a la papelera",
         "syncSessions": "Sincronizar sesiones",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Reparar visibilidad",
         "restoreSessions": "Restaurar sesiones",
         "copySessionId": "Copiar ID de sesión",
-        "selectAllSessions": "Seleccionar todo",
+        "selectAllSessions": "Seleccionar sesiones",
         "clearSelectedSessions": "Deseleccionar",
         "copyToInstance": "Copiar a instancia"
       },
@@ -2301,7 +2301,7 @@
         "title": "Mover a la papelera",
         "message": "Las sesiones seleccionadas se moverán a la papelera desde sus instancias para que puedan restaurarse más tarde. Es posible que las instancias en ejecución necesiten reiniciarse antes de que aparezcan los cambios. ¿Continuar?",
         "syncMessage": "Los hilos faltantes y sus datos de sesión se sincronizarán con todas las instancias. El contenido existente no se volverá a escribir y los archivos de la instancia de destino se respaldarán antes de cualquier escritura. ¿Continuar?",
-        "repairVisibilityMessage": "Esto reparará los metadatos del proveedor en los archivos de rollout y en state_5.sqlite usando el model_provider del config.toml raíz de cada instancia (si falta, se usará openai por defecto). Los archivos que se vayan a modificar se respaldarán antes de escribirlos. Puede que las instancias en ejecución necesiten reiniciarse antes de que aparezca el cambio. ¿Continuar?"
+        "repairVisibilityMessage": "Actualiza los registros de la state DB oficial de Codex que controlan la lista lateral de sesiones. Los archivos state DB se respaldan antes de escribir."
       },
       "empty": {
         "title": "No hay sesiones para gestionar",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} sesiones seleccionadas",
         "existingCount": "{{count}} ya existen en destino",
         "confirm": "Copiar sesiones"
+      },
+      "repairModal": {
+        "quickTitle": "Reparar visibilidad",
+        "quickDesc": "Actualiza los registros de la state DB oficial de Codex para la barra lateral.",
+        "deepTitle": "Reparar visibilidad",
+        "deepDesc": "Actualiza los registros de la state DB oficial de Codex para la barra lateral.",
+        "quickProgressTitle": "Progreso",
+        "deepProgressTitle": "Progreso",
+        "running": "Reparando...",
+        "startQuick": "Reparar",
+        "startDeep": "Reparar",
+        "progress": {
+          "queued": "Iniciando reparación...",
+          "collectInstances": "Recopilando instancias de Codex...",
+          "scanInstances": "Preparando escaneo de instancias...",
+          "scanInstance": "Escaneando {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Respaldando {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Escribiendo {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Actualizando estado oficial de sesiones para {{instance}}...",
+          "pruneBackups": "Limpiando respaldos antiguos...",
+          "done": "Reparación completada",
+          "writeSqliteProvider": "Escribiendo visibilidad SQLite de {{instance}}...",
+          "writeRolloutFiles": "Omitiendo escritura de archivos de sesión antiguos...",
+          "writeSqliteTimestamps": "Corrigiendo tiempos SQLite de {{instance}}...",
+          "writeSessionIndex": "Omitiendo escritura del índice antiguo..."
+        },
+        "targetProvider": "Provider destino",
+        "defaultProvider": "Predeterminado",
+        "loadingProviders": "Cargando providers...",
+        "noProvider": "No se encontró provider",
+        "providerLoadFailed": "No se pudieron cargar providers: {{error}}",
+        "scopeTitle": "Alcance de sesiones",
+        "scopeAll": "Todas las sesiones",
+        "scopeAllDesc": "Repara {{count}} sesión(es) de la lista actual.",
+        "scopeSelected": "Sesiones seleccionadas",
+        "scopeSelectedDesc": "Repara solo {{count}} sesión(es) seleccionada(s).",
+        "scopeSelectedEmpty": "Selecciona sesiones en la lista primero.",
+        "providerSource": {
+          "config": "Configuración",
+          "rollout": "Sesiones",
+          "sqlite": "Base SQLite"
+        },
+        "targetInstance": "Instancia destino",
+        "loadingInstances": "Cargando instancias...",
+        "noInstance": "No se encontró ninguna instancia",
+        "instanceLoadFailed": "No se pudieron cargar las instancias: {{error}}",
+        "defaultInstance": "Instancia predeterminada",
+        "runningInstance": "En ejecución",
+        "instanceProvider": "Provider actual",
+        "instanceScopeTitle": "Alcance de instancias",
+        "instanceScopeTarget": "Solo destino",
+        "instanceScopeTargetDesc": "Repara solo la instancia seleccionada; suele ser más rápido.",
+        "instanceScopeAll": "Todas las instancias",
+        "instanceScopeAllDesc": "Repara todas las instancias de Codex al restaurarlas juntas.",
+        "progressTitle": "Progreso",
+        "start": "Reparar"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sesiones de Codex ocultas",
-      "message": "Se detectó que Codex cambió de {{from}} a {{to}}. Por el comportamiento oficial, las sesiones existentes pueden no aparecer automáticamente tras cambiar directamente entre API y cuentas. La visibilidad de las sesiones se está reparando automáticamente; también puedes usar Gestión de sesiones > Reparar visibilidad más tarde.",
+      "message": "Codex cambió de {{from}} a {{to}}. Por el comportamiento oficial, las sesiones existentes pueden no aparecer automáticamente después de este tipo de cambio. La visibilidad de sesiones se está reparando automáticamente; también puedes repararla luego desde Gestión de sesiones.",
       "repairing": "Reparando la visibilidad de sesiones de Codex...",
-      "repairFailed": "Falló la reparación automática. Puedes reintentarlo luego en Gestión de sesiones > Reparar visibilidad.",
+      "repairFailed": "No se pudo reparar la visibilidad. Puedes reintentarlo luego desde Gestión de sesiones.",
       "type": {
         "api": "Modo API",
         "apiKey": "Clave API",
         "apiService": "Servicio API",
         "account": "Cuenta"
-      }
+      },
+      "manualMessage": "Reparar visibilidad actualiza los registros de la state DB oficial de Codex que controlan la lista lateral de sesiones. Sirve para recuperar sesiones tras cambiar entre cuentas y API Keys.",
+      "repairFailedWithError": "No se pudo reparar la visibilidad: {{error}}"
     },
     "accountNote": {
       "title": "Nota de cuenta",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Seleccionar todas",
       "selectReady": "Seleccionar correctas",
       "clearSelection": "Borrar selección"
+    },
+    "autoRepairMode": {
+      "label": "Lógica de autorreparación",
+      "tooltip": "Elige qué lógica de visibilidad de sesiones se usa al cambiar",
+      "legacyBefore4eb75d96": "Antes de 4eb75d96",
+      "legacy4eb75d96": "Lógica 4eb75d96",
+      "current": "Lógica actual"
     }
   },
   "githubCopilot": {

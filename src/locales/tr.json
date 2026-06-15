@@ -2284,16 +2284,16 @@
     },
     "sessionManager": {
       "title": "Oturum yöneticisi",
-      "desc": "Eşitleme ve temizlik burada bir arada: üstteki işlemle tüm örneklere tek tıkla eşitleyebilir, aşağıda her projeyi genişletip oturumları inceleyerek çöp kutusuna taşıyabilirsiniz.",
+      "desc": "Eşitleme, görünürlük onarımı, temizleme ve geri yükleme burada: üstteki işlemlerle oturumları eşitleyin, görünürlüğü onarın veya Çöp Kutusu’ndan geri yükleyin; altta projeleri açarak inceleyin ve oturumları çöpe taşıyın.",
       "actions": {
         "moveToTrash": "Çöp kutusuna taşı",
         "syncSessions": "Oturumları eşitle",
         "expand": "Genişlet",
         "collapse": "Daralt",
-        "repairVisibility": "Görünürlüğü düzelt",
+        "repairVisibility": "Görünürlüğü onar",
         "restoreSessions": "Oturumları geri yükle",
         "copySessionId": "Oturum kimliğini kopyala",
-        "selectAllSessions": "Tümünü seç",
+        "selectAllSessions": "Tüm oturumları seç",
         "clearSelectedSessions": "Seçimi kaldır",
         "copyToInstance": "Örneğe kopyala"
       },
@@ -2301,7 +2301,7 @@
         "title": "Çöp kutusuna taşı",
         "message": "Seçilen oturumlar daha sonra geri yüklenebilmesi için ilgili örneklerden çöp kutusuna taşınacaktır. Çalışan örneklerin değişikliğin görünmesi için yeniden başlatılması gerekebilir. Devam edilsin mi?",
         "syncMessage": "Eksik iş parçacıkları ve bunlara ait oturum verileri tüm örneklerle eşitlenecektir. Mevcut içerik yeniden yazılmayacak ve hedef örnek dosyaları herhangi bir yazma işleminden önce yedeklenecektir. Devam edilsin mi?",
-        "repairVisibilityMessage": "Bu işlem, her örneğin kök config.toml dosyasındaki model_provider değerini kullanarak rollout dosyaları ve state_5.sqlite içindeki sağlayıcı meta verilerini onarır (eksikse varsayılan olarak openai kullanılır). Değiştirilecek dosyalar yazılmadan önce yedeklenir. Değişikliğin görünmesi için çalışan örneklerin yeniden başlatılması gerekebilir. Devam edilsin mi?"
+        "repairVisibilityMessage": "Yan çubuk oturum listesini kontrol eden resmi Codex state DB kayıtlarını günceller. Yazmadan önce state DB dosyaları yedeklenir."
       },
       "empty": {
         "title": "Yönetilecek oturum yok",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} oturum seçildi",
         "existingCount": "Hedefte zaten {{count}} var",
         "confirm": "Oturumları kopyala"
+      },
+      "repairModal": {
+        "quickTitle": "Görünürlüğü onar",
+        "quickDesc": "Yan çubuk için resmi Codex state DB kayıtlarını günceller.",
+        "deepTitle": "Görünürlüğü onar",
+        "deepDesc": "Yan çubuk için resmi Codex state DB kayıtlarını günceller.",
+        "quickProgressTitle": "Onarım ilerlemesi",
+        "deepProgressTitle": "Onarım ilerlemesi",
+        "running": "Onarılıyor...",
+        "startQuick": "Onar",
+        "startDeep": "Onar",
+        "progress": {
+          "queued": "Onarım görevi başlatılıyor...",
+          "collectInstances": "Codex örnekleri toplanıyor...",
+          "scanInstances": "Örnek taraması hazırlanıyor...",
+          "scanInstance": "{{instance}} taranıyor ({{current}}/{{total}})...",
+          "backupInstance": "{{instance}} yedekleniyor ({{current}}/{{total}})...",
+          "writeInstance": "{{instance}} yazılıyor ({{current}}/{{total}})...",
+          "rebuildMetadata": "{{instance}} için resmi oturum durumu yenileniyor...",
+          "pruneBackups": "Eski yedekler temizleniyor...",
+          "done": "Onarım tamamlandı",
+          "writeSqliteProvider": "{{instance}} için SQLite görünürlüğü yazılıyor...",
+          "writeRolloutFiles": "Eski oturum dosyası yazımı atlanıyor...",
+          "writeSqliteTimestamps": "{{instance}} SQLite zamanları düzeltiliyor...",
+          "writeSessionIndex": "Eski indeks yazımı atlanıyor..."
+        },
+        "targetProvider": "Hedef provider",
+        "defaultProvider": "Varsayılan",
+        "loadingProviders": "Providerlar yükleniyor...",
+        "noProvider": "Provider bulunamadı",
+        "providerLoadFailed": "Provider adayları yüklenemedi: {{error}}",
+        "scopeTitle": "Oturum kapsamı",
+        "scopeAll": "Tüm oturumlar",
+        "scopeAllDesc": "Geçerli listedeki {{count}} oturumu onarır.",
+        "scopeSelected": "Seçili oturumlar",
+        "scopeSelectedDesc": "Yalnızca seçili {{count}} oturumu onarır.",
+        "scopeSelectedEmpty": "Önce listeden oturum seçin.",
+        "providerSource": {
+          "config": "Yapılandırma",
+          "rollout": "Oturumlar",
+          "sqlite": "SQLite veritabanı"
+        },
+        "targetInstance": "Hedef örnek",
+        "loadingInstances": "Örnekler yükleniyor...",
+        "noInstance": "Örnek bulunamadı",
+        "instanceLoadFailed": "Örnekler yüklenemedi: {{error}}",
+        "defaultInstance": "Varsayılan örnek",
+        "runningInstance": "Çalışıyor",
+        "instanceProvider": "Geçerli provider",
+        "instanceScopeTitle": "Örnek kapsamı",
+        "instanceScopeTarget": "Yalnız hedef",
+        "instanceScopeTargetDesc": "Yalnız seçili örneği onarır, genellikle daha hızlıdır.",
+        "instanceScopeAll": "Tüm örnekler",
+        "instanceScopeAllDesc": "Çoklu örnek durumunu geri yüklerken tüm Codex örneklerini onarır.",
+        "progressTitle": "Onarım ilerlemesi",
+        "start": "Onar"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Codex oturumları gizli",
-      "message": "Codex’in {{from}} üzerinden {{to}} konumuna geçtiği algılandı. Resmi davranış nedeniyle API ile hesaplar arasında doğrudan geçişten sonra mevcut oturumlar otomatik görünmeyebilir. Oturum görünürlüğü otomatik olarak onarılıyor; daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünü de kullanabilirsiniz.",
+      "message": "Codex {{from}} üzerinden {{to}} üzerine geçti. Resmi davranış nedeniyle bu tür geçişten sonra mevcut oturumlar otomatik görünmeyebilir. Oturum görünürlüğü otomatik onarılıyor; daha sonra Oturum Yönetimi içinden elle de onarabilirsiniz.",
       "repairing": "Codex oturum görünürlüğü onarılıyor...",
-      "repairFailed": "Otomatik onarım başarısız oldu. Daha sonra Oturum Yönetimi > Görünürlüğü Onar bölümünden tekrar deneyebilirsiniz.",
+      "repairFailed": "Görünürlük onarımı başarısız oldu. Daha sonra Oturum yönetiminden tekrar deneyebilirsiniz.",
       "type": {
         "api": "API modu",
         "apiKey": "API Anahtarı",
         "apiService": "API Hizmeti",
         "account": "Hesap"
-      }
+      },
+      "manualMessage": "Görünürlüğü onar, yan çubuk oturum listesini kontrol eden resmi Codex state DB kayıtlarını günceller. Hesaplar ve API Keys arasında geçişten sonra oturumları geri getirmek içindir.",
+      "repairFailedWithError": "Görünürlük onarımı başarısız oldu: {{error}}"
     },
     "accountNote": {
       "title": "Hesap Notu",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Tüm hesapları seç",
       "selectReady": "Sağlamları seç",
       "clearSelection": "Seçimi temizle"
+    },
+    "autoRepairMode": {
+      "label": "Otomatik onarım mantığı",
+      "tooltip": "Geçişte kullanılacak oturum görünürlüğü onarım mantığını seçin",
+      "legacyBefore4eb75d96": "4eb75d96 öncesi",
+      "legacy4eb75d96": "4eb75d96 mantığı",
+      "current": "Geçerli mantık"
     }
   },
   "githubCopilot": {

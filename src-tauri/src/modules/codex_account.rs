@@ -3297,6 +3297,10 @@ fn read_managed_projection_from_dir(base_dir: &Path) -> Option<CodexManagedAuthP
     }
 }
 
+pub fn read_managed_projection_account_id_from_dir(base_dir: &Path) -> Option<String> {
+    read_managed_projection_from_dir(base_dir).map(|projection| projection.account_id)
+}
+
 fn ensure_directory_writable_for_import(path: &Path) -> Result<(), String> {
     fs::create_dir_all(path).map_err(|e| format_io_error("创建导入目录", path, &e))?;
     let probe_path = build_temp_file_path(path, path, "import-probe");
@@ -3488,6 +3492,7 @@ fn write_api_key_account_bundle_with_oauth_to_dir(
     write_prepared_account_bundle_to_dir(base_dir, oauth_account)?;
     let provider_config =
         write_api_key_provider_override_to_config_toml(base_dir, api_key_account)?;
+    write_managed_projection_to_dir(base_dir, api_key_account)?;
     logger::log_info(&format!(
         "[Codex切号] 已写入 API Key 账号绑定 OAuth 的组合配置: api_account_id={}, oauth_account_id={}, target_dir={}, has_base_url={}",
         api_key_account.id,

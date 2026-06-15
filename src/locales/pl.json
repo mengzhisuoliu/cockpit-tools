@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Menedżer sesji",
-      "desc": "Synchronizacja i porządki są tutaj razem: u góry możesz jednym kliknięciem zsynchronizować wszystko do wszystkich instancji, a niżej rozwinąć każdy projekt, przejrzeć sesje i przenieść je do kosza.",
+      "desc": "Synchronizacja, naprawa widoczności, czyszczenie i przywracanie są tutaj razem: u góry zsynchronizujesz sesje, naprawisz widoczność lub przywrócisz z kosza, a niżej rozwiniesz projekty, aby przeglądać i przenosić sesje do kosza.",
       "actions": {
         "moveToTrash": "Przenieś do kosza",
         "syncSessions": "Synchronizuj sesje",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Napraw widoczność",
         "restoreSessions": "Przywróć sesje",
         "copySessionId": "Kopiuj ID sesji",
-        "selectAllSessions": "Zaznacz wszystko",
+        "selectAllSessions": "Zaznacz sesje",
         "clearSelectedSessions": "Odznacz wszystko",
         "copyToInstance": "Kopiuj do instancji"
       },
@@ -2301,7 +2301,7 @@
         "title": "Przenieś do kosza",
         "message": "Wybrane sesje zostaną przeniesione do kosza z odpowiednich instancji, aby można je było później przywrócić. Uruchomione instancje mogą wymagać ponownego uruchomienia, zanim zmiana będzie widoczna. Kontynuować?",
         "syncMessage": "Brakujące wątki i ich dane sesji zostaną zsynchronizowane ze wszystkimi instancjami. Istniejąca zawartość nie zostanie zapisana ponownie, a pliki instancji docelowej zostaną zarchiwizowane przed każdym zapisem. Kontynuować?",
-        "repairVisibilityMessage": "To naprawi metadane dostawcy w plikach rollout i w state_5.sqlite, używając wartości model_provider z głównego pliku config.toml każdej instancji (gdy jej brakuje, zostanie użyte openai). Pliki, które zostaną zmienione, są archiwizowane przed zapisem. Działające instancje mogą wymagać ponownego uruchomienia, zanim zmiana będzie widoczna. Kontynuować?"
+        "repairVisibilityMessage": "Aktualizuje wpisy oficjalnej state DB Codex, które sterują listą sesji w panelu bocznym. Pliki state DB są kopiowane przed zapisem."
       },
       "empty": {
         "title": "Brak sesji do zarządzania",
@@ -2337,6 +2337,62 @@
         "selectedCount": "Wybrano sesji: {{count}}",
         "existingCount": "Już w celu: {{count}}",
         "confirm": "Kopiuj sesje"
+      },
+      "repairModal": {
+        "quickTitle": "Napraw widoczność",
+        "quickDesc": "Aktualizuje wpisy oficjalnej state DB Codex dla panelu bocznego.",
+        "deepTitle": "Napraw widoczność",
+        "deepDesc": "Aktualizuje wpisy oficjalnej state DB Codex dla panelu bocznego.",
+        "quickProgressTitle": "Postęp naprawy",
+        "deepProgressTitle": "Postęp naprawy",
+        "running": "Naprawianie...",
+        "startQuick": "Napraw",
+        "startDeep": "Napraw",
+        "progress": {
+          "queued": "Uruchamianie naprawy...",
+          "collectInstances": "Zbieranie instancji Codex...",
+          "scanInstances": "Przygotowanie skanowania...",
+          "scanInstance": "Skanowanie {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Tworzenie kopii {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Zapisywanie {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Odświeżanie oficjalnego stanu sesji dla {{instance}}...",
+          "pruneBackups": "Czyszczenie starych kopii...",
+          "done": "Naprawa zakończona",
+          "writeSqliteProvider": "Zapisywanie widoczności SQLite dla {{instance}}...",
+          "writeRolloutFiles": "Pomijanie zapisu starych plików sesji...",
+          "writeSqliteTimestamps": "Poprawianie czasów SQLite dla {{instance}}...",
+          "writeSessionIndex": "Pomijanie zapisu starego indeksu..."
+        },
+        "targetProvider": "Docelowy provider",
+        "defaultProvider": "Domyślny",
+        "loadingProviders": "Wczytywanie providerów...",
+        "noProvider": "Nie znaleziono providera",
+        "providerLoadFailed": "Nie udało się wczytać providerów: {{error}}",
+        "scopeTitle": "Zakres sesji",
+        "scopeAll": "Wszystkie sesje",
+        "scopeAllDesc": "Napraw {{count}} sesji z bieżącej listy.",
+        "scopeSelected": "Wybrane sesje",
+        "scopeSelectedDesc": "Napraw tylko {{count}} wybranych sesji.",
+        "scopeSelectedEmpty": "Najpierw zaznacz sesje na liście.",
+        "providerSource": {
+          "config": "Konfiguracja",
+          "rollout": "Sesje",
+          "sqlite": "Baza SQLite"
+        },
+        "targetInstance": "Instancja docelowa",
+        "loadingInstances": "Wczytywanie instancji...",
+        "noInstance": "Nie znaleziono instancji",
+        "instanceLoadFailed": "Nie udało się wczytać instancji: {{error}}",
+        "defaultInstance": "Domyślna instancja",
+        "runningInstance": "Uruchomiona",
+        "instanceProvider": "Bieżący provider",
+        "instanceScopeTitle": "Zakres instancji",
+        "instanceScopeTarget": "Tylko docelowa",
+        "instanceScopeTargetDesc": "Naprawia tylko wybraną instancję, zwykle szybciej.",
+        "instanceScopeAll": "Wszystkie instancje",
+        "instanceScopeAllDesc": "Naprawia wszystkie instancje Codex przy wspólnym odtwarzaniu.",
+        "progressTitle": "Postęp naprawy",
+        "start": "Napraw"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sesje Codex są ukryte",
-      "message": "Wykryto, że Codex przełączył się z {{from}} na {{to}}. Ze względu na oficjalne zachowanie istniejące sesje mogą nie pojawić się automatycznie po bezpośrednim przełączeniu między API a kontami. Widoczność sesji jest teraz naprawiana automatycznie; później możesz też użyć Zarządzanie sesjami > Napraw widoczność.",
+      "message": "Codex przełączył się z {{from}} na {{to}}. Zgodnie z oficjalnym działaniem istniejące sesje po takiej zmianie mogą nie pojawić się automatycznie. Widoczność sesji jest naprawiana automatycznie; później można to zrobić ręcznie w zarządzaniu sesjami.",
       "repairing": "Naprawianie widoczności sesji Codex...",
-      "repairFailed": "Automatyczna naprawa się nie powiodła. Możesz spróbować później w Zarządzanie sesjami > Napraw widoczność.",
+      "repairFailed": "Naprawa widoczności nie powiodła się. Możesz spróbować ponownie później w Zarządzaniu sesjami.",
       "type": {
         "api": "Tryb API",
         "apiKey": "Klucz API",
         "apiService": "Usługa API",
         "account": "Konto"
-      }
+      },
+      "manualMessage": "Naprawa widoczności aktualizuje wpisy oficjalnej state DB Codex, które sterują listą sesji w panelu bocznym. Służy do odzyskania sesji po przełączeniu między kontami i API Keys.",
+      "repairFailedWithError": "Naprawa widoczności nie powiodła się: {{error}}"
     },
     "accountNote": {
       "title": "Notatka konta",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Wybierz wszystkie",
       "selectReady": "Wybierz konta OK",
       "clearSelection": "Wyczyść wybór"
+    },
+    "autoRepairMode": {
+      "label": "Logika autonaprawy",
+      "tooltip": "Wybierz logikę naprawy widoczności sesji podczas przełączania",
+      "legacyBefore4eb75d96": "Przed 4eb75d96",
+      "legacy4eb75d96": "Logika 4eb75d96",
+      "current": "Bieżąca logika"
     }
   },
   "githubCopilot": {

@@ -7,6 +7,27 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.25.7] - 2026-06-15
+
+### Added
+- **APIKEY.FUN now has a fuller key workspace**: saved keys can retain the last queried balance, automatically reload the first saved key when the page opens, show usage details, read the current key's available model list, and prefill Codex provider setup without directly creating the target account.
+- **Codex session management now supports targeted session copy and recovery workflows**: selected sessions can be copied to a target instance, moved to the trash, restored later, selected across all projects, and inspected with copied session IDs while target instance choices follow the same order as the instance list.
+- **Codex account export now supports preview-first workflows**: exports can be previewed, copied, and downloaded, including multi-document formats such as sub2api and cpa.
+- **Remote platform visibility can now hide unfinished entries safely**: remote configuration can remove platform entries from navigation, dashboards, platform switchers, and floating cards while preserving local accounts, login state, and backend data.
+
+### Changed
+- **Gemini quota display now uses quota-summary buckets**: Gemini quota refresh reads `retrieveUserQuotaSummary` so account pages, dashboard cards, tray items, and native menus can show Gemini and third-party 5-hour and weekly quota windows more consistently. Thanks @xdd666t.
+- **Codex session visibility repair now uses a single official state DB path**: automatic and manual repair both update only the `state_5.sqlite` session records used by the official sidebar, without scanning or rewriting rollouts, `session_index.jsonl`, or triggering an official app-server rebuild.
+- **Codex fast service tier now maps to `priority` more reliably**: fast-tier requests preserve the intended priority behavior through local access, instance launch, Responses payload conversion, and sidecar manifests. Thanks @lcpdeb.
+- **Model-provider usage querying is shared across Codex and APIKEY.FUN**: provider balance and usage checks now use a common service path, keep cached usage visible while refreshing, and classify unsupported usage endpoints consistently.
+
+### Fixed
+- **Windows Codex account switching now closes the real running app**: switching the default account also matches Store/default-launched Codex processes that use the official app data directory instead of the managed directory.
+- **Windows Codex launch argument handling is more robust**: empty argument lists and Windows command construction are handled more defensively during Codex startup. Thanks @lcpdeb.
+- **Codex session copy and restore are safer for duplicate sessions**: restoring or copying a session now treats an existing identical session as idempotent, avoids overwriting different sessions, and keeps session index metadata aligned with the restored rollout.
+- **Codex API Service startup failures now carry better diagnostics**: the sidecar reports startup stages and the desktop app waits longer for the ready event, making startup timeout errors easier to diagnose.
+
+---
 ## [0.25.6] - 2026-06-09
 
 ### Added

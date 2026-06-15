@@ -937,6 +937,8 @@ pub fn run() {
             commands::codex_instance::codex_sync_threads_across_instances,
             commands::codex_instance::codex_sync_sessions_to_instance,
             commands::codex_instance::codex_repair_session_visibility_across_instances,
+            commands::codex_instance::codex_list_session_visibility_repair_providers,
+            commands::codex_instance::codex_list_session_visibility_repair_instances,
             commands::codex_instance::codex_list_sessions_across_instances,
             commands::codex_instance::codex_get_session_token_stats_across_instances,
             commands::codex_instance::codex_move_sessions_to_trash_across_instances,

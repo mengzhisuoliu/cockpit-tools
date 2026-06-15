@@ -1885,9 +1885,11 @@
     },
     "apiSwitchNotice": {
       "title": "Codex Sessions Hidden",
-      "message": "Detected that Codex switched from {{from}} to {{to}}. Because of Codex's official behavior, existing sessions may not appear automatically after switching directly between API and accounts. The session index is being repaired automatically. You can also use Session Management > Repair Index later.",
-      "repairing": "Repairing Codex session index...",
-      "repairFailed": "Automatic repair failed. You can retry later from Session Management > Repair Index.",
+      "message": "Detected that Codex switched from {{from}} to {{to}}. Because of Codex's official behavior, existing sessions may not appear automatically after this kind of switch. Session visibility is being repaired automatically; you can also repair it later from Session Management.",
+      "manualMessage": "Repair Visibility updates the official Codex state DB records that control sidebar session visibility. It is intended for session recovery after switching between accounts and API Keys.",
+      "repairing": "Repairing Codex session visibility...",
+      "repairFailed": "Visibility repair failed. You can retry later from Session Management.",
+      "repairFailedWithError": "Visibility repair failed: {{error}}",
       "type": {
         "api": "API Mode",
         "apiKey": "API Key",
@@ -2880,15 +2882,15 @@
     },
     "sessionManager": {
       "title": "Session Manager",
-      "desc": "Sync, index repair, cleanup, and restore live here together: use the top actions to sync sessions, repair the session index, or restore from Trash, then expand each project to review and trash sessions.",
+      "desc": "Sync, visibility repair, cleanup, and restore live here together: use the top actions to sync sessions, repair session visibility, or restore from Trash, then expand each project to review and trash sessions.",
       "actions": {
         "moveToTrash": "Move to Trash",
         "syncSessions": "Sync Sessions",
         "copyToInstance": "Copy to Instance",
-        "repairVisibility": "Repair Index",
+        "repairVisibility": "Repair Visibility",
         "restoreSessions": "Restore Sessions",
         "copySessionId": "Copy Session ID",
-        "selectAllSessions": "Select All",
+        "selectAllSessions": "Select All Sessions",
         "clearSelectedSessions": "Deselect All",
         "expand": "Expand",
         "collapse": "Collapse"
@@ -2897,7 +2899,7 @@
         "title": "Move to Trash",
         "message": "Selected sessions will be moved to Trash from their instances so they can be restored later. Running instances may need a restart before the change appears. Continue?",
         "syncMessage": "Missing rollout files, session_index entries, and session file times will be synced to all instances, then official Codex will rebuild the session index. Existing content will not be written again, and target files are backed up before writing. Continue?",
-        "repairVisibilityMessage": "This will follow CodexPlusPlus sync rules to reconcile every rollout session_meta entry, SQLite session databases, session_index.jsonl, session file times, and the current provider, then ask official Codex to rebuild the sidebar index. Files that will be changed are backed up before writing. Continue?"
+        "repairVisibilityMessage": "Updates the official Codex state DB records that control sidebar session visibility. The state DB files are backed up before writing."
       },
       "empty": {
         "title": "No sessions to manage",
@@ -2933,6 +2935,62 @@
         "selectedCount": "{{count}} session(s) selected",
         "existingCount": "{{count}} already in target",
         "confirm": "Copy Sessions"
+      },
+      "repairModal": {
+        "quickTitle": "Repair Visibility",
+        "quickDesc": "Updates the official Codex state DB records that control sidebar session visibility.",
+        "deepTitle": "Repair Visibility",
+        "deepDesc": "Updates the official Codex state DB records that control sidebar session visibility.",
+        "quickProgressTitle": "Repair Progress",
+        "deepProgressTitle": "Repair Progress",
+        "running": "Repairing...",
+        "startQuick": "Start Repair",
+        "startDeep": "Start Repair",
+        "progress": {
+          "queued": "Starting repair task...",
+          "collectInstances": "Collecting Codex instances...",
+          "scanInstances": "Preparing instance scan...",
+          "scanInstance": "Scanning {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Backing up {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Writing {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Refreshing official session state for {{instance}}...",
+          "pruneBackups": "Cleaning old backups...",
+          "done": "Repair complete",
+          "writeSqliteProvider": "Writing SQLite visibility for {{instance}}...",
+          "writeRolloutFiles": "Skipping legacy session file writes...",
+          "writeSqliteTimestamps": "Fixing SQLite timestamps for {{instance}}...",
+          "writeSessionIndex": "Skipping legacy index writes..."
+        },
+        "targetProvider": "Target provider",
+        "defaultProvider": "Default",
+        "loadingProviders": "Loading providers...",
+        "noProvider": "No provider found",
+        "providerLoadFailed": "Failed to load provider candidates: {{error}}",
+        "scopeTitle": "Session scope",
+        "scopeAll": "All sessions",
+        "scopeAllDesc": "Repair {{count}} session(s) in the current management list.",
+        "scopeSelected": "Selected sessions",
+        "scopeSelectedDesc": "Only repair the {{count}} selected session(s).",
+        "scopeSelectedEmpty": "Select sessions in the list first.",
+        "providerSource": {
+          "config": "Config",
+          "rollout": "Sessions",
+          "sqlite": "SQLite"
+        },
+        "targetInstance": "Target instance",
+        "loadingInstances": "Loading instances...",
+        "noInstance": "No instance found",
+        "instanceLoadFailed": "Failed to load instances: {{error}}",
+        "defaultInstance": "Default instance",
+        "runningInstance": "Running",
+        "instanceProvider": "Current provider",
+        "instanceScopeTitle": "Instance scope",
+        "instanceScopeTarget": "Target only",
+        "instanceScopeTargetDesc": "Repair only the selected instance. Usually faster.",
+        "instanceScopeAll": "All instances",
+        "instanceScopeAllDesc": "Repair every Codex instance when restoring multi-instance state.",
+        "progressTitle": "Repair Progress",
+        "start": "Start Repair"
       }
     },
     "groups": {
@@ -3159,6 +3217,13 @@
       "selectAllAccounts": "Select all accounts",
       "selectReady": "Select OK accounts",
       "clearSelection": "Clear selection"
+    },
+    "autoRepairMode": {
+      "label": "Auto Repair Logic",
+      "tooltip": "Choose which session visibility auto-repair logic to run while switching",
+      "legacyBefore4eb75d96": "Before 4eb75d96",
+      "legacy4eb75d96": "4eb75d96 logic",
+      "current": "Current logic"
     }
   },
   "codebuddy": {

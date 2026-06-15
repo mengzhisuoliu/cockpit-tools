@@ -7,12 +7,12 @@
 [![GitHub release](https://img.shields.io/github/v/release/jlcodes99/cockpit-tools?style=flat)](https://github.com/jlcodes99/cockpit-tools/releases)
 [![GitHub issues](https://img.shields.io/github/issues/jlcodes99/cockpit-tools)](https://github.com/jlcodes99/cockpit-tools/issues)
 
-一款**通用的 AI IDE 账号管理工具**，目前支持 **Antigravity IDE**、**Codex**、**Claude Desktop**、**GitHub Copilot**、**Windsurf**、**Kiro**、**Cursor**、**Gemini Cli**、**CodeBuddy**、**CodeBuddy CN**、**Qoder**、**Trae** 和 **Zed**，并支持多账号多实例并行运行。
+一款**通用的 AI IDE 账号管理工具**，目前支持 **Antigravity IDE**、**Codex**、**GitHub Copilot**、**Windsurf**、**Kiro**、**Cursor**、**Gemini Cli**、**CodeBuddy**、**CodeBuddy CN**、**Qoder**、**Trae** 和 **Zed**，并支持多账号多实例并行运行。
 
 
 > 本工具旨在帮助用户高效管理多个 AI IDE 账号，支持一键切换、配额监控、自动唤醒与多开实例并行运行，助您充分利用不同账号的资源。
 
-**功能**：一键切号 · 多账号管理 · 多开实例 · 配额监控 · 唤醒任务 · 插件联动 · Claude Desktop 管理 · GitHub Copilot 管理 · Windsurf 管理 · Kiro 管理 · Cursor 管理 · Gemini Cli 管理 · CodeBuddy 管理 · CodeBuddy CN 管理 · Qoder 管理 · Trae 管理 · Zed 管理
+**功能**：一键切号 · 多账号管理 · 多开实例 · 配额监控 · 唤醒任务 · 插件联动 · GitHub Copilot 管理 · Windsurf 管理 · Kiro 管理 · Cursor 管理 · Gemini Cli 管理 · CodeBuddy 管理 · CodeBuddy CN 管理 · Qoder 管理 · Trae 管理 · Zed 管理
 
 **语言**：支持 18 种语言
 
@@ -55,7 +55,7 @@
 
 全新的可视化仪表盘，为您提供一站式的状态概览：
 
-- **十三平台支持**：同时展示 Antigravity IDE、Codex、Claude Desktop、GitHub Copilot、Windsurf、Kiro、Cursor、Gemini Cli、CodeBuddy、CodeBuddy CN、Qoder、Trae 与 Zed 的账号状态
+- **十二平台支持**：同时展示 Antigravity IDE、Codex、GitHub Copilot、Windsurf、Kiro、Cursor、Gemini Cli、CodeBuddy、CodeBuddy CN、Qoder、Trae 与 Zed 的账号状态
 - **配额监控**：实时查看各模型剩余配额、重置时间
 - **快捷操作**：一键刷新、一键唤醒
 - **可视化进度**：直观的进度条展示配额消耗情况
@@ -102,31 +102,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 
 > ![Codex Instances](docs/images/codex_instances.png)
 
-### 4. Claude 账号管理
-
-- **账号导入**：支持平台内 Claude Desktop 登录导入、Claude CLI 多供应商 API Key 导入、导入当前 Claude Desktop 登录态与 JSON 导入
-- **配额视图**：展示 5h / 7d / Extra 用量、重置时间与刷新错误
-- **批量管理**：支持标签、筛选、导出与批量删除/刷新
-- **Desktop 切号**：Claude Desktop 登录态先保存到本工具本地快照；切号时退出官方 Claude Desktop、备份当前 `~/Library/Application Support/Claude`，再恢复目标登录态并重新打开 Claude
-- **Desktop 实例写入**：Claude Desktop 登录态按实例 profile 目录恢复；API Key 账号仅作为独立凭证管理，不会写入 Claude Desktop 登录态
-
-#### 4.1 Claude Desktop 多开实例
-
-支持 Claude Desktop 应用级多实例管理。每个实例可绑定不同 Desktop 登录账号并使用独立 profile 目录，启动、停止、聚焦和运行态判断都按真实应用进程 PID 处理。
-
-- **独立 profile**：每个实例拥有独立的 Claude Desktop profile 目录
-- **真实隔离**：启动时通过官方 `CLAUDE_USER_DATA_DIR` 指定 Electron `userData`，`--user-data-dir` 仅用于进程匹配与兼容
-- **账号绑定**：实例启动前恢复绑定的 Claude Desktop 登录态快照
-- **应用管理**：支持启动、停止、聚焦窗口和显示真实 PID
-
-### 5. GitHub Copilot 账号管理
+### 4. GitHub Copilot 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入
 - **配额视图**：展示 Inline Suggestions / Chat messages 使用情况与重置时间
 - **订阅识别**：自动识别 Free / Individual / Pro / Business / Enterprise 等计划类型
 - **批量管理**：支持标签与批量操作
 
-#### 5.1 GitHub Copilot 多开实例
+#### 4.1 GitHub Copilot 多开实例
 
 基于 VS Code 的 Copilot 多实例管理，支持独立配置与生命周期控制。
 
@@ -134,14 +117,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 6. Windsurf 账号管理
+### 5. Windsurf 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入与本地导入
 - **配额视图**：展示 Plan、User Prompt credits、Add-on prompt credits 与周期信息
 - **批量管理**：支持标签与批量操作
 - **切号注入**：支持切号后注入并启动 Windsurf
 
-#### 6.1 Windsurf 多开实例
+#### 5.1 Windsurf 多开实例
 
 支持 Windsurf 多实例管理，支持独立配置与生命周期控制。
 
@@ -149,14 +132,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 7. Kiro 账号管理
+### 6. Kiro 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入与本地导入
 - **配额视图**：展示 Plan、User Prompt credits、Add-on prompt credits 与周期信息
 - **批量管理**：支持标签与批量操作
 - **切号注入**：支持切号后注入并启动 Kiro
 
-#### 7.1 Kiro 多开实例
+#### 6.1 Kiro 多开实例
 
 支持 Kiro 多实例管理，支持独立配置与生命周期控制。
 
@@ -164,14 +147,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 8. Cursor 账号管理
+### 7. Cursor 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入与本地导入
 - **配额视图**：展示 Total Usage、Auto + Composer、API Usage、On-Demand 与周期信息
 - **批量管理**：支持标签与批量操作
 - **切号注入**：支持切号后注入并启动 Cursor
 
-#### 8.1 Cursor 多开实例
+#### 7.1 Cursor 多开实例
 
 支持 Cursor 多实例管理，支持独立配置与生命周期控制。
 
@@ -179,7 +162,7 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 9. Gemini Cli 账号管理
+### 8. Gemini Cli 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入与本地导入
 - **配额视图**：展示 Total Usage、Auto + Composer、API Usage、On-Demand 与周期信息
@@ -187,14 +170,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **切号注入**：支持切号后注入 Gemini Cli 本地凭证（`~/.gemini`）
 - **平台限制**：Gemini Cli 暂不支持多开实例管理
 
-### 10. CodeBuddy 账号管理
+### 9. CodeBuddy 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入
 - **配额视图**：支持配额查询、周期信息与加量包展示
 - **批量管理**：支持标签与批量操作
 - **切号注入**：支持切号后注入并启动 CodeBuddy
 
-#### 10.1 CodeBuddy 多开实例
+#### 9.1 CodeBuddy 多开实例
 
 支持 CodeBuddy 多实例管理，支持独立配置与生命周期控制。
 
@@ -202,14 +185,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 11. CodeBuddy CN 账号管理
+### 10. CodeBuddy CN 账号管理
 
 - **账号导入**：支持 OAuth 授权、Token/JSON 导入与本机客户端导入
 - **配额视图**：展示套餐与用量状态，并支持跳转官方网页查看配额详情
 - **批量管理**：支持标签与批量操作
 - **切号注入**：支持切号后按客户端本地认证存储规则注入并启动 CodeBuddy CN
 
-#### 11.1 CodeBuddy CN 多开实例
+#### 10.1 CodeBuddy CN 多开实例
 
 支持 CodeBuddy CN 多实例管理，支持独立配置与生命周期控制。
 
@@ -217,14 +200,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 12. Qoder 账号管理
+### 11. Qoder 账号管理
 
 - **账号导入**：支持本机导入与 JSON 导入
 - **配额视图**：展示 Credits 使用、剩余额度与套餐原始值
 - **批量管理**：支持标签、筛选、导出与批量删除/刷新
 - **切号注入**：支持切号后注入并启动 Qoder
 
-#### 12.1 Qoder 多开实例
+#### 11.1 Qoder 多开实例
 
 支持 Qoder 多实例管理，支持独立配置与生命周期控制。
 
@@ -232,14 +215,14 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 13. Trae 账号管理
+### 12. Trae 账号管理
 
 - **账号导入**：支持本机导入与 JSON 导入
 - **配额视图**：展示套餐原始值、美元消耗/总额度与重置时间
 - **批量管理**：支持标签、筛选、导出与批量删除/刷新
 - **切号注入**：支持切号后按客户端落盘规则写回并启动 Trae
 
-#### 13.1 Trae 多开实例
+#### 12.1 Trae 多开实例
 
 支持 Trae 多实例管理，支持独立配置与生命周期控制。
 
@@ -247,17 +230,17 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **快速启停**：一键启动/停止/强制关闭实例
 - **窗口管理**：支持打开实例窗口与批量关闭
 
-### 14. Zed 账号管理
+### 13. Zed 账号管理
 
 - **账号导入**：支持官方 OAuth 授权、JSON 导入与本机当前登录状态导入
 - **配额视图**：展示订阅状态、Edit Predictions、Token Spend、Spend Limit 与账期结束时间
 - **批量管理**：支持标签、筛选、导出与批量删除/刷新
 - **切号注入**：支持切号后按 Zed 客户端真实落盘规则应用账号，并可按需重启官方客户端
 
-### 15. 通用设置
+### 14. 通用设置
 
 - **个性化设置**：主题切换、语言设置、自动刷新间隔
-- **平台配置**：统一管理 Claude Desktop 启动路径与配额预警，以及 CodeBuddy CN / Qoder / Trae / Zed 等平台的启动路径与配额预警
+- **平台配置**：统一管理 CodeBuddy CN / Qoder / Trae / Zed 等平台的启动路径与配额预警
 
 > ![Settings](docs/images/settings_page.png)
 
@@ -271,12 +254,10 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 - **数据主要保存在本机**：
   - `~/.antigravity_cockpit`：Antigravity IDE 账号、配置、WebSocket 状态等
   - `~/.codex`：Codex 官方当前登录 `auth.json`
-  - `~/Library/Application Support/Claude`：macOS 官方 Claude Desktop 的 Electron profile，Desktop 切号时会备份并恢复其中的登录态文件
-  - `~/.claude`、`~/.claude.json`：历史 CLI OAuth 凭据与配置；保留用于旧账号 JSON 兼容，不作为新的登录入口
   - `~/.gemini`：Gemini Cli 本地会话文件（如 `oauth_creds.json`、`google_accounts.json`、`settings.json`）
-  - 系统本地应用数据目录下 `com.antigravity.cockpit-tools`：Codex / Claude / GitHub Copilot / Windsurf / Kiro / Cursor / Gemini Cli / CodeBuddy / CodeBuddy CN / Qoder / Trae / Zed 多账号索引、Claude Desktop 登录态快照等
+  - 系统本地应用数据目录下 `com.antigravity.cockpit-tools`：Codex / GitHub Copilot / Windsurf / Kiro / Cursor / Gemini Cli / CodeBuddy / CodeBuddy CN / Qoder / Trae / Zed 多账号索引等
 - **WebSocket 默认仅本机访问**：监听 `127.0.0.1`，默认端口 `19528`，可在设置中关闭或改端口。
-- **什么时候会联网**：OAuth 登录、Token 刷新、配额查询、版本更新检查等官方接口请求；Claude Desktop 平台内登录窗口会访问 `claude.ai`，刷新 Desktop 账号资料会使用本地登录态请求 `claude.ai` Web API；Claude API Key 导入本身不联网，也不会写入 Claude Desktop 登录态。
+- **什么时候会联网**：OAuth 登录、Token 刷新、配额查询、版本更新检查等官方接口请求。
 - **macOS 隐私权限弹窗说明**：在 Cockpit Tools 中启动 Codex/agent 后，如果 agent 执行的 shell 命令访问桌面、文稿、下载、照片等受保护目录，macOS 可能会把权限请求显示为“Cockpit Tools 想要访问……”。这是因为这些命令是 Cockpit Tools 启动的子进程，系统会把权限归因到宿主应用；这不等同于 Cockpit Tools 主程序主动扫描这些目录。是否允许取决于你是否信任当前 agent 任务和它将要执行的命令；不确定时可以选择拒绝，或先把项目放在普通工作目录中运行。
 - **实用安全建议**：
   1. 不使用插件联动时，可关闭 WebSocket 服务。
@@ -296,7 +277,6 @@ Codex 同样支持多账号多实例并行运行。比如同时打开两个 Code
 | 窗口关闭行为 | 点关闭按钮后的动作 | 每次询问 | 想后台常驻选“最小化到托盘” |
 | Antigravity IDE 自动刷新配额 | 后台定时更新 Antigravity IDE 配额 | 5~10 分钟 | 账号多、想更实时可改 2 分钟 |
 | Codex 自动刷新配额 | 后台定时更新 Codex 配额 | 5~10 分钟 | 同上 |
-| Claude Desktop 自动刷新配额 | 后台定时更新 Claude Desktop 配额 | 5~10 分钟 | 同上 |
 | GitHub Copilot 自动刷新配额 | 后台定时更新 GitHub Copilot 配额 | 5~10 分钟 | 同上 |
 | Windsurf 自动刷新配额 | 后台定时更新 Windsurf 配额 | 5~10 分钟 | 同上 |
 | Kiro 自动刷新配额 | 后台定时更新 Kiro 配额 | 5~10 分钟 | 同上 |
@@ -444,11 +424,8 @@ QQ 交流群、微信群或新建的 Telegram 畅聊群都可以加入。
 - Antigravity 账号切号逻辑参考：[Antigravity-Manager](https://github.com/lbjlaq/Antigravity-Manager)
 - Codex API 服务参考并集成：[router-for-me/CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
 - Codex API 服务协议兼容方向参考：[codex-proxy](https://github.com/icebear0828/codex-proxy)
-- Codex 与 Claude CLI 第三方供应商预设、API Key 环境变量落盘方向参考：[CC Switch](https://github.com/farion1231/cc-switch)
+- Codex 第三方供应商预设参考：[CC Switch](https://github.com/farion1231/cc-switch)
 - Codex 模型目录与前端模型显示思路参考：[CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus)
-- Claude Desktop 多账号凭据切换、Desktop 登录态快照与会话隔离方向参考：[claude-swap](https://github.com/realiti4/claude-swap)
-- Claude Web Cookie 账号资料、套餐识别、usage 额度读取与多账号隔离思路参考：[CodexBar](https://github.com/steipete/CodexBar)、[ClaudeUsage](https://github.com/linuxlewis/claude-usage)、[Claude Usage Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker)、[ClaudeMeter](https://github.com/eddmann/ClaudeMeter)、[openrelay](https://github.com/romgX/openrelay)
-- 跨 AI Coding CLI 账号管理方案参考：[coding_agent_account_manager](https://github.com/Dicklesworthstone/coding_agent_account_manager)
 
 感谢项目作者的开源贡献！如果这些项目对你有帮助，也请给他们点个 ⭐ Star 支持一下！
 

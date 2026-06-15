@@ -1885,9 +1885,11 @@
     },
     "apiSwitchNotice": {
       "title": "Codex 会话不可见",
-      "message": "检测到 Codex 已从 {{from}} 切换到 {{to}}。由于官方机制，API 与账号直接切换后，原有会话可能不会自动显示。正在自动修复会话索引，后续也可以通过「会话管理」里的「修复索引」功能修复。",
-      "repairing": "正在修复 Codex 会话索引...",
-      "repairFailed": "自动修复失败。你仍可稍后在「会话管理」中使用「修复索引」重试。",
+      "message": "检测到 Codex 已从 {{from}} 切换到 {{to}}。由于官方机制，这类切换后原有会话可能不会自动显示。正在自动修复会话可见性，后续也可以在「会话管理」中手动修复。",
+      "manualMessage": "修复可见性会校正官方 Codex state DB 中影响侧边栏显示的会话记录，适合账号与 API Key 切换后的会话恢复。",
+      "repairing": "正在修复 Codex 会话可见性...",
+      "repairFailed": "修复可见性失败。你仍可稍后在「会话管理」中重试。",
+      "repairFailedWithError": "修复可见性失败：{{error}}",
       "type": {
         "api": "API 模式",
         "apiKey": "API 密钥",
@@ -2880,15 +2882,15 @@
     },
     "sessionManager": {
       "title": "会话管理",
-      "desc": "同步、索引修复、清理与恢复统一放在这里：顶部可一键同步会话、修复会话索引或从废纸篓恢复，下面按项目展开查看会话并移到废纸篓。",
+      "desc": "同步、可见性修复、清理与恢复统一放在这里：顶部可一键同步会话、修复会话可见性或从废纸篓恢复，下面按项目展开查看会话并移到废纸篓。",
       "actions": {
         "moveToTrash": "移到废纸篓",
         "syncSessions": "同步会话",
         "copyToInstance": "复制到实例",
-        "repairVisibility": "修复索引",
+        "repairVisibility": "修复可见性",
         "restoreSessions": "恢复会话",
         "copySessionId": "复制会话 ID",
-        "selectAllSessions": "全选会话",
+        "selectAllSessions": "全选全部会话",
         "clearSelectedSessions": "取消全选",
         "expand": "展开",
         "collapse": "收起"
@@ -2897,7 +2899,7 @@
         "title": "移到废纸篓",
         "message": "会将所选会话从对应实例中移到废纸篓，便于后续恢复；运行中的实例可能需要重启后才会反映。确认继续？",
         "syncMessage": "会将缺失的 rollout、session_index 条目和会话文件时间同步到所有实例，并触发官方 Codex 重建会话索引；已有内容不会重复写入，写入前会先备份目标文件。确认继续？",
-        "repairVisibilityMessage": "会按 CodexPlusPlus 的同步规则，校正 rollout 中所有 session_meta、SQLite 会话库、session_index.jsonl、会话文件时间与当前 provider，并触发官方 Codex 重建侧边栏索引；写入前会先备份将要修改的文件。确认继续？"
+        "repairVisibilityMessage": "会校正官方 Codex state DB 中影响侧边栏显示的会话记录；写入前会先备份将要修改的 state DB。"
       },
       "empty": {
         "title": "还没有可管理的会话",
@@ -2933,6 +2935,62 @@
         "selectedCount": "已选择 {{count}} 条会话",
         "existingCount": "目标已存在 {{count}} 条",
         "confirm": "复制会话"
+      },
+      "repairModal": {
+        "quickTitle": "修复可见性",
+        "quickDesc": "校正官方 Codex state DB 中影响侧边栏显示的会话记录。",
+        "deepTitle": "修复可见性",
+        "deepDesc": "校正官方 Codex state DB 中影响侧边栏显示的会话记录。",
+        "quickProgressTitle": "修复进度",
+        "deepProgressTitle": "修复进度",
+        "running": "正在修复...",
+        "startQuick": "开始修复",
+        "startDeep": "开始修复",
+        "progress": {
+          "queued": "正在启动修复任务...",
+          "collectInstances": "正在收集 Codex 实例...",
+          "scanInstances": "正在准备扫描实例...",
+          "scanInstance": "正在扫描 {{instance}}（{{current}}/{{total}}）...",
+          "backupInstance": "正在备份 {{instance}}（{{current}}/{{total}}）...",
+          "writeInstance": "正在写入 {{instance}}（{{current}}/{{total}}）...",
+          "rebuildMetadata": "正在刷新 {{instance}} 的官方会话状态...",
+          "pruneBackups": "正在清理旧备份...",
+          "done": "修复已完成",
+          "writeSqliteProvider": "正在写入 {{instance}} 的 SQLite 可见性...",
+          "writeRolloutFiles": "正在跳过旧会话文件写入...",
+          "writeSqliteTimestamps": "正在校正 {{instance}} 的 SQLite 时间...",
+          "writeSessionIndex": "正在跳过旧索引写入..."
+        },
+        "targetProvider": "目标 provider",
+        "defaultProvider": "默认",
+        "loadingProviders": "正在读取 provider...",
+        "noProvider": "未发现 provider",
+        "providerLoadFailed": "读取 provider 候选失败：{{error}}",
+        "scopeTitle": "会话范围",
+        "scopeAll": "全部会话",
+        "scopeAllDesc": "修复当前管理列表中的 {{count}} 条会话。",
+        "scopeSelected": "所选会话",
+        "scopeSelectedDesc": "只修复已勾选的 {{count}} 条会话。",
+        "scopeSelectedEmpty": "先在列表中勾选会话。",
+        "providerSource": {
+          "config": "配置",
+          "rollout": "会话",
+          "sqlite": "SQLite 库"
+        },
+        "targetInstance": "目标实例",
+        "loadingInstances": "正在读取实例...",
+        "noInstance": "未发现实例",
+        "instanceLoadFailed": "读取实例失败：{{error}}",
+        "defaultInstance": "默认实例",
+        "runningInstance": "运行中",
+        "instanceProvider": "当前 provider",
+        "instanceScopeTitle": "实例范围",
+        "instanceScopeTarget": "仅目标实例",
+        "instanceScopeTargetDesc": "只修复上方选中的实例，通常更快。",
+        "instanceScopeAll": "全部实例",
+        "instanceScopeAllDesc": "修复所有 Codex 实例，适合多开实例一起恢复。",
+        "progressTitle": "修复进度",
+        "start": "开始修复"
       }
     },
     "groups": {
@@ -3159,6 +3217,13 @@
       "selectAllAccounts": "选择全部账号",
       "selectReady": "选择正常账号",
       "clearSelection": "取消选择"
+    },
+    "autoRepairMode": {
+      "label": "自动修复逻辑",
+      "tooltip": "切换时使用哪套会话可见性自动修复逻辑",
+      "legacyBefore4eb75d96": "4eb75d96 前逻辑",
+      "legacy4eb75d96": "4eb75d96 逻辑",
+      "current": "当前逻辑"
     }
   },
   "codebuddy": {

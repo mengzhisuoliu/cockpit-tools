@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Gestione sessioni",
-      "desc": "Sincronizzazione e pulizia sono raccolte qui: usa l’azione in alto per sincronizzare tutte le istanze, poi espandi ogni progetto per controllare le sessioni e spostarle nel cestino.",
+      "desc": "Sincronizzazione, riparazione della visibilità, pulizia e ripristino sono qui: usa le azioni in alto per sincronizzare le sessioni, riparare la visibilità o ripristinare dal cestino; poi espandi ogni progetto per controllare e spostare sessioni nel cestino.",
       "actions": {
         "moveToTrash": "Sposta nel cestino",
         "syncSessions": "Sincronizza sessioni",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Ripara visibilità",
         "restoreSessions": "Ripristina sessioni",
         "copySessionId": "Copia ID sessione",
-        "selectAllSessions": "Seleziona tutto",
+        "selectAllSessions": "Seleziona sessioni",
         "clearSelectedSessions": "Deseleziona",
         "copyToInstance": "Copia in istanza"
       },
@@ -2301,7 +2301,7 @@
         "title": "Sposta nel cestino",
         "message": "Le sessioni selezionate verranno spostate nel cestino dalle rispettive istanze, così potranno essere ripristinate in seguito. Le istanze in esecuzione potrebbero richiedere un riavvio prima che la modifica sia visibile. Continuare?",
         "syncMessage": "I thread mancanti e i relativi dati di sessione verranno sincronizzati in tutte le istanze. Il contenuto esistente non verrà riscritto e i file dell’istanza di destinazione verranno salvati prima di qualsiasi scrittura. Continuare?",
-        "repairVisibilityMessage": "Questa operazione riparerà i metadati del provider nei file di rollout e in state_5.sqlite usando il model_provider del config.toml radice di ciascuna istanza (se manca, verrà usato openai come predefinito). I file che verranno modificati vengono sottoposti a backup prima della scrittura. Le istanze in esecuzione potrebbero dover essere riavviate prima che la modifica compaia. Continuare?"
+        "repairVisibilityMessage": "Aggiorna i record della state DB ufficiale di Codex che controllano la barra laterale delle sessioni. I file state DB vengono salvati prima della scrittura."
       },
       "empty": {
         "title": "Nessuna sessione da gestire",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} sessioni selezionate",
         "existingCount": "{{count}} già nella destinazione",
         "confirm": "Copia sessioni"
+      },
+      "repairModal": {
+        "quickTitle": "Ripara visibilità",
+        "quickDesc": "Aggiorna i record della state DB ufficiale di Codex per la barra laterale.",
+        "deepTitle": "Ripara visibilità",
+        "deepDesc": "Aggiorna i record della state DB ufficiale di Codex per la barra laterale.",
+        "quickProgressTitle": "Avanzamento",
+        "deepProgressTitle": "Avanzamento",
+        "running": "Riparazione...",
+        "startQuick": "Ripara",
+        "startDeep": "Ripara",
+        "progress": {
+          "queued": "Avvio riparazione...",
+          "collectInstances": "Raccolta istanze Codex...",
+          "scanInstances": "Preparazione scansione...",
+          "scanInstance": "Scansione di {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Backup di {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Scrittura di {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Aggiornamento stato sessione ufficiale per {{instance}}...",
+          "pruneBackups": "Pulizia vecchi backup...",
+          "done": "Riparazione completata",
+          "writeSqliteProvider": "Scrittura visibilità SQLite per {{instance}}...",
+          "writeRolloutFiles": "Scrittura dei vecchi file sessione ignorata...",
+          "writeSqliteTimestamps": "Correzione tempi SQLite per {{instance}}...",
+          "writeSessionIndex": "Scrittura del vecchio indice ignorata..."
+        },
+        "targetProvider": "Provider di destinazione",
+        "defaultProvider": "Predefinito",
+        "loadingProviders": "Caricamento provider...",
+        "noProvider": "Nessun provider trovato",
+        "providerLoadFailed": "Impossibile caricare i provider: {{error}}",
+        "scopeTitle": "Ambito sessioni",
+        "scopeAll": "Tutte le sessioni",
+        "scopeAllDesc": "Ripara {{count}} sessione/i nell’elenco corrente.",
+        "scopeSelected": "Sessioni selezionate",
+        "scopeSelectedDesc": "Ripara solo {{count}} sessione/i selezionate.",
+        "scopeSelectedEmpty": "Seleziona prima le sessioni nell’elenco.",
+        "providerSource": {
+          "config": "Configurazione",
+          "rollout": "Sessioni",
+          "sqlite": "Database SQLite"
+        },
+        "targetInstance": "Istanza target",
+        "loadingInstances": "Caricamento istanze...",
+        "noInstance": "Nessuna istanza trovata",
+        "instanceLoadFailed": "Impossibile caricare le istanze: {{error}}",
+        "defaultInstance": "Istanza predefinita",
+        "runningInstance": "In esecuzione",
+        "instanceProvider": "Provider corrente",
+        "instanceScopeTitle": "Ambito istanze",
+        "instanceScopeTarget": "Solo target",
+        "instanceScopeTargetDesc": "Ripara solo l’istanza selezionata, di solito più veloce.",
+        "instanceScopeAll": "Tutte le istanze",
+        "instanceScopeAllDesc": "Ripara tutte le istanze Codex durante il ripristino condiviso.",
+        "progressTitle": "Avanzamento",
+        "start": "Ripara"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sessioni Codex nascoste",
-      "message": "È stato rilevato che Codex è passato da {{from}} a {{to}}. Per il comportamento ufficiale, le sessioni esistenti potrebbero non apparire automaticamente dopo il passaggio diretto tra API e account. La visibilità delle sessioni viene riparata automaticamente; puoi usare anche Gestione sessioni > Ripara visibilità più tardi.",
+      "message": "Codex è passato da {{from}} a {{to}}. Per il comportamento ufficiale, le sessioni esistenti potrebbero non comparire automaticamente dopo questo cambio. La visibilità delle sessioni viene riparata automaticamente; puoi anche ripararla più tardi da Gestione sessioni.",
       "repairing": "Riparazione della visibilità delle sessioni Codex...",
-      "repairFailed": "Riparazione automatica non riuscita. Puoi riprovare più tardi da Gestione sessioni > Ripara visibilità.",
+      "repairFailed": "Riparazione della visibilità non riuscita. Puoi riprovare più tardi da Gestione sessioni.",
       "type": {
         "api": "Modalità API",
         "apiKey": "Chiave API",
         "apiService": "Servizio API",
         "account": "Account​"
-      }
+      },
+      "manualMessage": "Ripara visibilità aggiorna i record della state DB ufficiale di Codex che controllano la barra laterale delle sessioni. Serve per recuperare le sessioni dopo il cambio tra account e API Key.",
+      "repairFailedWithError": "Riparazione della visibilità non riuscita: {{error}}"
     },
     "accountNote": {
       "title": "Nota account",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Seleziona tutti",
       "selectReady": "Seleziona account OK",
       "clearSelection": "Cancella selezione"
+    },
+    "autoRepairMode": {
+      "label": "Logica autoriparazione",
+      "tooltip": "Scegli la logica di riparazione visibilita sessioni durante il cambio",
+      "legacyBefore4eb75d96": "Prima di 4eb75d96",
+      "legacy4eb75d96": "Logica 4eb75d96",
+      "current": "Logica attuale"
     }
   },
   "githubCopilot": {

@@ -1018,6 +1018,11 @@ export function InstancesManager<TAccount extends AccountLike>({
       if (!preMarkedStarting) {
         markInstanceStarting(instance.id);
       }
+      const flowStartedAt = performance.now();
+      console.info("[Instance Start][UI] button loading started", {
+        instanceId: instance.id,
+        instanceName: instance.name,
+      });
 
       try {
         const startedInstance = await startInstance(instance.id);
@@ -1048,6 +1053,11 @@ export function InstancesManager<TAccount extends AccountLike>({
         if (!preMarkedStarting) {
           unmarkInstanceStarting(instance.id);
         }
+        console.info("[Instance Start][UI] button loading finished", {
+          instanceId: instance.id,
+          instanceName: instance.name,
+          elapsedMs: Math.round(performance.now() - flowStartedAt),
+        });
       }
     },
     [

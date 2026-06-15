@@ -4525,7 +4525,7 @@ mod imp {
                 PlatformId::Antigravity => commands::account::switch_account(app, account_id, None)
                     .await
                     .map(|_| ()),
-                PlatformId::Codex => commands::codex::switch_codex_account(app, account_id)
+                PlatformId::Codex => commands::codex::switch_codex_account(app, account_id, None)
                     .await
                     .map(|_| ()),
                 PlatformId::Claude | PlatformId::ClaudeCli => {

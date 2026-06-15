@@ -2284,16 +2284,16 @@
     },
     "sessionManager": {
       "title": "セッション管理",
-      "desc": "同期と整理はここにまとめました：上部の操作で全インスタンスへ一括同期し、下で各プロジェクトを展開してセッションを確認し、ゴミ箱へ移動できます。",
+      "desc": "同期、表示修復、整理、復元をここで管理します。上部の操作でセッション同期、表示修復、ゴミ箱からの復元を実行し、下でプロジェクトごとに展開して確認やゴミ箱移動ができます。",
       "actions": {
         "moveToTrash": "ゴミ箱へ移動",
         "syncSessions": "セッションを同期",
         "expand": "展開",
         "collapse": "折りたたむ",
-        "repairVisibility": "表示情報を修復",
+        "repairVisibility": "表示を修復",
         "restoreSessions": "セッションを復元",
         "copySessionId": "セッション ID をコピー",
-        "selectAllSessions": "すべて選択",
+        "selectAllSessions": "全セッションを選択",
         "clearSelectedSessions": "選択解除",
         "copyToInstance": "インスタンスへコピー"
       },
@@ -2301,7 +2301,7 @@
         "title": "ゴミ箱へ移動",
         "message": "選択したセッションは対応するインスタンスからゴミ箱へ移動され、後で復元できます。実行中のインスタンスでは、変更が反映されるまで再起動が必要な場合があります。続行しますか？",
         "syncMessage": "不足しているスレッドとそのセッションデータをすべてのインスタンスに同期します。既存の内容は再書き込みされず、書き込み前に対象インスタンスのファイルをバックアップします。続行しますか？",
-        "repairVisibilityMessage": "この操作では、各インスタンスのルート config.toml にある model_provider を使って、rollout ファイルと state_5.sqlite 内のプロバイダーメタデータを修復します（値がない場合は openai を使用します）。変更対象のファイルは書き込み前にバックアップされます。変更が反映されるまで、実行中のインスタンスを再起動する必要がある場合があります。続行しますか？"
+        "repairVisibilityMessage": "公式 Codex の state DB にあるサイドバー表示用セッション記録を更新します。書き込み前に対象の state DB をバックアップします。"
       },
       "empty": {
         "title": "管理できるセッションはまだありません",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} 件のセッションを選択中",
         "existingCount": "対象に既に {{count}} 件あります",
         "confirm": "セッションをコピー"
+      },
+      "repairModal": {
+        "quickTitle": "表示状態を修復",
+        "quickDesc": "公式 Codex の state DB にあるサイドバー表示用セッション記録を更新します。",
+        "deepTitle": "表示状態を修復",
+        "deepDesc": "公式 Codex の state DB にあるサイドバー表示用セッション記録を更新します。",
+        "quickProgressTitle": "修復の進行状況",
+        "deepProgressTitle": "修復の進行状況",
+        "running": "修復中...",
+        "startQuick": "修復を開始",
+        "startDeep": "修復を開始",
+        "progress": {
+          "queued": "修復タスクを開始しています...",
+          "collectInstances": "Codex インスタンスを収集しています...",
+          "scanInstances": "インスタンス走査を準備しています...",
+          "scanInstance": "{{instance}} を走査中（{{current}}/{{total}}）...",
+          "backupInstance": "{{instance}} をバックアップ中（{{current}}/{{total}}）...",
+          "writeInstance": "{{instance}} に書き込み中（{{current}}/{{total}}）...",
+          "rebuildMetadata": "{{instance}} の公式セッション状態を更新しています...",
+          "pruneBackups": "古いバックアップを削除しています...",
+          "done": "修復が完了しました",
+          "writeSqliteProvider": "{{instance}} の SQLite 可視性を書き込み中...",
+          "writeRolloutFiles": "旧セッションファイルへの書き込みをスキップしています...",
+          "writeSqliteTimestamps": "{{instance}} の SQLite 時刻を修正中...",
+          "writeSessionIndex": "旧インデックスへの書き込みをスキップしています..."
+        },
+        "targetProvider": "対象 provider",
+        "defaultProvider": "既定",
+        "loadingProviders": "provider を読み込み中...",
+        "noProvider": "provider が見つかりません",
+        "providerLoadFailed": "provider 候補の読み込みに失敗しました: {{error}}",
+        "scopeTitle": "セッション範囲",
+        "scopeAll": "すべてのセッション",
+        "scopeAllDesc": "現在の管理リストの {{count}} 件のセッションを修復します。",
+        "scopeSelected": "選択したセッション",
+        "scopeSelectedDesc": "選択済みの {{count}} 件だけ修復します。",
+        "scopeSelectedEmpty": "先にリストでセッションを選択してください。",
+        "providerSource": {
+          "config": "設定",
+          "rollout": "セッション",
+          "sqlite": "SQLite DB"
+        },
+        "targetInstance": "対象インスタンス",
+        "loadingInstances": "インスタンスを読み込み中...",
+        "noInstance": "インスタンスが見つかりません",
+        "instanceLoadFailed": "インスタンスの読み込みに失敗しました: {{error}}",
+        "defaultInstance": "既定のインスタンス",
+        "runningInstance": "実行中",
+        "instanceProvider": "現在の provider",
+        "instanceScopeTitle": "インスタンス範囲",
+        "instanceScopeTarget": "対象のみ",
+        "instanceScopeTargetDesc": "選択したインスタンスだけを修復します。通常はこちらが高速です。",
+        "instanceScopeAll": "全インスタンス",
+        "instanceScopeAllDesc": "複数インスタンスをまとめて復元する場合にすべて修復します。",
+        "progressTitle": "修復の進行状況",
+        "start": "修復を開始"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Codex セッションが表示されません",
-      "message": "Codex が {{from}} から {{to}} に切り替わったことを検出しました。公式の動作により、API とアカウントを直接切り替えた後、既存のセッションが自動表示されない場合があります。現在、セッションの表示を自動修復しています。後からセッション管理 > 表示を修復でも修復できます。",
-      "repairing": "Codex セッションの表示を修復しています...",
-      "repairFailed": "自動修復に失敗しました。後でセッション管理 > 表示を修復から再試行できます。",
+      "message": "Codex が {{from}} から {{to}} に切り替わりました。公式仕様により、この種の切り替え後は既存セッションが自動表示されない場合があります。セッションの表示状態を自動修復しています。後で「セッション管理」から手動修復もできます。",
+      "repairing": "Codex セッションの表示を修復中...",
+      "repairFailed": "表示の修復に失敗しました。あとでセッション管理から再試行できます。",
       "type": {
         "api": "API モード",
         "apiKey": "API キー",
         "apiService": "API サービス",
         "account": "アカウント"
-      }
+      },
+      "manualMessage": "表示状態の修復は、公式 Codex の state DB にあるサイドバー表示用セッション記録を更新します。アカウントと API Key の切り替え後のセッション復旧に使います。",
+      "repairFailedWithError": "表示の修復に失敗しました: {{error}}"
     },
     "accountNote": {
       "title": "アカウントメモ",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "全アカウント選択",
       "selectReady": "正常アカウント選択",
       "clearSelection": "選択解除"
+    },
+    "autoRepairMode": {
+      "label": "自動修復ロジック",
+      "tooltip": "切り替え時に使うセッション表示の自動修復ロジックを選択",
+      "legacyBefore4eb75d96": "4eb75d96 前",
+      "legacy4eb75d96": "4eb75d96 ロジック",
+      "current": "現在のロジック"
     }
   },
   "githubCopilot": {

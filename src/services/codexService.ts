@@ -81,8 +81,24 @@ export async function refreshCodexAccountProfile(accountId: string): Promise<Cod
 }
 
 /** 切换 Codex 账号 */
-export async function switchCodexAccount(accountId: string): Promise<CodexAccount> {
-  return await invoke('switch_codex_account', { accountId });
+export async function switchCodexAccount(
+  accountId: string,
+): Promise<CodexAccount> {
+  const startedAt = performance.now();
+  console.info('[Codex Switch][Service] invoke switch_codex_account started', {
+    accountId,
+  });
+  try {
+    return await invoke('switch_codex_account', {
+      accountId,
+      autoRepairMode: null,
+    });
+  } finally {
+    console.info('[Codex Switch][Service] invoke switch_codex_account finished', {
+      accountId,
+      elapsedMs: Math.round(performance.now() - startedAt),
+    });
+  }
 }
 
 /** 删除 Codex 账号 */

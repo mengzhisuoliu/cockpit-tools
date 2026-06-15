@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Gerenciador de sessões",
-      "desc": "A sincronização e a limpeza ficam reunidas aqui: use a ação no topo para sincronizar com todas as instâncias e, abaixo, expanda cada projeto para revisar as sessões e movê-las para a lixeira.",
+      "desc": "Sincronização, reparo de visibilidade, limpeza e restauração ficam aqui: use as ações superiores para sincronizar sessões, reparar a visibilidade ou restaurar da lixeira; depois expanda cada projeto para revisar e enviar sessões para a lixeira.",
       "actions": {
         "moveToTrash": "Mover para a lixeira",
         "syncSessions": "Sincronizar sessões",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Reparar visibilidade",
         "restoreSessions": "Restaurar sessões",
         "copySessionId": "Copiar ID da sessão",
-        "selectAllSessions": "Selecionar tudo",
+        "selectAllSessions": "Selecionar sessões",
         "clearSelectedSessions": "Desmarcar tudo",
         "copyToInstance": "Copiar para instância"
       },
@@ -2301,7 +2301,7 @@
         "title": "Mover para a lixeira",
         "message": "As sessões selecionadas serão movidas para a lixeira de suas instâncias para que possam ser restauradas depois. Instâncias em execução podem precisar ser reiniciadas antes que a mudança apareça. Continuar?",
         "syncMessage": "Os threads ausentes e seus dados de sessão serão sincronizados com todas as instâncias. O conteúdo existente não será gravado novamente, e os arquivos da instância de destino serão copiados antes de qualquer gravação. Continuar?",
-        "repairVisibilityMessage": "Isto vai reparar os metadados do provedor nos arquivos rollout e em state_5.sqlite usando o model_provider do config.toml raiz de cada instância (se estiver ausente, o padrão será openai). Os arquivos que serão alterados recebem backup antes da gravação. Instâncias em execução podem precisar ser reiniciadas antes que a mudança apareça. Continuar?"
+        "repairVisibilityMessage": "Atualiza os registros da state DB oficial do Codex que controlam a lista lateral de sessões. Os arquivos state DB são copiados antes da escrita."
       },
       "empty": {
         "title": "Nenhuma sessão para gerenciar",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} sessão(ões) selecionada(s)",
         "existingCount": "{{count}} já existe(m) no destino",
         "confirm": "Copiar sessões"
+      },
+      "repairModal": {
+        "quickTitle": "Reparar visibilidade",
+        "quickDesc": "Atualiza os registros da state DB oficial do Codex para a barra lateral.",
+        "deepTitle": "Reparar visibilidade",
+        "deepDesc": "Atualiza os registros da state DB oficial do Codex para a barra lateral.",
+        "quickProgressTitle": "Progresso",
+        "deepProgressTitle": "Progresso",
+        "running": "Reparando...",
+        "startQuick": "Reparar",
+        "startDeep": "Reparar",
+        "progress": {
+          "queued": "Iniciando reparo...",
+          "collectInstances": "Coletando instâncias do Codex...",
+          "scanInstances": "Preparando varredura...",
+          "scanInstance": "Varrendo {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Fazendo backup de {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Gravando {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Atualizando estado oficial de sessões para {{instance}}...",
+          "pruneBackups": "Limpando backups antigos...",
+          "done": "Reparo concluído",
+          "writeSqliteProvider": "Gravando visibilidade SQLite de {{instance}}...",
+          "writeRolloutFiles": "Ignorando escrita de arquivos de sessão antigos...",
+          "writeSqliteTimestamps": "Corrigindo tempos SQLite de {{instance}}...",
+          "writeSessionIndex": "Ignorando escrita do índice antigo..."
+        },
+        "targetProvider": "Provider de destino",
+        "defaultProvider": "Padrão",
+        "loadingProviders": "Carregando providers...",
+        "noProvider": "Nenhum provider encontrado",
+        "providerLoadFailed": "Falha ao carregar providers: {{error}}",
+        "scopeTitle": "Escopo de sessões",
+        "scopeAll": "Todas as sessões",
+        "scopeAllDesc": "Repara {{count}} sessão(ões) na lista atual.",
+        "scopeSelected": "Sessões selecionadas",
+        "scopeSelectedDesc": "Repara só {{count}} sessão(ões) selecionada(s).",
+        "scopeSelectedEmpty": "Selecione sessões na lista primeiro.",
+        "providerSource": {
+          "config": "Configuração",
+          "rollout": "Sessões",
+          "sqlite": "Banco SQLite"
+        },
+        "targetInstance": "Instância alvo",
+        "loadingInstances": "Carregando instâncias...",
+        "noInstance": "Nenhuma instância encontrada",
+        "instanceLoadFailed": "Falha ao carregar instâncias: {{error}}",
+        "defaultInstance": "Instância padrão",
+        "runningInstance": "Em execução",
+        "instanceProvider": "Provider atual",
+        "instanceScopeTitle": "Escopo de instâncias",
+        "instanceScopeTarget": "Só alvo",
+        "instanceScopeTargetDesc": "Repara apenas a instância selecionada, geralmente mais rápido.",
+        "instanceScopeAll": "Todas as instâncias",
+        "instanceScopeAllDesc": "Repara todas as instâncias Codex ao restaurar em conjunto.",
+        "progressTitle": "Progresso",
+        "start": "Reparar"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sessões do Codex ocultas",
-      "message": "Foi detectado que o Codex mudou de {{from}} para {{to}}. Pelo comportamento oficial, sessões existentes podem não aparecer automaticamente após alternar diretamente entre API e contas. A visibilidade das sessões está sendo reparada automaticamente; você também pode usar Gerenciamento de sessões > Reparar visibilidade depois.",
+      "message": "O Codex mudou de {{from}} para {{to}}. Pelo comportamento oficial, sessões existentes podem não aparecer automaticamente depois desse tipo de troca. A visibilidade das sessões está sendo reparada automaticamente; você também pode reparar depois em Gerenciamento de sessões.",
       "repairing": "Reparando a visibilidade das sessões do Codex...",
-      "repairFailed": "O reparo automático falhou. Você pode tentar novamente depois em Gerenciamento de sessões > Reparar visibilidade.",
+      "repairFailed": "Falha ao reparar a visibilidade. Você pode tentar novamente depois em Gerenciamento de sessões.",
       "type": {
         "api": "Modo API",
         "apiKey": "Chave API",
         "apiService": "Serviço API",
         "account": "Conta"
-      }
+      },
+      "manualMessage": "Reparar visibilidade atualiza os registros da state DB oficial do Codex que controlam a lista lateral de sessões. Use para recuperar sessões após trocar entre contas e API Keys.",
+      "repairFailedWithError": "Falha ao reparar a visibilidade: {{error}}"
     },
     "accountNote": {
       "title": "Nota da conta",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Selecionar todas",
       "selectReady": "Selecionar contas OK",
       "clearSelection": "Limpar seleção"
+    },
+    "autoRepairMode": {
+      "label": "Lógica de reparo automático",
+      "tooltip": "Escolha a lógica de reparo de visibilidade de sessões ao alternar",
+      "legacyBefore4eb75d96": "Antes de 4eb75d96",
+      "legacy4eb75d96": "Lógica 4eb75d96",
+      "current": "Lógica atual"
     }
   },
   "githubCopilot": {

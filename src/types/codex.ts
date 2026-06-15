@@ -169,6 +169,57 @@ export interface CodexSessionVisibilityRepairItem {
   running: boolean;
 }
 
+export type CodexSessionVisibilityRepairMode = 'quick' | 'deep';
+export type CodexSessionVisibilityAutoRepairMode =
+  | 'legacy_before_4eb75d96'
+  | 'legacy_4eb75d96'
+  | 'current';
+
+export type CodexSessionVisibilityRepairProviderSource = 'config' | 'rollout' | 'sqlite';
+
+export interface CodexSessionVisibilityRepairProviderOption {
+  id: string;
+  sources: CodexSessionVisibilityRepairProviderSource[];
+  isDefault: boolean;
+}
+
+export interface CodexSessionVisibilityRepairProviderList {
+  defaultProvider: string;
+  providers: CodexSessionVisibilityRepairProviderOption[];
+}
+
+export interface CodexSessionVisibilityRepairInstanceOption {
+  id: string;
+  name: string;
+  userDataDir: string;
+  currentProvider: string;
+  isDefault: boolean;
+  running: boolean;
+}
+
+export interface CodexSessionVisibilityRepairInstanceList {
+  defaultInstanceId: string;
+  instances: CodexSessionVisibilityRepairInstanceOption[];
+}
+
+export interface CodexSessionVisibilityRepairRequestOptions {
+  targetProvider?: string | null;
+  targetInstanceId?: string | null;
+  repairInstanceIds?: string[] | null;
+  sessionIds?: string[] | null;
+}
+
+export interface CodexSessionVisibilityRepairProgress {
+  runId?: string | null;
+  mode: CodexSessionVisibilityRepairMode;
+  stage: string;
+  percent: number;
+  current: number;
+  total: number;
+  instanceId?: string | null;
+  instanceName?: string | null;
+}
+
 export interface CodexSessionVisibilityRepairSummary {
   instanceCount: number;
   mutatedInstanceCount: number;

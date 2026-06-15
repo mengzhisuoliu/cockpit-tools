@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Správce relací",
-      "desc": "Synchronizace a úklid jsou tady pohromadě: nahoře lze jedním kliknutím synchronizovat do všech instancí, níže pak rozbalit každý projekt, zkontrolovat relace a přesunout je do koše.",
+      "desc": "Synchronizace, oprava viditelnosti, čištění a obnova jsou na jednom místě: nahoře můžete synchronizovat relace, opravit jejich viditelnost nebo obnovit z koše, níže pak rozbalit projekty a přesouvat relace do koše.",
       "actions": {
         "moveToTrash": "Přesunout do koše",
         "syncSessions": "Synchronizovat relace",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Opravit viditelnost",
         "restoreSessions": "Obnovit relace",
         "copySessionId": "Kopírovat ID relace",
-        "selectAllSessions": "Vybrat vše",
+        "selectAllSessions": "Vybrat všechny relace",
         "clearSelectedSessions": "Zrušit výběr",
         "copyToInstance": "Kopírovat do instance"
       },
@@ -2301,7 +2301,7 @@
         "title": "Přesunout do koše",
         "message": "Vybrané relace budou přesunuty do koše z odpovídajících instancí, aby je bylo možné později obnovit; běžící instance mohou vyžadovat restart, než se změna projeví. Pokračovat?",
         "syncMessage": "Chybějící vlákna a jejich data relací budou synchronizována do všech instancí. Existující obsah se nebude zapisovat znovu a soubory cílové instance budou před zápisem zazálohovány. Pokračovat?",
-        "repairVisibilityMessage": "Tato akce opraví metadata poskytovatele v rollout souborech a v databázi state_5.sqlite podle hodnoty model_provider z kořenového souboru config.toml každé instance (pokud chybí, použije se openai). Soubory, které budou změněny, se před zápisem zálohují. Běžící instance mohou vyžadovat restart, než se změna projeví. Pokračovat?"
+        "repairVisibilityMessage": "Aktualizuje záznamy oficiální state DB Codexu, které řídí seznam relací v postranním panelu. Soubory state DB se před zápisem zálohují."
       },
       "empty": {
         "title": "Žádné relace ke správě",
@@ -2337,6 +2337,62 @@
         "selectedCount": "Vybráno relací: {{count}}",
         "existingCount": "V cíli už existuje: {{count}}",
         "confirm": "Kopírovat relace"
+      },
+      "repairModal": {
+        "quickTitle": "Opravit viditelnost",
+        "quickDesc": "Aktualizuje záznamy oficiální state DB Codexu pro postranní panel.",
+        "deepTitle": "Opravit viditelnost",
+        "deepDesc": "Aktualizuje záznamy oficiální state DB Codexu pro postranní panel.",
+        "quickProgressTitle": "Průběh opravy",
+        "deepProgressTitle": "Průběh opravy",
+        "running": "Opravuji...",
+        "startQuick": "Opravit",
+        "startDeep": "Opravit",
+        "progress": {
+          "queued": "Spouští se oprava...",
+          "collectInstances": "Shromažďují se instance Codex...",
+          "scanInstances": "Připravuje se kontrola instancí...",
+          "scanInstance": "Kontrola {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Záloha {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Zápis {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Aktualizuje se oficiální stav relací pro {{instance}}...",
+          "pruneBackups": "Čistí se staré zálohy...",
+          "done": "Oprava dokončena",
+          "writeSqliteProvider": "Zápis viditelnosti SQLite pro {{instance}}...",
+          "writeRolloutFiles": "Přeskakuje se zápis starých souborů relací...",
+          "writeSqliteTimestamps": "Oprava časů SQLite pro {{instance}}...",
+          "writeSessionIndex": "Přeskakuje se zápis starého indexu..."
+        },
+        "targetProvider": "Cílový provider",
+        "defaultProvider": "Výchozí",
+        "loadingProviders": "Načítám providery...",
+        "noProvider": "Nenalezen žádný provider",
+        "providerLoadFailed": "Načtení providerů selhalo: {{error}}",
+        "scopeTitle": "Rozsah relací",
+        "scopeAll": "Všechny relace",
+        "scopeAllDesc": "Opraví {{count}} relací v aktuálním seznamu.",
+        "scopeSelected": "Vybrané relace",
+        "scopeSelectedDesc": "Opraví jen {{count}} vybraných relací.",
+        "scopeSelectedEmpty": "Nejprve vyberte relace v seznamu.",
+        "providerSource": {
+          "config": "Konfigurace",
+          "rollout": "Relace",
+          "sqlite": "Databáze SQLite"
+        },
+        "targetInstance": "Cílová instance",
+        "loadingInstances": "Načítání instancí...",
+        "noInstance": "Nebyla nalezena instance",
+        "instanceLoadFailed": "Načtení instancí selhalo: {{error}}",
+        "defaultInstance": "Výchozí instance",
+        "runningInstance": "Spuštěno",
+        "instanceProvider": "Aktuální provider",
+        "instanceScopeTitle": "Rozsah instancí",
+        "instanceScopeTarget": "Jen cílová instance",
+        "instanceScopeTargetDesc": "Opraví jen vybranou instanci, obvykle rychleji.",
+        "instanceScopeAll": "Všechny instance",
+        "instanceScopeAllDesc": "Opraví všechny instance Codex při obnově více instancí.",
+        "progressTitle": "Průběh opravy",
+        "start": "Opravit"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Relace Codexu jsou skryté",
-      "message": "Bylo zjištěno, že Codex přešel z {{from}} na {{to}}. Kvůli oficiálnímu chování se existující relace po přímém přepnutí mezi API a účty nemusí zobrazit automaticky. Viditelnost relací se teď opravuje automaticky; později můžete použít také Správa relací > Opravit viditelnost.",
+      "message": "Codex se přepnul z {{from}} na {{to}}. Kvůli oficiálnímu chování se po takové změně existující relace nemusí zobrazit automaticky. Viditelnost relací se opravuje automaticky; později ji lze opravit i ve správě relací.",
       "repairing": "Opravuji viditelnost relací Codexu...",
-      "repairFailed": "Automatická oprava selhala. Zkuste to později ve Správa relací > Opravit viditelnost.",
+      "repairFailed": "Oprava viditelnosti selhala. Později ji můžete zopakovat ve Správě relací.",
       "type": {
         "api": "Režim API",
         "apiKey": "Klíč API",
         "apiService": "Služba API",
         "account": "Účet"
-      }
+      },
+      "manualMessage": "Oprava viditelnosti aktualizuje záznamy oficiální state DB Codexu, které řídí seznam relací v postranním panelu. Slouží k obnovení relací po přepnutí mezi účty a API Keys.",
+      "repairFailedWithError": "Oprava viditelnosti selhala: {{error}}"
     },
     "accountNote": {
       "title": "Poznámka účtu",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Vybrat všechny účty",
       "selectReady": "Vybrat účty OK",
       "clearSelection": "Zrušit výběr"
+    },
+    "autoRepairMode": {
+      "label": "Logika auto opravy",
+      "tooltip": "Vyberte logiku automatické opravy viditelnosti relací při přepnutí",
+      "legacyBefore4eb75d96": "Před 4eb75d96",
+      "legacy4eb75d96": "Logika 4eb75d96",
+      "current": "Aktuální logika"
     }
   },
   "githubCopilot": {

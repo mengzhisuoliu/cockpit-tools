@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Gestion des sessions",
-      "desc": "La synchronisation et le nettoyage sont regroupés ici : utilisez l’action en haut pour synchroniser toutes les instances, puis développez chaque projet pour examiner les sessions et les envoyer à la corbeille.",
+      "desc": "Synchronisation, réparation de visibilité, nettoyage et restauration sont regroupés ici : utilisez les actions du haut pour synchroniser les sessions, réparer leur visibilité ou restaurer depuis la corbeille, puis ouvrez chaque projet pour vérifier et déplacer des sessions.",
       "actions": {
         "moveToTrash": "Déplacer vers la corbeille",
         "syncSessions": "Synchroniser les sessions",
@@ -2301,7 +2301,7 @@
         "title": "Déplacer vers la corbeille",
         "message": "Les sessions sélectionnées seront déplacées vers la corbeille depuis leurs instances afin de pouvoir être restaurées plus tard. Les instances en cours d’exécution peuvent nécessiter un redémarrage avant que la modification apparaisse. Continuer ?",
         "syncMessage": "Les threads manquants et leurs données de session seront synchronisés vers toutes les instances. Le contenu existant ne sera pas réécrit et les fichiers de l’instance cible seront sauvegardés avant toute écriture. Continuer ?",
-        "repairVisibilityMessage": "Cette action réparera les métadonnées du fournisseur dans les fichiers de rollout et dans state_5.sqlite en utilisant la valeur model_provider du config.toml racine de chaque instance (avec openai par défaut si elle est absente). Les fichiers à modifier sont sauvegardés avant l'écriture. Les instances en cours d'exécution peuvent nécessiter un redémarrage avant que le changement n'apparaisse. Continuer ?"
+        "repairVisibilityMessage": "Met à jour les enregistrements de la state DB officielle de Codex qui contrôlent l’affichage dans la barre latérale. Les fichiers state DB sont sauvegardés avant écriture."
       },
       "empty": {
         "title": "Aucune session à gérer",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} session(s) sélectionnée(s)",
         "existingCount": "{{count}} déjà dans la cible",
         "confirm": "Copier les sessions"
+      },
+      "repairModal": {
+        "quickTitle": "Réparer la visibilité",
+        "quickDesc": "Met à jour les enregistrements de la state DB officielle de Codex pour la barre latérale.",
+        "deepTitle": "Réparer la visibilité",
+        "deepDesc": "Met à jour les enregistrements de la state DB officielle de Codex pour la barre latérale.",
+        "quickProgressTitle": "Progression",
+        "deepProgressTitle": "Progression",
+        "running": "Réparation...",
+        "startQuick": "Démarrer",
+        "startDeep": "Démarrer",
+        "progress": {
+          "queued": "Démarrage de la réparation...",
+          "collectInstances": "Collecte des instances Codex...",
+          "scanInstances": "Préparation de l’analyse...",
+          "scanInstance": "Analyse de {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Sauvegarde de {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Écriture de {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Actualisation de l’état officiel des sessions pour {{instance}}...",
+          "pruneBackups": "Nettoyage des anciennes sauvegardes...",
+          "done": "Réparation terminée",
+          "writeSqliteProvider": "Écriture de la visibilité SQLite pour {{instance}}...",
+          "writeRolloutFiles": "Écriture des anciens fichiers de session ignorée...",
+          "writeSqliteTimestamps": "Correction des dates SQLite de {{instance}}...",
+          "writeSessionIndex": "Écriture de l’ancien index ignorée..."
+        },
+        "targetProvider": "Provider cible",
+        "defaultProvider": "Par défaut",
+        "loadingProviders": "Chargement des providers...",
+        "noProvider": "Aucun provider trouvé",
+        "providerLoadFailed": "Échec du chargement des providers : {{error}}",
+        "scopeTitle": "Portée sessions",
+        "scopeAll": "Toutes les sessions",
+        "scopeAllDesc": "Répare {{count}} session(s) de la liste actuelle.",
+        "scopeSelected": "Sessions sélectionnées",
+        "scopeSelectedDesc": "Répare seulement {{count}} session(s) sélectionnée(s).",
+        "scopeSelectedEmpty": "Sélectionnez d’abord des sessions dans la liste.",
+        "providerSource": {
+          "config": "Configuration",
+          "rollout": "Sessions",
+          "sqlite": "Base SQLite"
+        },
+        "targetInstance": "Instance cible",
+        "loadingInstances": "Chargement des instances...",
+        "noInstance": "Aucune instance trouvée",
+        "instanceLoadFailed": "Échec du chargement des instances : {{error}}",
+        "defaultInstance": "Instance par défaut",
+        "runningInstance": "En cours",
+        "instanceProvider": "Provider actuel",
+        "instanceScopeTitle": "Portée instances",
+        "instanceScopeTarget": "Cible seule",
+        "instanceScopeTargetDesc": "Répare seulement l’instance choisie, généralement plus vite.",
+        "instanceScopeAll": "Toutes les instances",
+        "instanceScopeAllDesc": "Répare toutes les instances Codex lors d’une restauration groupée.",
+        "progressTitle": "Progression",
+        "start": "Démarrer"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Sessions Codex masquées",
-      "message": "Codex est passé de {{from}} à {{to}}. En raison du comportement officiel, les sessions existantes peuvent ne pas s’afficher automatiquement après un changement direct entre API et comptes. La visibilité des sessions est réparée automatiquement ; vous pouvez aussi utiliser Gestion des sessions > Réparer la visibilité plus tard.",
+      "message": "Codex est passé de {{from}} à {{to}}. En raison du comportement officiel, les sessions existantes peuvent ne pas réapparaître automatiquement après ce type de changement. La visibilité des sessions est réparée automatiquement ; vous pourrez aussi la réparer depuis la gestion des sessions.",
       "repairing": "Réparation de la visibilité des sessions Codex...",
-      "repairFailed": "La réparation automatique a échoué. Vous pouvez réessayer plus tard via Gestion des sessions > Réparer la visibilité.",
+      "repairFailed": "La réparation de visibilité a échoué. Vous pouvez réessayer plus tard dans la gestion des sessions.",
       "type": {
         "api": "Mode API",
         "apiKey": "Clé API",
         "apiService": "Service API",
         "account": "Compte"
-      }
+      },
+      "manualMessage": "Réparer la visibilité met à jour les enregistrements de la state DB officielle de Codex qui contrôlent l’affichage dans la barre latérale. C’est prévu pour récupérer les sessions après un changement entre comptes et clés API.",
+      "repairFailedWithError": "La réparation de visibilité a échoué : {{error}}"
     },
     "accountNote": {
       "title": "Note de compte",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Tout sélectionner",
       "selectReady": "Sélectionner valides",
       "clearSelection": "Effacer sélection"
+    },
+    "autoRepairMode": {
+      "label": "Logique auto",
+      "tooltip": "Choisir la logique de réparation automatique de visibilité lors du changement",
+      "legacyBefore4eb75d96": "Avant 4eb75d96",
+      "legacy4eb75d96": "Logique 4eb75d96",
+      "current": "Logique actuelle"
     }
   },
   "githubCopilot": {

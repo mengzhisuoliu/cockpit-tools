@@ -180,7 +180,8 @@ export function ApiKeyFunPage() {
     [apiKeyFunModelCatalog],
   );
   const canAddCurrentKeyToCodex = modelCatalogText.includes('gpt');
-  const canAddCurrentKeyToClaude = modelCatalogText.includes('claude');
+  // Claude CLI 入口暂时隐藏，保留预填逻辑方便后续恢复。
+  // const canAddCurrentKeyToClaude = modelCatalogText.includes('claude');
   const canPrefillCurrentKey =
     Boolean(currentSavedKey) && !queryingModels && apiKeyFunModelCatalog.length > 0;
 
@@ -570,7 +571,7 @@ export function ApiKeyFunPage() {
                   </span>
                 )}
               </div>
-              {(canAddCurrentKeyToCodex || canAddCurrentKeyToClaude) && (
+              {canAddCurrentKeyToCodex && (
                 <div className="apikey-fun-target-actions">
                   {canAddCurrentKeyToCodex && (
                     <button
@@ -584,6 +585,7 @@ export function ApiKeyFunPage() {
                       <span>{t('apiKeyFun.keyManager.addToCodex', '添加到 Codex')}</span>
                     </button>
                   )}
+                  {/*
                   {canAddCurrentKeyToClaude && (
                     <button
                       type="button"
@@ -596,6 +598,7 @@ export function ApiKeyFunPage() {
                       <span>{t('apiKeyFun.keyManager.addToClaude', '添加到 Claude CLI')}</span>
                     </button>
                   )}
+                  */}
                 </div>
               )}
             </div>

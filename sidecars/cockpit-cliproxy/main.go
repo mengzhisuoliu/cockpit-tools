@@ -367,6 +367,10 @@ func (e *eventEmitter) emit(v any) {
 	fmt.Println(string(data))
 }
 
+func (e *eventEmitter) emitStartupStage(stage string) {
+	e.emit(map[string]any{"type": "startup", "stage": stage})
+}
+
 func loadManifest(path string) (*manifest, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -5531,21 +5535,25 @@ func main() {
 		os.Exit(2)
 	}
 
+	emitter.emitStartupStage("resolve_config_path")
 	absConfigPath, err := filepath.Abs(*configPath)
 	if err != nil {
 		emitter.emit(map[string]any{"type": "error", "message": err.Error()})
 		os.Exit(2)
 	}
+	emitter.emitStartupStage("load_config")
 	cfg, err := config.LoadConfig(absConfigPath)
 	if err != nil {
 		emitter.emit(map[string]any{"type": "error", "message": err.Error()})
 		os.Exit(2)
 	}
+	emitter.emitStartupStage("load_manifest")
 	m, err := loadManifest(*manifestPath)
 	if err != nil {
 		emitter.emit(map[string]any{"type": "error", "message": err.Error()})
 		os.Exit(2)
 	}
+	emitter.emitStartupStage("init_runtime")
 
 	usageTracker := newRequestUsageTracker()
 	policy := &requestPolicy{manifest: m, emitter: emitter, tracker: usageTracker}
@@ -5567,6 +5575,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer runtime.Stop()
+	emitter.emitStartupStage("start_http_server")
 
 	relay := &relayServer{
 		runtime:  runtime,

@@ -1,6 +1,10 @@
 import { invoke } from "@tauri-apps/api/core";
 import { createPlatformInstanceService } from "./platform/createPlatformInstanceService";
 import type {
+  CodexSessionVisibilityRepairInstanceList,
+  CodexSessionVisibilityRepairMode,
+  CodexSessionVisibilityRepairProviderList,
+  CodexSessionVisibilityRepairRequestOptions,
   CodexSessionVisibilityRepairSummary,
   CodexInstanceThreadSyncSummary,
   CodexInstanceTargetThreadSyncSummary,
@@ -19,7 +23,20 @@ const service = createPlatformInstanceService("codex");
 export const getInstanceDefaults = service.getInstanceDefaults;
 export const listInstances = service.listInstances;
 export const deleteInstance = service.deleteInstance;
-export const startInstance = service.startInstance;
+export async function startInstance(instanceId: string): Promise<InstanceProfile> {
+  const startedAt = performance.now();
+  console.info("[Codex Start][Service] invoke codex_start_instance started", {
+    instanceId,
+  });
+  try {
+    return await service.startInstance(instanceId);
+  } finally {
+    console.info("[Codex Start][Service] invoke codex_start_instance finished", {
+      instanceId,
+      elapsedMs: Math.round(performance.now() - startedAt),
+    });
+  }
+}
 export const stopInstance = service.stopInstance;
 export const closeAllInstances = service.closeAllInstances;
 export const openInstanceWindow = service.openInstanceWindow;
@@ -153,8 +170,31 @@ export async function syncSessionsToInstance(
   });
 }
 
-export async function repairSessionVisibilityAcrossInstances(): Promise<CodexSessionVisibilityRepairSummary> {
-  return await invoke("codex_repair_session_visibility_across_instances");
+export async function repairSessionVisibilityAcrossInstances(
+  mode: CodexSessionVisibilityRepairMode = "quick",
+  runId?: string,
+  options?: CodexSessionVisibilityRepairRequestOptions,
+): Promise<CodexSessionVisibilityRepairSummary> {
+  return await invoke("codex_repair_session_visibility_across_instances", {
+    mode,
+    runId: runId ?? null,
+    targetProvider: options?.targetProvider ?? null,
+    targetInstanceId: options?.targetInstanceId ?? null,
+    repairInstanceIds: options?.repairInstanceIds ?? null,
+    sessionIds: options?.sessionIds ?? null,
+  });
+}
+
+export async function listSessionVisibilityRepairInstances(): Promise<
+  CodexSessionVisibilityRepairInstanceList
+> {
+  return await invoke("codex_list_session_visibility_repair_instances");
+}
+
+export async function listSessionVisibilityRepairProviders(): Promise<
+  CodexSessionVisibilityRepairProviderList
+> {
+  return await invoke("codex_list_session_visibility_repair_providers");
 }
 
 export async function listSessionsAcrossInstances(): Promise<

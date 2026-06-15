@@ -2395,7 +2395,7 @@
     },
     "sessionManager": {
       "title": "會話管理",
-      "desc": "同步與清理統一放在這裡：頂部可一鍵同步到所有實例，下面按專案展開查看會話並移到垃圾桶。",
+      "desc": "同步、可見性修復、清理與還原集中在這裡：上方可同步工作階段、修復可見性或從垃圾桶還原，下方可依專案展開檢視並移到垃圾桶。",
       "actions": {
         "moveToTrash": "移到垃圾桶",
         "syncSessions": "同步會話",
@@ -2404,7 +2404,7 @@
         "repairVisibility": "修復可見性",
         "restoreSessions": "還原工作階段",
         "copySessionId": "複製會話 ID",
-        "selectAllSessions": "全選會話",
+        "selectAllSessions": "全選全部會話",
         "clearSelectedSessions": "取消全選",
         "copyToInstance": "複製到實例"
       },
@@ -2412,7 +2412,7 @@
         "title": "移到垃圾桶",
         "message": "會將所選會話從對應實例中移到垃圾桶，方便後續恢復；執行中的實例可能需要重新啟動後才會反映。確認繼續？",
         "syncMessage": "會將缺失的執行緒與對應會話同步到所有實例中，已有內容不會重複寫入，寫入前會先備份目標實例關鍵檔案。確認繼續？",
-        "repairVisibilityMessage": "這將依照每個實例根目錄 config.toml 中的 model_provider（缺失時預設使用 openai），修復 rollout 檔案與 state_5.sqlite 內的供應商中繼資料。所有即將寫入變更的檔案都會先建立備份。正在執行的實例可能需要重新啟動，變更才會顯示。是否繼續？"
+        "repairVisibilityMessage": "會校正官方 Codex state DB 中影響側邊欄顯示的工作階段記錄；寫入前會先備份將修改的 state DB。"
       },
       "empty": {
         "title": "還沒有可管理的會話",
@@ -2448,6 +2448,62 @@
         "selectedCount": "已選擇 {{count}} 個工作階段",
         "existingCount": "目標已存在 {{count}} 個",
         "confirm": "複製工作階段"
+      },
+      "repairModal": {
+        "quickTitle": "修復可見性",
+        "quickDesc": "校正官方 Codex state DB 中影響側邊欄顯示的工作階段記錄。",
+        "deepTitle": "修復可見性",
+        "deepDesc": "校正官方 Codex state DB 中影響側邊欄顯示的工作階段記錄。",
+        "quickProgressTitle": "修復進度",
+        "deepProgressTitle": "修復進度",
+        "running": "正在修復...",
+        "startQuick": "開始修復",
+        "startDeep": "開始修復",
+        "progress": {
+          "queued": "正在啟動修復任務...",
+          "collectInstances": "正在收集 Codex 實例...",
+          "scanInstances": "正在準備掃描實例...",
+          "scanInstance": "正在掃描 {{instance}}（{{current}}/{{total}}）...",
+          "backupInstance": "正在備份 {{instance}}（{{current}}/{{total}}）...",
+          "writeInstance": "正在寫入 {{instance}}（{{current}}/{{total}}）...",
+          "rebuildMetadata": "正在重新整理 {{instance}} 的官方工作階段狀態...",
+          "pruneBackups": "正在清理舊備份...",
+          "done": "修復已完成",
+          "writeSqliteProvider": "正在寫入 {{instance}} 的 SQLite 可見性...",
+          "writeRolloutFiles": "正在略過舊工作階段檔案寫入...",
+          "writeSqliteTimestamps": "正在校正 {{instance}} 的 SQLite 時間...",
+          "writeSessionIndex": "正在略過舊索引寫入..."
+        },
+        "targetProvider": "目標 provider",
+        "defaultProvider": "預設",
+        "loadingProviders": "正在讀取 provider...",
+        "noProvider": "未發現 provider",
+        "providerLoadFailed": "讀取 provider 候選失敗：{{error}}",
+        "scopeTitle": "會話範圍",
+        "scopeAll": "全部會話",
+        "scopeAllDesc": "修復目前管理清單中的 {{count}} 筆會話。",
+        "scopeSelected": "所選會話",
+        "scopeSelectedDesc": "只修復已勾選的 {{count}} 筆會話。",
+        "scopeSelectedEmpty": "請先在清單中勾選會話。",
+        "providerSource": {
+          "config": "設定",
+          "rollout": "會話",
+          "sqlite": "SQLite 資料庫"
+        },
+        "targetInstance": "目標實例",
+        "loadingInstances": "正在讀取實例...",
+        "noInstance": "未發現實例",
+        "instanceLoadFailed": "讀取實例失敗：{{error}}",
+        "defaultInstance": "預設實例",
+        "runningInstance": "執行中",
+        "instanceProvider": "目前 provider",
+        "instanceScopeTitle": "實例範圍",
+        "instanceScopeTarget": "僅目標實例",
+        "instanceScopeTargetDesc": "只修復上方選取的實例，通常更快。",
+        "instanceScopeAll": "全部實例",
+        "instanceScopeAllDesc": "修復所有 Codex 實例，適合多開實例一起復原。",
+        "progressTitle": "修復進度",
+        "start": "開始修復"
       }
     },
     "modelProviders": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Codex 工作階段不可見",
-      "message": "偵測到 Codex 已從 {{from}} 切換到 {{to}}。由於官方機制，API 與帳號直接切換後，原有工作階段可能不會自動顯示。正在自動修復工作階段可見性，後續也可以透過「工作階段管理」中的「修復可見性」功能修復。",
+      "message": "偵測到 Codex 已從 {{from}} 切換到 {{to}}。依官方機制，這類切換後既有工作階段可能不會自動顯示。正在自動修復工作階段可見性，之後也可在「工作階段管理」中手動修復。",
       "repairing": "正在修復 Codex 工作階段可見性...",
-      "repairFailed": "自動修復失敗。你仍可稍後在「工作階段管理」中使用「修復可見性」重試。",
+      "repairFailed": "修復可見性失敗。你仍可稍後在「工作階段管理」中重試。",
       "type": {
         "api": "API 模式",
         "apiKey": "API 金鑰",
         "apiService": "API 服務",
         "account": "帳號"
-      }
+      },
+      "manualMessage": "修復可見性會校正官方 Codex state DB 中影響側邊欄顯示的工作階段記錄，適合帳號與 API Key 切換後恢復工作階段。",
+      "repairFailedWithError": "修復可見性失敗：{{error}}"
     },
     "accountNote": {
       "title": "帳號備註",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "選擇全部帳號",
       "selectReady": "選擇正常帳號",
       "clearSelection": "取消選擇"
+    },
+    "autoRepairMode": {
+      "label": "自動修復邏輯",
+      "tooltip": "切換時使用哪套會話可見性自動修復邏輯",
+      "legacyBefore4eb75d96": "4eb75d96 前邏輯",
+      "legacy4eb75d96": "4eb75d96 邏輯",
+      "current": "目前邏輯"
     }
   },
   "githubCopilot": {

@@ -3,10 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { confirm as confirmDialog } from '@tauri-apps/plugin-dialog';
 import { Check, ChevronDown, ChevronRight, Copy, Eye, Folder, RefreshCw, RotateCcw, Trash2, X } from 'lucide-react';
 import { ModalErrorMessage, useModalErrorState } from '../ModalErrorMessage';
+import { SingleSelectDropdown, type SingleSelectOption } from '../SingleSelectDropdown';
 import { useEscClose } from '../../hooks/useEscClose';
 import type { CodexSessionRecord, CodexSessionTokenStats, CodexTrashedSessionRecord } from '../../types/codex';
+import type { InstanceProfile } from '../../types/instance';
 import { useCodexInstanceStore } from '../../stores/useCodexInstanceStore';
-import { formatCodexSessionVisibilityRepairMessage } from '../../utils/codexSessionVisibility';
+import { CodexSessionVisibilityRepairModal } from './CodexSessionVisibilityRepairModal';
 
 type MessageState = { text: string; tone?: 'error' };
 type SessionTokenStatsMap = Record<string, CodexSessionTokenStats>;
@@ -16,6 +18,40 @@ type SessionGroup = {
   sessions: CodexSessionRecord[];
   latestUpdatedAt: number;
 };
+
+type InstanceSortField = 'createdAt' | 'lastLaunchedAt';
+type InstanceSortDirection = 'asc' | 'desc';
+
+function readCodexInstanceSortPreference(): {
+  field: InstanceSortField;
+  direction: InstanceSortDirection;
+} {
+  const sortField = localStorage.getItem('agtools.codex.instances.sort_field');
+  const sortDirection = localStorage.getItem('agtools.codex.instances.sort_direction');
+  return {
+    field: sortField === 'lastLaunchedAt' ? 'lastLaunchedAt' : 'createdAt',
+    direction: sortDirection === 'desc' ? 'desc' : 'asc',
+  };
+}
+
+function sortInstancesForDisplay(instances: InstanceProfile[]): InstanceProfile[] {
+  const sortPreference = readCodexInstanceSortPreference();
+  return [...instances].sort((left, right) => {
+    if (left.isDefault && !right.isDefault) return -1;
+    if (!left.isDefault && right.isDefault) return 1;
+    const leftValue =
+      sortPreference.field === 'createdAt'
+        ? left.createdAt || 0
+        : left.lastLaunchedAt || 0;
+    const rightValue =
+      sortPreference.field === 'createdAt'
+        ? right.createdAt || 0
+        : right.lastLaunchedAt || 0;
+    return sortPreference.direction === 'asc'
+      ? leftValue - rightValue
+      : rightValue - leftValue;
+  });
+}
 
 function buildGroups(sessions: CodexSessionRecord[]): SessionGroup[] {
   const groups = new Map<string, CodexSessionRecord[]>();
@@ -102,9 +138,6 @@ export function CodexSessionManager() {
   const refreshInstances = useCodexInstanceStore((state) => state.refreshInstances);
   const syncThreadsAcrossInstances = useCodexInstanceStore((state) => state.syncThreadsAcrossInstances);
   const syncSessionsToInstance = useCodexInstanceStore((state) => state.syncSessionsToInstance);
-  const repairSessionVisibilityAcrossInstances = useCodexInstanceStore(
-    (state) => state.repairSessionVisibilityAcrossInstances,
-  );
   const listSessionsAcrossInstances = useCodexInstanceStore((state) => state.listSessionsAcrossInstances);
   const getSessionTokenStatsAcrossInstances = useCodexInstanceStore(
     (state) => state.getSessionTokenStatsAcrossInstances,
@@ -124,6 +157,7 @@ export function CodexSessionManager() {
   const [showSyncTargetModal, setShowSyncTargetModal] = useState(false);
   const [syncTargetInstanceId, setSyncTargetInstanceId] = useState('');
   const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showRepairVisibilityModal, setShowRepairVisibilityModal] = useState(false);
   const [trashedSessions, setTrashedSessions] = useState<CodexTrashedSessionRecord[]>([]);
   const [selectedTrashIds, setSelectedTrashIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -167,9 +201,25 @@ export function CodexSessionManager() {
     () => sessions.filter((session) => selectedIdSet.has(session.sessionId)),
     [selectedIdSet, sessions],
   );
+  const orderedInstances = useMemo(() => sortInstancesForDisplay(instances), [instances]);
+  const targetInstanceOptions = useMemo<SingleSelectOption[]>(
+    () => [
+      {
+        value: '',
+        label: t('codex.sessionManager.targetModal.pickTarget', '请选择目标实例'),
+      },
+      ...orderedInstances.map((instance) => ({
+        value: instance.id,
+        label: instance.isDefault
+          ? t('instances.defaultName', '默认实例')
+          : instance.name || t('instances.defaultName', '默认实例'),
+      })),
+    ],
+    [orderedInstances, t],
+  );
   const syncTargetInstance = useMemo(
-    () => instances.find((instance) => instance.id === syncTargetInstanceId) ?? null,
-    [instances, syncTargetInstanceId],
+    () => orderedInstances.find((instance) => instance.id === syncTargetInstanceId) ?? null,
+    [orderedInstances, syncTargetInstanceId],
   );
   const syncTargetExistingCount = useMemo(() => {
     if (!syncTargetInstance) return 0;
@@ -370,7 +420,9 @@ export function CodexSessionManager() {
     setSyncTargetModalError(null);
     try {
       const latestInstances = await refreshInstances();
-      const targetCandidates = latestInstances.length > 0 ? latestInstances : instances;
+      const targetCandidates = sortInstancesForDisplay(
+        latestInstances.length > 0 ? latestInstances : instances,
+      );
       const firstMissingTarget = targetCandidates.find((instance) =>
         selectedSessions.some((session) =>
           !session.locations.some((location) => location.instanceId === instance.id),
@@ -475,29 +527,7 @@ export function CodexSessionManager() {
 
   const handleRepairVisibility = async () => {
     setMessage(null);
-    const confirmed = await confirmDialog(
-      t(
-        'codex.sessionManager.confirm.repairVisibilityMessage',
-        '会按 CodexPlusPlus 的同步规则，校正 rollout 中所有 session_meta、SQLite 会话库、session_index.jsonl、会话文件时间与当前 provider，并触发官方 Codex 重建侧边栏索引；写入前会先备份将要修改的文件。确认继续？',
-      ),
-      {
-        title: t('codex.sessionManager.actions.repairVisibility', '修复索引'),
-        okLabel: t('common.confirm', '确认'),
-        cancelLabel: t('common.cancel', '取消'),
-      },
-    );
-    if (!confirmed) return;
-
-    setRepairingVisibility(true);
-    try {
-      const summary = await repairSessionVisibilityAcrossInstances();
-      setMessage({ text: formatCodexSessionVisibilityRepairMessage(summary, t) });
-      await loadSessions();
-    } catch (error) {
-      setMessage({ text: String(error), tone: 'error' });
-    } finally {
-      setRepairingVisibility(false);
-    }
+    setShowRepairVisibilityModal(true);
   };
 
   const handleMoveToTrash = async () => {
@@ -595,18 +625,18 @@ export function CodexSessionManager() {
             title={
               allSessionsSelected
                 ? t('codex.sessionManager.actions.clearSelectedSessions', '取消全选')
-                : t('codex.sessionManager.actions.selectAllSessions', '全选会话')
+                : t('codex.sessionManager.actions.selectAllSessions', '全选全部会话')
             }
             aria-label={
               allSessionsSelected
                 ? t('codex.sessionManager.actions.clearSelectedSessions', '取消全选')
-                : t('codex.sessionManager.actions.selectAllSessions', '全选会话')
+                : t('codex.sessionManager.actions.selectAllSessions', '全选全部会话')
             }
           >
             {allSessionsSelected ? <X size={14} /> : <Check size={14} />}
             {allSessionsSelected
               ? t('codex.sessionManager.actions.clearSelectedSessions', '取消全选')
-              : t('codex.sessionManager.actions.selectAllSessions', '全选会话')}
+              : t('codex.sessionManager.actions.selectAllSessions', '全选全部会话')}
           </button>
           <button
             className="btn btn-secondary codex-session-manager__action-button"
@@ -638,7 +668,7 @@ export function CodexSessionManager() {
             disabled={repairingVisibility || loading || deleting || syncing || syncingToInstance}
           >
             <Eye size={14} />
-            {t('codex.sessionManager.actions.repairVisibility', '修复索引')}
+            {t('codex.sessionManager.actions.repairVisibility', '修复可见性')}
           </button>
           <button
             className="btn btn-secondary codex-session-manager__action-button"
@@ -820,23 +850,18 @@ export function CodexSessionManager() {
               </p>
               <label className="codex-session-target-modal__field">
                 <span>{t('codex.sessionManager.targetModal.targetInstance', '目标实例')}</span>
-                <select
+                <SingleSelectDropdown
+                  className="codex-session-target-modal__select"
                   value={syncTargetInstanceId}
-                  onChange={(event) => {
-                    setSyncTargetInstanceId(event.target.value);
+                  options={targetInstanceOptions}
+                  onChange={(value) => {
+                    setSyncTargetInstanceId(value);
                     setSyncTargetModalError(null);
                   }}
                   disabled={syncingToInstance}
-                >
-                  <option value="">{t('codex.sessionManager.targetModal.pickTarget', '请选择目标实例')}</option>
-                  {instances.map((instance) => (
-                    <option key={instance.id} value={instance.id}>
-                      {instance.isDefault
-                        ? t('instances.defaultName', '默认实例')
-                        : instance.name || t('instances.defaultName', '默认实例')}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel={t('codex.sessionManager.targetModal.targetInstance', '目标实例')}
+                  menuMaxHeight={240}
+                />
               </label>
               <div className="codex-session-target-modal__summary">
                 <span>
@@ -877,6 +902,15 @@ export function CodexSessionManager() {
           </div>
         </div>
       ) : null}
+
+      <CodexSessionVisibilityRepairModal
+        open={showRepairVisibilityModal}
+        selectedSessionIds={selectedIds}
+        totalSessionCount={allSessionIds.length}
+        onClose={() => setShowRepairVisibilityModal(false)}
+        onRunningChange={setRepairingVisibility}
+        onRepaired={() => loadSessions()}
+      />
 
       {showRestoreModal ? (
         <div className="modal-overlay" onClick={handleCloseRestoreModal}>

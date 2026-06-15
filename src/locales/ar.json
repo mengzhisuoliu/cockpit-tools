@@ -2330,7 +2330,7 @@
     },
     "sessionManager": {
       "title": "إدارة الجلسات",
-      "desc": "هنا تتم المزامنة والتنظيف معًا: استخدم الإجراء العلوي للمزامنة إلى جميع المثيلات، ثم وسّع كل مشروع لمراجعة الجلسات ونقلها إلى سلة المهملات.",
+      "desc": "توجد المزامنة وإصلاح الظهور والتنظيف والاستعادة هنا معا: استخدم الأزرار العلوية لمزامنة الجلسات أو إصلاح ظهورها أو الاستعادة من سلة المهملات، ثم افتح كل مشروع للمراجعة والنقل إلى السلة.",
       "actions": {
         "moveToTrash": "نقل إلى المهملات",
         "syncSessions": "مزامنة الجلسات",
@@ -2339,7 +2339,7 @@
         "repairVisibility": "إصلاح الظهور",
         "restoreSessions": "استعادة الجلسات",
         "copySessionId": "نسخ معرّف الجلسة",
-        "selectAllSessions": "تحديد الكل",
+        "selectAllSessions": "تحديد كل الجلسات",
         "clearSelectedSessions": "إلغاء تحديد الكل",
         "copyToInstance": "نسخ إلى المثيل"
       },
@@ -2347,7 +2347,7 @@
         "title": "نقل إلى المهملات",
         "message": "سيتم نقل الجلسات المحددة إلى سلة المهملات من المثيلات المقابلة لتسهيل استعادتها لاحقًا؛ قد تحتاج المثيلات قيد التشغيل إلى إعادة تشغيل قبل ظهور التغييرات. هل تريد المتابعة؟",
         "syncMessage": "ستتم مزامنة السلاسل والجلسات المفقودة إلى جميع المثيلات. لن تتم كتابة المحتوى الموجود مرة أخرى، وسيتم نسخ ملفات المثيل الهدف احتياطيًا قبل أي كتابة. هل تريد المتابعة؟",
-        "repairVisibilityMessage": "سيؤدي هذا إلى إصلاح بيانات تعريف المزوّد في ملفات rollout وملف state_5.sqlite باستخدام قيمة model_provider من ملف config.toml الجذري لكل مثيل (وسيُستخدم openai افتراضيًا إذا كانت مفقودة). ستؤخذ نسخة احتياطية من الملفات التي سيجري تعديلها قبل الكتابة. قد تحتاج المثيلات قيد التشغيل إلى إعادة التشغيل قبل ظهور التغيير. هل تريد المتابعة؟"
+        "repairVisibilityMessage": "يحدث سجلات state DB الرسمية في Codex التي تتحكم في قائمة الجلسات الجانبية. يتم نسخ ملفات state DB احتياطيا قبل الكتابة."
       },
       "empty": {
         "title": "لا توجد جلسات لإدارتها",
@@ -2383,6 +2383,62 @@
         "selectedCount": "تم تحديد {{count}} جلسة",
         "existingCount": "{{count}} موجودة بالفعل في الهدف",
         "confirm": "نسخ الجلسات"
+      },
+      "repairModal": {
+        "quickTitle": "إصلاح الظهور",
+        "quickDesc": "يحدث سجلات state DB الرسمية في Codex لقائمة الجلسات الجانبية.",
+        "deepTitle": "إصلاح الظهور",
+        "deepDesc": "يحدث سجلات state DB الرسمية في Codex لقائمة الجلسات الجانبية.",
+        "quickProgressTitle": "تقدم الإصلاح",
+        "deepProgressTitle": "تقدم الإصلاح",
+        "running": "جارٍ الإصلاح...",
+        "startQuick": "إصلاح",
+        "startDeep": "إصلاح",
+        "progress": {
+          "queued": "جارٍ بدء مهمة الإصلاح...",
+          "collectInstances": "جارٍ جمع مثيلات Codex...",
+          "scanInstances": "جارٍ تجهيز فحص المثيلات...",
+          "scanInstance": "جارٍ فحص {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "جارٍ نسخ {{instance}} احتياطيًا ({{current}}/{{total}})...",
+          "writeInstance": "جارٍ الكتابة إلى {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "جار تحديث حالة الجلسات الرسمية لـ {{instance}}...",
+          "pruneBackups": "جارٍ تنظيف النسخ القديمة...",
+          "done": "اكتمل الإصلاح",
+          "writeSqliteProvider": "جارٍ كتابة ظهور SQLite لـ {{instance}}...",
+          "writeRolloutFiles": "جار تخطي كتابة ملفات الجلسات القديمة...",
+          "writeSqliteTimestamps": "جارٍ تصحيح أوقات SQLite لـ {{instance}}...",
+          "writeSessionIndex": "جار تخطي كتابة الفهرس القديم..."
+        },
+        "targetProvider": "المزوّد الهدف",
+        "defaultProvider": "افتراضي",
+        "loadingProviders": "جارٍ تحميل المزوّدين...",
+        "noProvider": "لم يتم العثور على مزوّد",
+        "providerLoadFailed": "فشل تحميل مزوّدي الإصلاح: {{error}}",
+        "scopeTitle": "نطاق الجلسات",
+        "scopeAll": "كل الجلسات",
+        "scopeAllDesc": "إصلاح {{count}} جلسة في قائمة الإدارة الحالية.",
+        "scopeSelected": "الجلسات المحددة",
+        "scopeSelectedDesc": "إصلاح {{count}} جلسة محددة فقط.",
+        "scopeSelectedEmpty": "حدد جلسات من القائمة أولاً.",
+        "providerSource": {
+          "config": "الإعدادات",
+          "rollout": "الجلسات",
+          "sqlite": "قاعدة SQLite"
+        },
+        "targetInstance": "المثيل الهدف",
+        "loadingInstances": "جارٍ تحميل المثيلات...",
+        "noInstance": "لم يتم العثور على مثيلات",
+        "instanceLoadFailed": "فشل تحميل المثيلات: {{error}}",
+        "defaultInstance": "المثيل الافتراضي",
+        "runningInstance": "قيد التشغيل",
+        "instanceProvider": "الموفر الحالي",
+        "instanceScopeTitle": "نطاق المثيلات",
+        "instanceScopeTarget": "المثيل الهدف فقط",
+        "instanceScopeTargetDesc": "إصلاح المثيل المحدد فقط، وهذا أسرع عادةً.",
+        "instanceScopeAll": "كل المثيلات",
+        "instanceScopeAllDesc": "إصلاح كل مثيلات Codex عند استعادة عدة مثيلات.",
+        "progressTitle": "تقدم الإصلاح",
+        "start": "إصلاح"
       }
     },
     "api": {
@@ -2755,15 +2811,17 @@
     },
     "apiSwitchNotice": {
       "title": "جلسات Codex مخفية",
-      "message": "تم اكتشاف أن Codex تبدّل من {{from}} إلى {{to}}. بسبب الآلية الرسمية، قد لا تظهر الجلسات الحالية تلقائيًا بعد التبديل المباشر بين API والحسابات. يجري الآن إصلاح ظهور الجلسات تلقائيًا، ويمكنك أيضًا استخدام إدارة الجلسات > إصلاح الظهور لاحقًا.",
-      "repairing": "جارٍ إصلاح ظهور جلسات Codex...",
-      "repairFailed": "فشل الإصلاح التلقائي. يمكنك إعادة المحاولة لاحقًا من إدارة الجلسات > إصلاح الظهور.",
+      "message": "تم تبديل Codex من {{from}} إلى {{to}}. بسبب السلوك الرسمي، قد لا تظهر الجلسات الحالية تلقائيا بعد هذا النوع من التبديل. يجري إصلاح ظهور الجلسات تلقائيا، ويمكنك أيضا إصلاحه لاحقا من إدارة الجلسات.",
+      "repairing": "جار إصلاح ظهور جلسات Codex...",
+      "repairFailed": "فشل إصلاح الظهور. يمكنك إعادة المحاولة لاحقا من إدارة الجلسات.",
       "type": {
         "api": "وضع API",
         "apiKey": "مفتاح API",
         "apiService": "خدمة API",
         "account": "حساب"
-      }
+      },
+      "manualMessage": "إصلاح الظهور يحدث سجلات state DB الرسمية في Codex التي تتحكم في قائمة الجلسات الجانبية. يستخدم لاستعادة الجلسات بعد التبديل بين الحسابات و API Keys.",
+      "repairFailedWithError": "فشل إصلاح الظهور: {{error}}"
     },
     "accountNote": {
       "title": "ملاحظة الحساب",
@@ -3012,6 +3070,13 @@
       "selectAllAccounts": "اختيار كل الحسابات",
       "selectReady": "اختيار الحسابات السليمة",
       "clearSelection": "إلغاء الاختيار"
+    },
+    "autoRepairMode": {
+      "label": "منطق الإصلاح التلقائي",
+      "tooltip": "اختر منطق إصلاح ظهور الجلسات عند التبديل",
+      "legacyBefore4eb75d96": "قبل 4eb75d96",
+      "legacy4eb75d96": "منطق 4eb75d96",
+      "current": "المنطق الحالي"
     }
   },
   "githubCopilot": {

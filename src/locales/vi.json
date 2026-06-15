@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Quản lý phiên",
-      "desc": "Đồng bộ và dọn dẹp được đặt chung tại đây: dùng thao tác ở trên để đồng bộ tới tất cả phiên bản, sau đó mở từng dự án bên dưới để xem các phiên và chuyển chúng vào thùng rác.",
+      "desc": "Đồng bộ, sửa hiển thị, dọn dẹp và khôi phục nằm cùng một chỗ: dùng các nút phía trên để đồng bộ phiên, sửa hiển thị hoặc khôi phục từ thùng rác; bên dưới mở từng dự án để xem và chuyển phiên vào thùng rác.",
       "actions": {
         "moveToTrash": "Chuyển vào thùng rác",
         "syncSessions": "Đồng bộ phiên",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Sửa hiển thị",
         "restoreSessions": "Khôi phục phiên",
         "copySessionId": "Sao chép ID phiên",
-        "selectAllSessions": "Chọn tất cả",
+        "selectAllSessions": "Chọn mọi phiên",
         "clearSelectedSessions": "Bỏ chọn",
         "copyToInstance": "Sao chép sang phiên bản"
       },
@@ -2301,7 +2301,7 @@
         "title": "Chuyển vào thùng rác",
         "message": "Các phiên đã chọn sẽ được chuyển vào thùng rác từ các phiên bản tương ứng để có thể khôi phục sau này. Các phiên bản đang chạy có thể cần khởi động lại trước khi thay đổi xuất hiện. Tiếp tục chứ?",
         "syncMessage": "Các luồng còn thiếu và dữ liệu phiên của chúng sẽ được đồng bộ tới tất cả phiên bản. Nội dung hiện có sẽ không bị ghi lại, và các tệp của phiên bản đích sẽ được sao lưu trước khi ghi. Tiếp tục chứ?",
-        "repairVisibilityMessage": "Thao tác này sẽ sửa metadata nhà cung cấp trong các tệp rollout và state_5.sqlite bằng giá trị model_provider từ config.toml gốc của từng instance (nếu thiếu thì dùng openai mặc định). Các tệp sắp thay đổi sẽ được sao lưu trước khi ghi. Có thể cần khởi động lại các instance đang chạy trước khi thay đổi xuất hiện. Tiếp tục?"
+        "repairVisibilityMessage": "Cập nhật các bản ghi state DB chính thức của Codex dùng để điều khiển danh sách phiên ở thanh bên. Các tệp state DB được sao lưu trước khi ghi."
       },
       "empty": {
         "title": "Chưa có phiên nào để quản lý",
@@ -2337,6 +2337,62 @@
         "selectedCount": "Đã chọn {{count}} phiên",
         "existingCount": "{{count}} đã có ở đích",
         "confirm": "Sao chép phiên"
+      },
+      "repairModal": {
+        "quickTitle": "Sửa hiển thị",
+        "quickDesc": "Cập nhật các bản ghi state DB chính thức của Codex cho thanh bên.",
+        "deepTitle": "Sửa hiển thị",
+        "deepDesc": "Cập nhật các bản ghi state DB chính thức của Codex cho thanh bên.",
+        "quickProgressTitle": "Tiến trình sửa",
+        "deepProgressTitle": "Tiến trình sửa",
+        "running": "Đang sửa...",
+        "startQuick": "Sửa",
+        "startDeep": "Sửa",
+        "progress": {
+          "queued": "Đang khởi động tác vụ sửa...",
+          "collectInstances": "Đang thu thập phiên bản Codex...",
+          "scanInstances": "Đang chuẩn bị quét phiên bản...",
+          "scanInstance": "Đang quét {{instance}} ({{current}}/{{total}})...",
+          "backupInstance": "Đang sao lưu {{instance}} ({{current}}/{{total}})...",
+          "writeInstance": "Đang ghi {{instance}} ({{current}}/{{total}})...",
+          "rebuildMetadata": "Đang làm mới trạng thái phiên chính thức cho {{instance}}...",
+          "pruneBackups": "Đang dọn bản sao lưu cũ...",
+          "done": "Đã sửa xong",
+          "writeSqliteProvider": "Đang ghi hiển thị SQLite cho {{instance}}...",
+          "writeRolloutFiles": "Đang bỏ qua ghi tệp phiên cũ...",
+          "writeSqliteTimestamps": "Đang sửa thời gian SQLite cho {{instance}}...",
+          "writeSessionIndex": "Đang bỏ qua ghi chỉ mục cũ..."
+        },
+        "targetProvider": "Provider đích",
+        "defaultProvider": "Mặc định",
+        "loadingProviders": "Đang tải provider...",
+        "noProvider": "Không tìm thấy provider",
+        "providerLoadFailed": "Không tải được provider: {{error}}",
+        "scopeTitle": "Phạm vi phiên",
+        "scopeAll": "Tất cả phiên",
+        "scopeAllDesc": "Sửa {{count}} phiên trong danh sách hiện tại.",
+        "scopeSelected": "Phiên đã chọn",
+        "scopeSelectedDesc": "Chỉ sửa {{count}} phiên đã chọn.",
+        "scopeSelectedEmpty": "Hãy chọn phiên trong danh sách trước.",
+        "providerSource": {
+          "config": "Cấu hình",
+          "rollout": "Phiên",
+          "sqlite": "CSDL SQLite"
+        },
+        "targetInstance": "Phiên bản đích",
+        "loadingInstances": "Đang tải phiên bản...",
+        "noInstance": "Không tìm thấy phiên bản",
+        "instanceLoadFailed": "Không thể tải phiên bản: {{error}}",
+        "defaultInstance": "Phiên bản mặc định",
+        "runningInstance": "Đang chạy",
+        "instanceProvider": "Provider hiện tại",
+        "instanceScopeTitle": "Phạm vi phiên bản",
+        "instanceScopeTarget": "Chỉ bản đích",
+        "instanceScopeTargetDesc": "Chỉ sửa phiên bản đã chọn, thường nhanh hơn.",
+        "instanceScopeAll": "Tất cả phiên bản",
+        "instanceScopeAllDesc": "Sửa mọi phiên bản Codex khi khôi phục nhiều phiên bản.",
+        "progressTitle": "Tiến trình sửa",
+        "start": "Sửa"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Phiên Codex bị ẩn",
-      "message": "Đã phát hiện Codex chuyển từ {{from}} sang {{to}}. Do hành vi chính thức, các phiên hiện có có thể không tự hiển thị sau khi chuyển trực tiếp giữa API và tài khoản. Hệ thống đang tự sửa khả năng hiển thị phiên; bạn cũng có thể dùng Quản lý phiên > Sửa hiển thị sau này.",
-      "repairing": "Đang sửa khả năng hiển thị phiên Codex...",
-      "repairFailed": "Tự động sửa thất bại. Bạn có thể thử lại sau trong Quản lý phiên > Sửa hiển thị.",
+      "message": "Codex đã chuyển từ {{from}} sang {{to}}. Theo hành vi chính thức, các phiên hiện có có thể không tự hiện sau kiểu chuyển này. Khả năng hiển thị phiên đang được sửa tự động; bạn cũng có thể sửa thủ công trong Quản lý phiên.",
+      "repairing": "Đang sửa hiển thị phiên Codex...",
+      "repairFailed": "Sửa hiển thị thất bại. Bạn có thể thử lại sau trong Quản lý phiên.",
       "type": {
         "api": "Chế độ API",
         "apiKey": "Khóa API",
         "apiService": "Dịch vụ API",
         "account": "Tài khoản"
-      }
+      },
+      "manualMessage": "Sửa hiển thị cập nhật các bản ghi state DB chính thức của Codex dùng để điều khiển danh sách phiên ở thanh bên. Dùng để khôi phục phiên sau khi chuyển giữa tài khoản và API Keys.",
+      "repairFailedWithError": "Sửa hiển thị thất bại: {{error}}"
     },
     "accountNote": {
       "title": "Ghi chú tài khoản",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Chọn tất cả",
       "selectReady": "Chọn tài khoản OK",
       "clearSelection": "Bỏ chọn"
+    },
+    "autoRepairMode": {
+      "label": "Logic tự sửa",
+      "tooltip": "Chọn logic tự sửa hiển thị phiên khi chuyển đổi",
+      "legacyBefore4eb75d96": "Trước 4eb75d96",
+      "legacy4eb75d96": "Logic 4eb75d96",
+      "current": "Logic hiện tại"
     }
   },
   "githubCopilot": {

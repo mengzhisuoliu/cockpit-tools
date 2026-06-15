@@ -24,7 +24,7 @@ import { Page } from './types/navigation';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
 import { useEasterEggTrigger } from './hooks/useEasterEggTrigger';
 import { useGlobalModal } from './hooks/useGlobalModal';
-import { changeLanguage, getCurrentLanguage, normalizeLanguage } from './i18n';
+import { changeLanguage, getCurrentLanguage, normalizeLanguage, syncLanguage } from './i18n';
 import { useAccountStore } from './stores/useAccountStore';
 import { useCodexAccountStore } from './stores/useCodexAccountStore';
 import { useClaudeAccountStore } from './stores/useClaudeAccountStore';
@@ -167,7 +167,11 @@ interface GeneralConfigTheme {
   ui_scale?: number;
 }
 
-interface GeneralConfig extends GeneralConfigTheme {
+interface GeneralConfigLanguage {
+  language: string;
+}
+
+interface GeneralConfig extends GeneralConfigTheme, GeneralConfigLanguage {
   opencode_app_path: string;
   antigravity_app_path: string;
   codex_app_path: string;
@@ -695,6 +699,32 @@ function MainApp() {
   // 初始化唤醒通知监听器
   useEffect(() => {
     initWakeupNotificationListener();
+  }, []);
+
+  useEffect(() => {
+    let disposed = false;
+
+    const syncLanguageFromConfig = async () => {
+      try {
+        const config = await invoke<GeneralConfigLanguage>('get_general_config');
+        const nextLanguage = await syncLanguage(config.language);
+        if (disposed) {
+          return;
+        }
+        window.dispatchEvent(
+          new CustomEvent('general-language-updated', { detail: { language: nextLanguage } }),
+        );
+      } catch (error) {
+        console.error('Failed to sync language config:', error);
+      }
+    };
+
+    void syncLanguageFromConfig();
+    window.addEventListener('config-updated', syncLanguageFromConfig);
+    return () => {
+      disposed = true;
+      window.removeEventListener('config-updated', syncLanguageFromConfig);
+    };
   }, []);
 
   useEffect(() => {

@@ -156,8 +156,18 @@ export function createInstanceStore(
     },
 
     startInstance: async (instanceId) => {
+      const flowStartedAt = performance.now();
+      console.info("[Instance Start][Store] startInstance started", { instanceId });
       const instance = await service.startInstance(instanceId);
+      console.info("[Instance Start][Store] service.startInstance finished", {
+        instanceId,
+        elapsedMs: Math.round(performance.now() - flowStartedAt),
+      });
       await get().fetchInstances();
+      console.info("[Instance Start][Store] fetchInstances after start finished", {
+        instanceId,
+        elapsedMs: Math.round(performance.now() - flowStartedAt),
+      });
       return instance;
     },
 

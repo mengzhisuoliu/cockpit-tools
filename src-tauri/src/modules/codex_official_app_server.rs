@@ -2,7 +2,7 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 use std::sync::mpsc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use serde_json::{json, Value as JsonValue};
 
@@ -15,15 +15,35 @@ const CODEX_APP_SERVER_EXECUTABLE_ENV: &str = "CODEX_APP_SERVER_EXECUTABLE";
 const APP_SERVER_RESPONSE_TIMEOUT: Duration = Duration::from_secs(20);
 
 pub fn rebuild_thread_metadata(codex_home: &Path) -> Result<(), String> {
+    let flow_started = Instant::now();
+    crate::modules::logger::log_info(&format!(
+        "[Codex Official AppServer] rebuild_thread_metadata flow started: codex_home={}",
+        codex_home.display()
+    ));
+    let sanitize_started = Instant::now();
     crate::modules::codex_config_format::sanitize_codex_config_toml_file(
         &codex_home.join("config.toml"),
     )?;
+    crate::modules::logger::log_info(&format!(
+        "[Codex Official AppServer] sanitize config finished: codex_home={}, elapsed_ms={}, total_ms={}",
+        codex_home.display(),
+        sanitize_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
+    let executable_started = Instant::now();
     let executable = official_app_server_executable()?;
+    crate::modules::logger::log_info(&format!(
+        "[Codex Official AppServer] executable resolved: executable={}, elapsed_ms={}, total_ms={}",
+        executable.display(),
+        executable_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     crate::modules::logger::log_info(&format!(
         "[Codex Official AppServer] starting rebuild_thread_metadata: executable={}, codex_home={}",
         executable.display(),
         codex_home.display()
     ));
+    let spawn_started = Instant::now();
     let mut child = build_app_server_command(&executable, codex_home)
         .spawn()
         .map_err(|error| {
@@ -34,6 +54,13 @@ pub fn rebuild_thread_metadata(codex_home: &Path) -> Result<(), String> {
                 error
             )
         })?;
+    crate::modules::logger::log_info(&format!(
+        "[Codex Official AppServer] child spawned: codex_home={}, pid={:?}, elapsed_ms={}, total_ms={}",
+        codex_home.display(),
+        child.id(),
+        spawn_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
 
     let stdout = child
         .stdout
@@ -62,6 +89,7 @@ pub fn rebuild_thread_metadata(codex_home: &Path) -> Result<(), String> {
     });
 
     let result = (|| {
+        let initialize_started = Instant::now();
         send_request(
             &mut stdin,
             json!({
@@ -77,7 +105,14 @@ pub fn rebuild_thread_metadata(codex_home: &Path) -> Result<(), String> {
             }),
         )?;
         wait_for_response(&receiver, 1)?;
+        crate::modules::logger::log_info(&format!(
+            "[Codex Official AppServer] initialize finished: codex_home={}, elapsed_ms={}, total_ms={}",
+            codex_home.display(),
+            initialize_started.elapsed().as_millis(),
+            flow_started.elapsed().as_millis()
+        ));
 
+        let thread_list_started = Instant::now();
         send_request(
             &mut stdin,
             json!({
@@ -95,22 +130,37 @@ pub fn rebuild_thread_metadata(codex_home: &Path) -> Result<(), String> {
             }),
         )?;
         wait_for_response(&receiver, 2)?;
+        crate::modules::logger::log_info(&format!(
+            "[Codex Official AppServer] thread/list finished: codex_home={}, elapsed_ms={}, total_ms={}",
+            codex_home.display(),
+            thread_list_started.elapsed().as_millis(),
+            flow_started.elapsed().as_millis()
+        ));
         Ok::<(), String>(())
     })();
 
+    let finish_started = Instant::now();
     finish_child(&mut child);
     let _ = reader.join();
     let _ = stderr_reader.join();
+    crate::modules::logger::log_info(&format!(
+        "[Codex Official AppServer] child finished: codex_home={}, elapsed_ms={}, total_ms={}",
+        codex_home.display(),
+        finish_started.elapsed().as_millis(),
+        flow_started.elapsed().as_millis()
+    ));
     if let Err(error) = &result {
         crate::modules::logger::log_warn(&format!(
-            "[Codex Official AppServer] rebuild_thread_metadata failed: codex_home={}, error={}",
+            "[Codex Official AppServer] rebuild_thread_metadata failed: codex_home={}, elapsed_ms={}, error={}",
             codex_home.display(),
+            flow_started.elapsed().as_millis(),
             error
         ));
     } else {
         crate::modules::logger::log_info(&format!(
-            "[Codex Official AppServer] rebuild_thread_metadata completed: codex_home={}",
-            codex_home.display()
+            "[Codex Official AppServer] rebuild_thread_metadata completed: codex_home={}, elapsed_ms={}",
+            codex_home.display(),
+            flow_started.elapsed().as_millis()
         ));
     }
     result

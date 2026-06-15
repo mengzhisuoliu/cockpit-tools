@@ -1,5 +1,9 @@
 import * as codexInstanceService from '../services/codexInstanceService';
 import type {
+  CodexSessionVisibilityRepairInstanceList,
+  CodexSessionVisibilityRepairMode,
+  CodexSessionVisibilityRepairProviderList,
+  CodexSessionVisibilityRepairRequestOptions,
   CodexSessionVisibilityRepairSummary,
   CodexInstanceThreadSyncSummary,
   CodexInstanceTargetThreadSyncSummary,
@@ -17,7 +21,13 @@ type CodexInstanceStoreState = InstanceStoreState & {
     sessionIds: string[],
     targetInstanceId: string,
   ) => Promise<CodexInstanceTargetThreadSyncSummary>;
-  repairSessionVisibilityAcrossInstances: () => Promise<CodexSessionVisibilityRepairSummary>;
+  repairSessionVisibilityAcrossInstances: (
+    mode?: CodexSessionVisibilityRepairMode,
+    runId?: string,
+    options?: CodexSessionVisibilityRepairRequestOptions,
+  ) => Promise<CodexSessionVisibilityRepairSummary>;
+  listSessionVisibilityRepairInstances: () => Promise<CodexSessionVisibilityRepairInstanceList>;
+  listSessionVisibilityRepairProviders: () => Promise<CodexSessionVisibilityRepairProviderList>;
   listSessionsAcrossInstances: () => Promise<CodexSessionRecord[]>;
   getSessionTokenStatsAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionTokenStats[]>;
   moveSessionsToTrashAcrossInstances: (sessionIds: string[]) => Promise<CodexSessionTrashSummary>;
@@ -50,10 +60,22 @@ const syncSessionsToInstance = async (
   return summary;
 };
 
-const repairSessionVisibilityAcrossInstances = async (): Promise<CodexSessionVisibilityRepairSummary> => {
-  const summary = await codexInstanceService.repairSessionVisibilityAcrossInstances();
+const repairSessionVisibilityAcrossInstances = async (
+  mode?: CodexSessionVisibilityRepairMode,
+  runId?: string,
+  options?: CodexSessionVisibilityRepairRequestOptions,
+): Promise<CodexSessionVisibilityRepairSummary> => {
+  const summary = await codexInstanceService.repairSessionVisibilityAcrossInstances(mode, runId, options);
   await typedBaseStore.getState().fetchInstances();
   return summary;
+};
+
+const listSessionVisibilityRepairProviders = async (): Promise<CodexSessionVisibilityRepairProviderList> => {
+  return await codexInstanceService.listSessionVisibilityRepairProviders();
+};
+
+const listSessionVisibilityRepairInstances = async (): Promise<CodexSessionVisibilityRepairInstanceList> => {
+  return await codexInstanceService.listSessionVisibilityRepairInstances();
 };
 
 const listSessionsAcrossInstances = async (): Promise<CodexSessionRecord[]> => {
@@ -90,6 +112,8 @@ typedBaseStore.setState({
   syncThreadsAcrossInstances,
   syncSessionsToInstance,
   repairSessionVisibilityAcrossInstances,
+  listSessionVisibilityRepairInstances,
+  listSessionVisibilityRepairProviders,
   listSessionsAcrossInstances,
   getSessionTokenStatsAcrossInstances,
   moveSessionsToTrashAcrossInstances,

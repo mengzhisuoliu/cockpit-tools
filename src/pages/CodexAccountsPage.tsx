@@ -114,6 +114,11 @@ import {
 } from "../components/CodexOverviewTabsHeader";
 import { CodexInstancesContent } from "./CodexInstancesPage";
 import { CodexSessionManager } from "../components/codex/CodexSessionManager";
+import {
+  buildCodexSessionVisibilityInitialProgress,
+  CodexSessionVisibilityRepairProgressView,
+  createCodexSessionVisibilityRepairRunId,
+} from "../components/codex/CodexSessionVisibilityRepairModal";
 import { CodexWakeupContent } from "../components/codex/CodexWakeupContent";
 import { CodexModelProviderManager } from "../components/codex/CodexModelProviderManager";
 import { CodexSpeedSelect } from "../components/codex/CodexSpeedSelect";
@@ -129,7 +134,11 @@ import {
   type SingleSelectFilterOption,
 } from "../components/SingleSelectFilterDropdown";
 import { SingleSelectDropdown } from "../components/SingleSelectDropdown";
-import type { CodexAccount, CodexAppSpeed } from "../types/codex";
+import type {
+  CodexAccount,
+  CodexAppSpeed,
+  CodexSessionVisibilityRepairProgress,
+} from "../types/codex";
 import type {
   CodexLocalAccessAddressKind,
   CodexLocalAccessAccountHealth,
@@ -141,13 +150,13 @@ import type {
 } from "../types/codexLocalAccess";
 import {
   CODEX_API_SERVICE_BIND_ID,
+  CODEX_PROVIDER_GATEWAY_BIND_PREFIX,
   type InstanceProfile,
 } from "../types/instance";
 import {
   CODEX_CODE_REVIEW_QUOTA_VISIBILITY_CHANGED_EVENT,
   isCodexCodeReviewQuotaVisibleByDefault,
 } from "../utils/codexPreferences";
-import { formatCodexSessionVisibilityRepairMessage } from "../utils/codexSessionVisibility";
 import { emitAccountsChanged } from "../utils/accountSyncEvents";
 import { compareCurrentAccountFirst } from "../utils/currentAccountSort";
 import {
@@ -217,6 +226,7 @@ import {
   setCodexLocalAccessRiskNoticeDismissed,
   type CodexLocalAccessRiskNoticeAction,
 } from "../utils/codexLocalAccessRiskNotice";
+import { formatCodexSessionVisibilityRepairMessage } from "../utils/codexSessionVisibility";
 import md5 from "blueimp-md5";
 
 const CODEX_TOKEN_SINGLE_EXAMPLE = `{
@@ -460,12 +470,17 @@ function persistLocalAccessGatewayGuideDismissed(): void {
     // ignore storage write failures
   }
 }
-type CodexLaunchCredentialKind = "api-key" | "api-service" | "account";
+
+type CodexLaunchCredentialKind = "api" | "api-key" | "api-service" | "account";
 type CodexLaunchCredentialType = "api" | "account";
+
 type CodexApiSwitchNoticeContext = {
   from: CodexLaunchCredentialKind;
   to: CodexLaunchCredentialKind;
 };
+
+const CODEX_SESSION_VISIBILITY_REPAIR_PROGRESS_EVENT =
+  "codex:session_visibility_repair_progress";
 
 function getCodexLaunchCredentialKind(
   account: CodexAccount,
@@ -477,6 +492,14 @@ function getCodexLaunchCredentialType(
   kind: CodexLaunchCredentialKind,
 ): CodexLaunchCredentialType {
   return kind === "account" ? "account" : "api";
+}
+
+function getCodexLaunchCredentialKindFromType(
+  type: string | null | undefined,
+): CodexLaunchCredentialKind | null {
+  if (type === "api") return "api";
+  if (type === "account") return "account";
+  return null;
 }
 
 type CockpitApiJsonRecord = Record<string, unknown>;
@@ -881,8 +904,10 @@ export function CodexAccountsPage() {
     useState(false);
   const [apiSwitchNoticeContext, setApiSwitchNoticeContext] =
     useState<CodexApiSwitchNoticeContext | null>(null);
-  const [apiSwitchNoticeRepairing, setApiSwitchNoticeRepairing] =
-    useState(false);
+  const [apiSwitchNoticeRepairRunId, setApiSwitchNoticeRepairRunId] =
+    useState<string | null>(null);
+  const [apiSwitchNoticeRepairProgress, setApiSwitchNoticeRepairProgress] =
+    useState<CodexSessionVisibilityRepairProgress | null>(null);
   const [apiSwitchNoticeRepairResult, setApiSwitchNoticeRepairResult] =
     useState<string | null>(null);
   const {
@@ -1355,6 +1380,51 @@ export function CodexAccountsPage() {
       );
     }
   }, []);
+
+  const resolveCurrentCodexLaunchCredentialKind =
+    useCallback(async (): Promise<CodexLaunchCredentialKind | null> => {
+      try {
+        const activeAccount = await codexService.getCurrentCodexAccount();
+        if (activeAccount) {
+          return getCodexLaunchCredentialKind(activeAccount);
+        }
+
+        const instances = await codexInstanceService.listInstances();
+        const defaultInstance = instances.find(
+          (instance) => instance.isDefault,
+        );
+        const bindAccountId = defaultInstance?.bindAccountId ?? "";
+        if (bindAccountId === CODEX_API_SERVICE_BIND_ID) {
+          return "api-service";
+        }
+        if (bindAccountId.startsWith(CODEX_PROVIDER_GATEWAY_BIND_PREFIX)) {
+          return "api-key";
+        }
+        return null;
+      } catch (error) {
+        console.warn(
+          "Failed to resolve current Codex launch credential kind:",
+          error,
+        );
+        return null;
+      }
+    }, []);
+
+  const shouldShowApiSwitchVisibilityNotice = useCallback(
+    (
+      currentKind: CodexLaunchCredentialKind | null,
+      targetKind: CodexLaunchCredentialKind | null,
+    ) => {
+      if (!currentKind || !targetKind) {
+        return false;
+      }
+      return (
+        getCodexLaunchCredentialType(currentKind) !==
+        getCodexLaunchCredentialType(targetKind)
+      );
+    },
+    [],
+  );
 
   const exportFormatOptions = useMemo<SingleSelectFilterOption[]>(
     () => [
@@ -1903,6 +1973,103 @@ export function CodexAccountsPage() {
     setFilterTypes([]);
   }, []);
 
+  const closeApiSwitchVisibilityNotice = useCallback(() => {
+    apiSwitchNoticeRepairSeqRef.current += 1;
+    if (apiSwitchNoticeAutoCloseTimerRef.current != null) {
+      window.clearTimeout(apiSwitchNoticeAutoCloseTimerRef.current);
+      apiSwitchNoticeAutoCloseTimerRef.current = null;
+    }
+    setApiSwitchNoticeContext(null);
+    setApiSwitchNoticeRepairRunId(null);
+    setApiSwitchNoticeRepairProgress(null);
+    setApiSwitchNoticeRepairResult(null);
+    setApiSwitchNoticeError(null);
+  }, [setApiSwitchNoticeError]);
+
+  const runApiSwitchVisibilityRepair = useCallback(async () => {
+    const repairSeq = apiSwitchNoticeRepairSeqRef.current + 1;
+    const runId = createCodexSessionVisibilityRepairRunId();
+    apiSwitchNoticeRepairSeqRef.current = repairSeq;
+    if (apiSwitchNoticeAutoCloseTimerRef.current != null) {
+      window.clearTimeout(apiSwitchNoticeAutoCloseTimerRef.current);
+      apiSwitchNoticeAutoCloseTimerRef.current = null;
+    }
+    setApiSwitchNoticeError(null);
+    setApiSwitchNoticeRepairResult(null);
+    setApiSwitchNoticeRepairRunId(runId);
+    setApiSwitchNoticeRepairProgress(
+      buildCodexSessionVisibilityInitialProgress("quick", runId),
+    );
+    try {
+      const summary =
+        await codexInstanceService.repairSessionVisibilityAcrossInstances(
+          "quick",
+          runId,
+        );
+      if (apiSwitchNoticeRepairSeqRef.current === repairSeq) {
+        setApiSwitchNoticeRepairResult(
+          formatCodexSessionVisibilityRepairMessage(summary, t),
+        );
+        setApiSwitchNoticeRepairProgress((current) =>
+          current
+            ? {
+                ...current,
+                stage: "done",
+                percent: 100,
+              }
+            : buildCodexSessionVisibilityInitialProgress("quick", runId),
+        );
+        apiSwitchNoticeAutoCloseTimerRef.current = window.setTimeout(() => {
+          if (apiSwitchNoticeRepairSeqRef.current !== repairSeq) return;
+          apiSwitchNoticeRepairSeqRef.current += 1;
+          apiSwitchNoticeAutoCloseTimerRef.current = null;
+          setApiSwitchNoticeContext(null);
+          setApiSwitchNoticeRepairRunId(null);
+          setApiSwitchNoticeRepairProgress(null);
+          setApiSwitchNoticeRepairResult(null);
+          setApiSwitchNoticeError(null);
+        }, 1200);
+      }
+    } catch {
+      if (apiSwitchNoticeRepairSeqRef.current === repairSeq) {
+        setApiSwitchNoticeError(
+          t(
+            "codex.apiSwitchNotice.repairFailed",
+            "修复可见性失败。你仍可稍后在「会话管理」中重试。",
+          ),
+        );
+      }
+    }
+  }, [setApiSwitchNoticeError, t]);
+
+  const openApiSwitchVisibilityNotice = useCallback(
+    (context: CodexApiSwitchNoticeContext) => {
+      setApiSwitchNoticeContext(context);
+      setApiSwitchNoticeRepairResult(null);
+      setApiSwitchNoticeRepairRunId(null);
+      setApiSwitchNoticeRepairProgress(null);
+      setApiSwitchNoticeError(null);
+      void runApiSwitchVisibilityRepair();
+    },
+    [runApiSwitchVisibilityRepair, setApiSwitchNoticeError],
+  );
+
+  const formatCodexLaunchCredentialKindLabel = useCallback(
+    (kind: CodexLaunchCredentialKind) => {
+      if (kind === "api-service") {
+        return t("codex.apiSwitchNotice.type.apiService", "API 服务");
+      }
+      if (kind === "api-key") {
+        return t("codex.apiSwitchNotice.type.apiKey", "API Key");
+      }
+      if (kind === "api") {
+        return t("codex.apiSwitchNotice.type.api", "API 模式");
+      }
+      return t("codex.apiSwitchNotice.type.account", "账号");
+    },
+    [t],
+  );
+
   const validateApiKeyCredentialInputs = useCallback(
     (
       apiKeyRaw: string,
@@ -2274,10 +2441,6 @@ export function CodexAccountsPage() {
   const [customSortDropTargetId, setCustomSortDropTargetId] = useState<
     string | null
   >(null);
-  const repairSessionVisibilityAcrossInstances = useCodexInstanceStore(
-    (state) => state.repairSessionVisibilityAcrossInstances,
-  );
-
   const showAddModalRef = useRef(showAddModal);
   const addTabRef = useRef(addTab);
   const addStatusRef = useRef(addStatus);
@@ -2287,12 +2450,12 @@ export function CodexAccountsPage() {
   const oauthEventSeqRef = useRef(0);
   const oauthAttemptSeqRef = useRef(0);
   const inlineRenameDiscardRef = useRef(false);
+  const apiSwitchNoticeRepairSeqRef = useRef(0);
+  const apiSwitchNoticeAutoCloseTimerRef = useRef<number | null>(null);
   const skipManagedProviderApiKeyAutofillRef = useRef(false);
   const apiKeyFunPrefillModelCatalogRef = useRef<string[] | null>(null);
   const pendingApiKeyFunCodexPrefillRef =
     useRef<ApiKeyFunPrefillPayload | null>(null);
-  const apiSwitchNoticeRepairSeqRef = useRef(0);
-  const apiSwitchNoticeAutoCloseTimerRef = useRef<number | null>(null);
 
   useEffect(
     () => () => {
@@ -2303,6 +2466,34 @@ export function CodexAccountsPage() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (!apiSwitchNoticeRepairRunId) return;
+
+    let disposed = false;
+    let unlisten: UnlistenFn | null = null;
+    void listen<CodexSessionVisibilityRepairProgress>(
+      CODEX_SESSION_VISIBILITY_REPAIR_PROGRESS_EVENT,
+      (event) => {
+        const payload = event.payload;
+        if (!payload || payload.runId !== apiSwitchNoticeRepairRunId) {
+          return;
+        }
+        setApiSwitchNoticeRepairProgress(payload);
+      },
+    ).then((nextUnlisten) => {
+      if (disposed) {
+        nextUnlisten();
+      } else {
+        unlisten = nextUnlisten;
+      }
+    });
+
+    return () => {
+      disposed = true;
+      unlisten?.();
+    };
+  }, [apiSwitchNoticeRepairRunId]);
 
   const selectedApiProviderPreset = useMemo(
     () => findCodexApiProviderPresetById(apiProviderPresetId),
@@ -3232,46 +3423,6 @@ export function CodexAccountsPage() {
 
   // ─── Codex-specific: Switch / Import ─────────────────────────────────
 
-  const resolveCurrentCodexLaunchCredentialKind =
-    useCallback(async (): Promise<CodexLaunchCredentialKind | null> => {
-      try {
-        const activeAccount = await codexService.getCurrentCodexAccount();
-        if (activeAccount) {
-          return getCodexLaunchCredentialKind(activeAccount);
-        }
-
-        const instances = await codexInstanceService.listInstances();
-        const defaultInstance = instances.find(
-          (instance) => instance.isDefault,
-        );
-        return defaultInstance?.bindAccountId === CODEX_API_SERVICE_BIND_ID
-          ? "api-service"
-          : null;
-      } catch (error) {
-        console.warn(
-          "Failed to resolve current Codex launch credential kind:",
-          error,
-        );
-        return null;
-      }
-    }, []);
-
-  const shouldShowApiSwitchVisibilityNotice = useCallback(
-    (
-      currentKind: CodexLaunchCredentialKind | null,
-      targetKind: CodexLaunchCredentialKind | null,
-    ) => {
-      if (!currentKind || !targetKind) {
-        return false;
-      }
-      return (
-        getCodexLaunchCredentialType(currentKind) !==
-        getCodexLaunchCredentialType(targetKind)
-      );
-    },
-    [],
-  );
-
   const resolveBoundOAuthAccount = useCallback(
     (account: CodexAccount) => {
       const boundId = (account.bound_oauth_account_id || "").trim();
@@ -3344,83 +3495,6 @@ export function CodexAccountsPage() {
     ],
   );
 
-  const closeApiSwitchVisibilityNotice = useCallback(() => {
-    apiSwitchNoticeRepairSeqRef.current += 1;
-    if (apiSwitchNoticeAutoCloseTimerRef.current != null) {
-      window.clearTimeout(apiSwitchNoticeAutoCloseTimerRef.current);
-      apiSwitchNoticeAutoCloseTimerRef.current = null;
-    }
-    setApiSwitchNoticeContext(null);
-    setApiSwitchNoticeRepairing(false);
-    setApiSwitchNoticeRepairResult(null);
-    setApiSwitchNoticeError(null);
-  }, [setApiSwitchNoticeError]);
-
-  const runApiSwitchVisibilityRepair = useCallback(async () => {
-    const repairSeq = apiSwitchNoticeRepairSeqRef.current + 1;
-    apiSwitchNoticeRepairSeqRef.current = repairSeq;
-    if (apiSwitchNoticeAutoCloseTimerRef.current != null) {
-      window.clearTimeout(apiSwitchNoticeAutoCloseTimerRef.current);
-      apiSwitchNoticeAutoCloseTimerRef.current = null;
-    }
-    setApiSwitchNoticeError(null);
-    setApiSwitchNoticeRepairResult(null);
-    setApiSwitchNoticeRepairing(true);
-    try {
-      const summary = await repairSessionVisibilityAcrossInstances();
-      if (apiSwitchNoticeRepairSeqRef.current === repairSeq) {
-        setApiSwitchNoticeRepairResult(
-          formatCodexSessionVisibilityRepairMessage(summary, t),
-        );
-        apiSwitchNoticeAutoCloseTimerRef.current = window.setTimeout(() => {
-          if (apiSwitchNoticeRepairSeqRef.current !== repairSeq) return;
-          apiSwitchNoticeRepairSeqRef.current += 1;
-          apiSwitchNoticeAutoCloseTimerRef.current = null;
-          setApiSwitchNoticeContext(null);
-          setApiSwitchNoticeRepairing(false);
-          setApiSwitchNoticeRepairResult(null);
-          setApiSwitchNoticeError(null);
-        }, 1200);
-      }
-    } catch {
-      if (apiSwitchNoticeRepairSeqRef.current === repairSeq) {
-        setApiSwitchNoticeError(
-          t(
-            "codex.apiSwitchNotice.repairFailed",
-            "自动修复失败。你仍可稍后在「会话管理」中使用「修复可见性」重试。",
-          ),
-        );
-      }
-    } finally {
-      if (apiSwitchNoticeRepairSeqRef.current === repairSeq) {
-        setApiSwitchNoticeRepairing(false);
-      }
-    }
-  }, [repairSessionVisibilityAcrossInstances, setApiSwitchNoticeError, t]);
-
-  const openApiSwitchVisibilityNotice = useCallback(
-    (context: CodexApiSwitchNoticeContext) => {
-      setApiSwitchNoticeContext(context);
-      setApiSwitchNoticeRepairResult(null);
-      setApiSwitchNoticeError(null);
-      void runApiSwitchVisibilityRepair();
-    },
-    [runApiSwitchVisibilityRepair, setApiSwitchNoticeError],
-  );
-
-  const formatCodexLaunchCredentialKindLabel = useCallback(
-    (kind: CodexLaunchCredentialKind) => {
-      if (kind === "api-service") {
-        return t("codex.apiSwitchNotice.type.apiService", "API 服务");
-      }
-      if (kind === "api-key") {
-        return t("codex.apiSwitchNotice.type.apiKey", "API Key");
-      }
-      return t("codex.apiSwitchNotice.type.account", "账号");
-    },
-    [t],
-  );
-
   const formatCodexAuthFailureMessage = useCallback(
     (rawError: unknown) => {
       const raw = String(rawError)
@@ -3488,7 +3562,20 @@ export function CodexAccountsPage() {
 
   const executeCodexAccountSwitch = useCallback(
     async (accountId: string, options?: { showSuccessMessage?: boolean }) => {
+      const flowStartedAt = performance.now();
+      console.info("[Codex Switch][UI] button loading started", {
+        accountId,
+      });
       const showSuccessMessage = options?.showSuccessMessage ?? true;
+      const currentKind = await resolveCurrentCodexLaunchCredentialKind();
+      const targetAccount = accounts.find((account) => account.id === accountId);
+      const targetKind = targetAccount
+        ? getCodexLaunchCredentialKind(targetAccount)
+        : null;
+      const shouldShowVisibilityNotice = shouldShowApiSwitchVisibilityNotice(
+        currentKind,
+        targetKind,
+      );
       setMessage(null);
       setSwitching(accountId);
       try {
@@ -3501,33 +3588,36 @@ export function CodexAccountsPage() {
             }),
           });
         }
+        if (shouldShowVisibilityNotice && currentKind && targetKind) {
+          openApiSwitchVisibilityNotice({
+            from: currentKind,
+            to: getCodexLaunchCredentialKind(account),
+          });
+        }
         return account;
       } finally {
         setSwitching(null);
+        console.info("[Codex Switch][UI] button loading finished", {
+          accountId,
+          elapsedMs: Math.round(performance.now() - flowStartedAt),
+        });
       }
     },
-    [maskAccountText, setMessage, switchAccount, t],
+    [
+      accounts,
+      maskAccountText,
+      openApiSwitchVisibilityNotice,
+      resolveCurrentCodexLaunchCredentialKind,
+      setMessage,
+      shouldShowApiSwitchVisibilityNotice,
+      switchAccount,
+      t,
+    ],
   );
 
   const handleSwitch = async (accountId: string) => {
-    const targetAccount = accounts.find((account) => account.id === accountId);
-
     try {
-      const currentKind = await resolveCurrentCodexLaunchCredentialKind();
-      const targetKind = targetAccount
-        ? getCodexLaunchCredentialKind(targetAccount)
-        : null;
-      const shouldShowVisibilityNotice = shouldShowApiSwitchVisibilityNotice(
-        currentKind,
-        targetKind,
-      );
-      const switchedAccount = await executeCodexAccountSwitch(accountId);
-      if (shouldShowVisibilityNotice && currentKind && targetKind) {
-        openApiSwitchVisibilityNotice({
-          from: currentKind,
-          to: getCodexLaunchCredentialKind(switchedAccount),
-        });
-      }
+      await executeCodexAccountSwitch(accountId);
     } catch (e) {
       setMessage({
         text: t("codex.switchFailed", {
@@ -3750,6 +3840,11 @@ export function CodexAccountsPage() {
         selected,
       );
       const prepared = await codexInstanceService.startInstance(instance.id);
+      if (prepared.codexLaunchCredentialChange) {
+        handleCodexInstanceLaunchCredentialChange(
+          prepared.codexLaunchCredentialChange,
+        );
+      }
       const result =
         await codexInstanceService.executeCodexInstanceLaunchCommand(
           prepared.id,
@@ -3794,6 +3889,11 @@ export function CodexAccountsPage() {
 
       const instance = await resolveCodexCliInstanceForApiService(selected);
       const prepared = await codexInstanceService.startInstance(instance.id);
+      if (prepared.codexLaunchCredentialChange) {
+        handleCodexInstanceLaunchCredentialChange(
+          prepared.codexLaunchCredentialChange,
+        );
+      }
       const result =
         await codexInstanceService.executeCodexInstanceLaunchCommand(
           prepared.id,
@@ -3814,6 +3914,18 @@ export function CodexAccountsPage() {
       setCliLaunchingAccountId(null);
     }
   };
+
+  const handleCodexInstanceLaunchCredentialChange = useCallback(
+    (change: { from: string; to: string }) => {
+      const from = getCodexLaunchCredentialKindFromType(change.from);
+      const to = getCodexLaunchCredentialKindFromType(change.to);
+      if (!shouldShowApiSwitchVisibilityNotice(from, to) || !from || !to) {
+        return;
+      }
+      openApiSwitchVisibilityNotice({ from, to });
+    },
+    [openApiSwitchVisibilityNotice, shouldShowApiSwitchVisibilityNotice],
+  );
 
   const handleImportFromLocal = async () => {
     page.setAddStatus("loading");
@@ -6854,6 +6966,13 @@ export function CodexAccountsPage() {
       }
       const confirmed = await requestLocalAccessRiskNotice("service");
       if (!confirmed) return;
+      const flowStartedAt = performance.now();
+      const currentKind = await resolveCurrentCodexLaunchCredentialKind();
+      const shouldShowVisibilityNotice = shouldShowApiSwitchVisibilityNotice(
+        currentKind,
+        "api-service",
+      );
+      console.info("[Codex API Service Switch][UI] button loading started");
       setLocalAccessStarting(true);
       try {
         const nextState =
@@ -6866,18 +6985,31 @@ export function CodexAccountsPage() {
             text: t("codex.localAccess.activateSuccess", "已切换到 API 服务"),
           });
         }
+        if (shouldShowVisibilityNotice && currentKind) {
+          openApiSwitchVisibilityNotice({
+            from: currentKind,
+            to: "api-service",
+          });
+        }
         return nextState;
       } catch (error) {
         throw new Error(String(error).replace(/^Error:\s*/, ""));
       } finally {
         setLocalAccessStarting(false);
+        console.info(
+          "[Codex API Service Switch][UI] button loading finished",
+          { elapsedMs: Math.round(performance.now() - flowStartedAt) },
+        );
       }
     },
     [
       fetchCurrentAccount,
       localAccessCollection,
+      openApiSwitchVisibilityNotice,
       requestLocalAccessRiskNotice,
+      resolveCurrentCodexLaunchCredentialKind,
       setMessage,
+      shouldShowApiSwitchVisibilityNotice,
       t,
     ],
   );
@@ -6898,19 +7030,9 @@ export function CodexAccountsPage() {
 
   const handleQuickActivateLocalAccess = useCallback(async () => {
     try {
-      const currentKind = await resolveCurrentCodexLaunchCredentialKind();
       const state = await handleActivateLocalAccess();
       if (!state) {
         return;
-      }
-      if (
-        shouldShowApiSwitchVisibilityNotice(currentKind, "api-service") &&
-        currentKind
-      ) {
-        openApiSwitchVisibilityNotice({
-          from: currentKind,
-          to: "api-service",
-        });
       }
     } catch (error) {
       setMessage({
@@ -6921,14 +7043,7 @@ export function CodexAccountsPage() {
         tone: "error",
       });
     }
-  }, [
-    handleActivateLocalAccess,
-    openApiSwitchVisibilityNotice,
-    resolveCurrentCodexLaunchCredentialKind,
-    setMessage,
-    shouldShowApiSwitchVisibilityNotice,
-    t,
-  ]);
+  }, [handleActivateLocalAccess, setMessage, t]);
 
   const handleQuickRefreshLocalAccessQuota = useCallback(async () => {
     if (!localAccessCollection) return;
@@ -13392,76 +13507,6 @@ export function CodexAccountsPage() {
             </div>
           )}
 
-          {apiSwitchNoticeContext && (
-            <div
-              className="modal-overlay codex-local-access-hide-confirm-overlay"
-              onClick={closeApiSwitchVisibilityNotice}
-            >
-              <div
-                className="modal codex-local-access-hide-confirm-modal codex-api-switch-notice-modal"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="modal-header">
-                  <h2>
-                    {t("codex.apiSwitchNotice.title", "Codex 会话不可见")}
-                  </h2>
-                  <button
-                    className="modal-close"
-                    onClick={closeApiSwitchVisibilityNotice}
-                    aria-label={t("common.close", "关闭")}
-                  >
-                    <X />
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <ModalErrorMessage
-                    message={apiSwitchNoticeError}
-                    scrollKey={apiSwitchNoticeErrorScrollKey}
-                  />
-                  <p className="codex-local-access-hide-confirm-desc">
-                    {t(
-                      "codex.apiSwitchNotice.message",
-                      "检测到 Codex 已从 {{from}} 切换到 {{to}}。由于官方机制，API 与账号直接切换后，原有会话可能不会自动显示。正在自动修复会话可见性，后续也可以通过「会话管理」里的「修复可见性」功能修复。",
-                      {
-                        from: formatCodexLaunchCredentialKindLabel(
-                          apiSwitchNoticeContext.from,
-                        ),
-                        to: formatCodexLaunchCredentialKindLabel(
-                          apiSwitchNoticeContext.to,
-                        ),
-                      },
-                    )}
-                  </p>
-                  {apiSwitchNoticeRepairing && (
-                    <div className="codex-api-switch-notice-repair-status is-loading">
-                      <RefreshCw size={14} className="loading-spinner" />
-                      <span>
-                        {t(
-                          "codex.apiSwitchNotice.repairing",
-                          "正在修复 Codex 会话可见性...",
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  {apiSwitchNoticeRepairResult && (
-                    <div className="codex-api-switch-notice-repair-status is-success">
-                      <Check size={14} />
-                      <span>{apiSwitchNoticeRepairResult}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="modal-footer codex-api-switch-notice-footer">
-                  <button
-                    className="btn btn-primary"
-                    onClick={closeApiSwitchVisibilityNotice}
-                  >
-                    {t("common.close", "关闭")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {deleteConfirm && (
             <div
               className="modal-overlay"
@@ -13784,7 +13829,10 @@ export function CodexAccountsPage() {
       )}
 
       {activeTab === "instances" && (
-        <CodexInstancesContent accountsForSelect={sortedAccountsForInstances} />
+        <CodexInstancesContent
+          accountsForSelect={sortedAccountsForInstances}
+          onLaunchCredentialChange={handleCodexInstanceLaunchCredentialChange}
+        />
       )}
 
       {activeTab === "sessions" && <CodexSessionManager />}
@@ -13809,6 +13857,66 @@ export function CodexAccountsPage() {
             await fetchCurrentAccount();
           }}
         />
+      )}
+
+      {apiSwitchNoticeContext && (
+        <div
+          className="modal-overlay codex-local-access-hide-confirm-overlay"
+          onClick={closeApiSwitchVisibilityNotice}
+        >
+          <div
+            className="modal codex-local-access-hide-confirm-modal codex-api-switch-notice-modal"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <h2>{t("codex.apiSwitchNotice.title", "Codex 会话不可见")}</h2>
+              <button
+                className="modal-close"
+                onClick={closeApiSwitchVisibilityNotice}
+                aria-label={t("common.close", "关闭")}
+              >
+                <X />
+              </button>
+            </div>
+            <div className="modal-body">
+              <ModalErrorMessage
+                message={apiSwitchNoticeError}
+                scrollKey={apiSwitchNoticeErrorScrollKey}
+              />
+              <p className="codex-local-access-hide-confirm-desc">
+                {t("codex.apiSwitchNotice.message", {
+                  defaultValue:
+                    "检测到 Codex 已从 {{from}} 切换到 {{to}}。由于官方机制，这类切换后原有会话可能不会自动显示。正在自动修复会话可见性，后续也可以在「会话管理」中手动修复。",
+                  from: formatCodexLaunchCredentialKindLabel(
+                    apiSwitchNoticeContext.from,
+                  ),
+                  to: formatCodexLaunchCredentialKindLabel(
+                    apiSwitchNoticeContext.to,
+                  ),
+                })}
+              </p>
+              {apiSwitchNoticeRepairProgress && (
+                <CodexSessionVisibilityRepairProgressView
+                  progress={apiSwitchNoticeRepairProgress}
+                />
+              )}
+              {apiSwitchNoticeRepairResult && (
+                <div className="codex-api-switch-notice-repair-status is-success">
+                  <Check size={14} />
+                  <span>{apiSwitchNoticeRepairResult}</span>
+                </div>
+              )}
+            </div>
+            <div className="modal-footer codex-api-switch-notice-footer">
+              <button
+                className="btn btn-primary"
+                onClick={closeApiSwitchVisibilityNotice}
+              >
+                {t("common.close", "关闭")}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

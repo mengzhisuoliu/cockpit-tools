@@ -7,11 +7,11 @@ English · [Portuguese (BR)](README.pt-br.md) · [简体中文](README.md)
 [![GitHub release](https://img.shields.io/github/v/release/jlcodes99/cockpit-tools?style=flat)](https://github.com/jlcodes99/cockpit-tools/releases)
 [![GitHub issues](https://img.shields.io/github/issues/jlcodes99/cockpit-tools)](https://github.com/jlcodes99/cockpit-tools/issues)
 
-A **universal AI IDE account management tool**, currently supporting **Antigravity IDE**, **Codex**, **Claude Desktop**, **GitHub Copilot**, **Windsurf**, **Kiro**, **Cursor**, **Gemini Cli**, **CodeBuddy**, **CodeBuddy CN**, **Qoder**, **Trae**, and **Zed**, with multi-instance parallel workflows.
+A **universal AI IDE account management tool**, currently supporting **Antigravity IDE**, **Codex**, **GitHub Copilot**, **Windsurf**, **Kiro**, **Cursor**, **Gemini Cli**, **CodeBuddy**, **CodeBuddy CN**, **Qoder**, **Trae**, and **Zed**, with multi-instance parallel workflows.
 
 > Designed to help users efficiently manage multiple AI IDE accounts, this tool supports one-click switching, quota monitoring, wake-up tasks, and multi-instance parallel runs, helping you fully utilize resources from different accounts.
 
-**Features**: One-click Switch · Multi-account Management · Multi-instance · Quota Monitoring · Wake-up Tasks · Plugin Integration · Claude Desktop Management · GitHub Copilot Management · Windsurf Management · Kiro Management · Cursor Management · Gemini Cli Management · CodeBuddy Management · CodeBuddy CN Management · Qoder Management · Trae Management · Zed Management
+**Features**: One-click Switch · Multi-account Management · Multi-instance · Quota Monitoring · Wake-up Tasks · Plugin Integration · GitHub Copilot Management · Windsurf Management · Kiro Management · Cursor Management · Gemini Cli Management · CodeBuddy Management · CodeBuddy CN Management · Qoder Management · Trae Management · Zed Management
 
 **Languages**: Supports 18 languages
 
@@ -54,7 +54,7 @@ A **universal AI IDE account management tool**, currently supporting **Antigravi
 
 A brand new visual dashboard providing a one-stop status overview:
 
-- **Thirteen-Platform Support**: Simultaneously displays Antigravity IDE, Codex, Claude Desktop, GitHub Copilot, Windsurf, Kiro, Cursor, Gemini Cli, CodeBuddy, CodeBuddy CN, Qoder, Trae, and Zed account status
+- **Twelve-Platform Support**: Simultaneously displays Antigravity IDE, Codex, GitHub Copilot, Windsurf, Kiro, Cursor, Gemini Cli, CodeBuddy, CodeBuddy CN, Qoder, Trae, and Zed account status
 - **Quota Monitoring**: Real-time view of remaining quotas and reset times for each model
 - **Quick Actions**: One-click refresh, one-click wake-up
 - **Visual Progress**: Intuitive progress bars showing quota consumption
@@ -101,31 +101,14 @@ Codex also supports parallel multi-instance usage. For example, open two Codex i
 
 > ![Codex Instances](docs/images/codex_instances.png)
 
-### 4. Claude Account Management
-
-- **Account Import**: Supports in-platform Claude Desktop sign-in import, Claude CLI multi-provider API Key import, importing the current Claude Desktop sign-in state, and JSON import
-- **Quota View**: Shows 5h / 7d / Extra usage, reset times, and refresh errors
-- **Batch Operations**: Supports tags, filters, export, and batch delete/refresh
-- **Desktop Switching**: Claude Desktop sign-in state is first saved as a local snapshot in this tool; switching quits official Claude Desktop, backs up the current `~/Library/Application Support/Claude`, restores the selected sign-in state, and reopens Claude
-- **Desktop Instance Writeback**: Claude Desktop sign-in state is restored into the target instance profile directory; API Key accounts are standalone credentials and are not written into Claude Desktop sign-in state
-
-#### 4.1 Claude Desktop Multi-Instance
-
-Supports Claude Desktop app-level multi-instance management. Each instance can bind a different Desktop sign-in account and use an isolated profile directory; start, stop, focus, and running-state checks use the real application process PID.
-
-- **Isolated Profile**: Each instance uses its own Claude Desktop profile directory
-- **Real Isolation**: Startup sets Electron `userData` through the official `CLAUDE_USER_DATA_DIR`; `--user-data-dir` is kept only for process matching and compatibility
-- **Account Binding**: The bound Claude Desktop sign-in snapshot is restored before startup
-- **App Management**: Start, stop, focus windows, and display the real PID
-
-### 5. GitHub Copilot Account Management
+### 4. GitHub Copilot Account Management
 
 - **Account Import**: OAuth, Token/JSON import
 - **Quota View**: Inline Suggestions / Chat messages usage and reset time
 - **Plan Recognition**: Auto-detects Free / Individual / Pro / Business / Enterprise tiers
 - **Batch Operations**: Tags and bulk actions
 
-#### 5.1 GitHub Copilot Multi-Instance
+#### 4.1 GitHub Copilot Multi-Instance
 
 Manage VS Code Copilot instances with isolated profiles and lifecycle controls.
 
@@ -133,14 +116,14 @@ Manage VS Code Copilot instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: Start/stop/force stop instances
 - **Window Control**: Open instance windows and close all instances
 
-### 6. Windsurf Account Management
+### 5. Windsurf Account Management
 
 - **Account Import**: OAuth, Token/JSON import, and local import
 - **Quota View**: Shows Plan, User Prompt credits, Add-on prompt credits, and cycle information
 - **Batch Operations**: Tags and bulk actions
 - **Switch Injection**: Supports injecting and launching Windsurf after account switch
 
-#### 6.1 Windsurf Multi-Instance
+#### 5.1 Windsurf Multi-Instance
 
 Manage Windsurf instances with isolated profiles and lifecycle controls.
 
@@ -148,14 +131,14 @@ Manage Windsurf instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: Start/stop/force stop instances
 - **Window Control**: Open instance windows and close all instances
 
-### 7. Kiro Account Management
+### 6. Kiro Account Management
 
 - **Account Import**: OAuth, Token/JSON import, and local import
 - **Quota View**: Shows Plan, User Prompt credits, Add-on prompt credits, and cycle information
 - **Batch Operations**: Tags and bulk actions
 - **Switch Injection**: Supports injecting and launching Kiro after account switch
 
-#### 7.1 Kiro Multi-Instance
+#### 6.1 Kiro Multi-Instance
 
 Manage Kiro instances with isolated profiles and lifecycle controls.
 
@@ -163,14 +146,14 @@ Manage Kiro instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: Start/stop/force stop instances
 - **Window Control**: Open instance windows and close all instances
 
-### 8. Cursor Account Management
+### 7. Cursor Account Management
 
 - **Account Import**: OAuth, Token/JSON import, and local import
 - **Quota View**: Shows Total Usage, Auto + Composer, API Usage, On-Demand, and cycle information
 - **Batch Operations**: Tags and bulk actions
 - **Switch Injection**: Supports injecting and launching Cursor after account switch
 
-#### 8.1 Cursor Multi-Instance
+#### 7.1 Cursor Multi-Instance
 
 Manage Cursor instances with isolated profiles and lifecycle controls.
 
@@ -178,7 +161,7 @@ Manage Cursor instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: Start/stop/force stop instances
 - **Window Control**: Open instance windows and close all instances
 
-### 9. Gemini Cli Account Management
+### 8. Gemini Cli Account Management
 
 - **Account Import**: OAuth, Token/JSON import, and local import
 - **Quota View**: Shows Total Usage, Auto + Composer, API Usage, On-Demand, and cycle information
@@ -186,14 +169,14 @@ Manage Cursor instances with isolated profiles and lifecycle controls.
 - **Switch Injection**: Supports injecting Gemini Cli local credentials after account switch (`~/.gemini`)
 - **Platform Limitation**: Gemini Cli multi-instance management is not supported yet
 
-### 10. CodeBuddy Account Management
+### 9. CodeBuddy Account Management
 
 - **Account Import**: OAuth and Token/JSON import
 - **Quota View**: quota query, cycle details, and extra-credit display
 - **Batch Operations**: tags and bulk actions
 - **Switch Injection**: supports injecting and launching CodeBuddy after account switch
 
-#### 10.1 CodeBuddy Multi-Instance
+#### 9.1 CodeBuddy Multi-Instance
 
 Manage CodeBuddy instances with isolated profiles and lifecycle controls.
 
@@ -201,14 +184,14 @@ Manage CodeBuddy instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: Start/stop/force stop instances
 - **Window Control**: Open instance windows and close all instances
 
-### 11. CodeBuddy CN Account Management
+### 10. CodeBuddy CN Account Management
 
 - **Account Import**: supports OAuth, Token/JSON import, and local-client import
 - **Quota View**: shows plan and usage status, with a shortcut to open detailed quota information on the official web page
 - **Batch Operations**: supports tags and bulk actions
 - **Switch Injection**: supports writing local auth state back and launching CodeBuddy CN after account switch
 
-#### 11.1 CodeBuddy CN Multi-Instance
+#### 10.1 CodeBuddy CN Multi-Instance
 
 Manage CodeBuddy CN instances with isolated profiles and lifecycle controls.
 
@@ -216,14 +199,14 @@ Manage CodeBuddy CN instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: start/stop/force stop instances
 - **Window Control**: open instance windows and close all instances
 
-### 12. Qoder Account Management
+### 11. Qoder Account Management
 
 - **Account Import**: supports local import and JSON import
 - **Quota View**: shows Credits usage, remaining credits, and raw plan values
 - **Batch Operations**: supports tags, filters, export, and batch delete/refresh
 - **Switch Injection**: supports injecting and launching Qoder after account switch
 
-#### 12.1 Qoder Multi-Instance
+#### 11.1 Qoder Multi-Instance
 
 Manage Qoder instances with isolated profiles and lifecycle controls.
 
@@ -231,14 +214,14 @@ Manage Qoder instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: start/stop/force stop instances
 - **Window Control**: open instance windows and close all instances
 
-### 13. Trae Account Management
+### 12. Trae Account Management
 
 - **Account Import**: supports local import and JSON import
 - **Quota View**: shows raw plan values, USD spent/total budget, and reset time
 - **Batch Operations**: supports tags, filters, export, and batch delete/refresh
 - **Switch Injection**: supports writing back local auth state and launching Trae after account switch
 
-#### 13.1 Trae Multi-Instance
+#### 12.1 Trae Multi-Instance
 
 Manage Trae instances with isolated profiles and lifecycle controls.
 
@@ -246,17 +229,17 @@ Manage Trae instances with isolated profiles and lifecycle controls.
 - **Quick Lifecycle**: start/stop/force stop instances
 - **Window Control**: open instance windows and close all instances
 
-### 14. Zed Account Management
+### 13. Zed Account Management
 
 - **Account Import**: Supports official OAuth sign-in, JSON import, and importing the current local sign-in state
 - **Usage View**: Shows subscription status, Edit Predictions, Token Spend, Spend Limit, and billing period end
 - **Batch Operations**: Supports tags, filters, export, and batch delete/refresh
 - **Switch Injection**: Applies the selected account back to the official Zed client using the client's real local persistence rules and restarts the client when needed
 
-### 15. General Settings
+### 14. General Settings
 
 - **Personalized Settings**: Theme switching, language settings, auto-refresh interval
-- **Platform Controls**: Centralized Claude Desktop launch-path and quota-alert settings, plus CodeBuddy CN/Qoder/Trae/Zed launch-path and quota-alert settings
+- **Platform Controls**: Centralized CodeBuddy CN/Qoder/Trae/Zed launch-path and quota-alert settings
 
 > ![Settings](docs/images/settings_page.png)
 
@@ -270,12 +253,10 @@ These are the most common security questions answered directly:
 - **Data is mainly stored on your machine**:
   - `~/.antigravity_cockpit`: Antigravity IDE accounts, configs, WebSocket status, etc.
   - `~/.codex`: official Codex current login `auth.json`
-  - `~/Library/Application Support/Claude`: the official macOS Claude Desktop Electron profile; Desktop account switching backs up and restores sign-in files in this directory
-  - `~/.claude`, `~/.claude.json`: legacy CLI OAuth credentials and config; retained only for old account JSON compatibility, not as a new sign-in entry
   - `~/.gemini`: Gemini Cli local session files (for example `oauth_creds.json`, `google_accounts.json`, `settings.json`)
-  - local app data folder under `com.antigravity.cockpit-tools`: Codex / Claude / GitHub Copilot / Windsurf / Kiro / Cursor / Gemini Cli / CodeBuddy / CodeBuddy CN / Qoder / Trae / Zed multi-account indexes, Claude Desktop sign-in snapshots, etc.
+  - local app data folder under `com.antigravity.cockpit-tools`: Codex / GitHub Copilot / Windsurf / Kiro / Cursor / Gemini Cli / CodeBuddy / CodeBuddy CN / Qoder / Trae / Zed multi-account index data, etc.
 - **WebSocket is local-only by default**: binds to `127.0.0.1`, default port `19528`; you can disable it or change the port in Settings.
-- **When network access happens**: OAuth login, token refresh, quota fetching, update checks, and other official API requests. The in-platform Claude Desktop sign-in window accesses `claude.ai`, and Desktop profile refresh uses the local sign-in state to request Claude Web APIs on `claude.ai`; Claude API Key import itself does not access the network and is not written into Claude Desktop sign-in state.
+- **When network access happens**: OAuth login, token refresh, quota fetching, update checks, and other official API requests.
 - **macOS privacy permission prompts**: after you start Codex/agent from Cockpit Tools, if an agent-run shell command accesses protected folders such as Desktop, Documents, Downloads, or Photos, macOS may show the request as "Cockpit Tools would like to access...". This happens because those commands are child processes launched by Cockpit Tools, so macOS attributes the request to the host app; it does not by itself mean the Cockpit Tools main process is actively scanning those folders. Grant access only when you trust the current agent task and the commands it is going to run. If unsure, deny the prompt or run the project from a normal working directory first.
 - **Practical safety tips**:
   1. If you do not need plugin integration, disable WebSocket.
@@ -295,7 +276,6 @@ If you want a stable setup with minimal tuning, follow the "Recommended" values.
 | Window Close Behavior | What happens when clicking close | Ask every time | Choose "Minimize to tray" if you want background running |
 | Antigravity IDE Auto Refresh | Periodically updates Antigravity IDE quota | 5-10 minutes | Use 2 minutes if you need near real-time updates |
 | Codex Auto Refresh | Periodically updates Codex quota | 5-10 minutes | Same as above |
-| Claude Desktop Auto Refresh | Periodically updates Claude Desktop quota | 5-10 minutes | Same as above |
 | GitHub Copilot Auto Refresh | Periodically updates GitHub Copilot quota | 5-10 minutes | Same as above |
 | Windsurf Auto Refresh | Periodically updates Windsurf quota | 5-10 minutes | Same as above |
 | Kiro Auto Refresh | Periodically updates Kiro quota | 5-10 minutes | Same as above |
@@ -441,11 +421,8 @@ Every bit of support helps sustain open-source development. Thank you!
 - Antigravity account switching logic references: [Antigravity-Manager](https://github.com/lbjlaq/Antigravity-Manager)
 - Codex API service references and integrates: [router-for-me/CLIProxyAPI](https://github.com/router-for-me/CLIProxyAPI)
 - Codex API service protocol compatibility direction references: [codex-proxy](https://github.com/icebear0828/codex-proxy)
-- Codex and Claude CLI third-party provider presets and API Key environment-variable handling reference: [CC Switch](https://github.com/farion1231/cc-switch)
+- Codex third-party provider presets reference: [CC Switch](https://github.com/farion1231/cc-switch)
 - Codex model catalog and frontend model display ideas reference: [CodexPlusPlus](https://github.com/BigPizzaV3/CodexPlusPlus)
-- Claude Desktop multi-account credential switching, Desktop sign-in snapshots, and session isolation direction references: [claude-swap](https://github.com/realiti4/claude-swap)
-- Claude Web cookie profile, plan detection, usage quota reading, and multi-account isolation ideas reference: [CodexBar](https://github.com/steipete/CodexBar), [ClaudeUsage](https://github.com/linuxlewis/claude-usage), [Claude Usage Tracker](https://github.com/hamed-elfayome/Claude-Usage-Tracker), [ClaudeMeter](https://github.com/eddmann/ClaudeMeter), and [openrelay](https://github.com/romgX/openrelay)
-- Cross-AI-coding-CLI account management ideas reference: [coding_agent_account_manager](https://github.com/Dicklesworthstone/coding_agent_account_manager)
 
 Thanks to the project author for their open-source contributions! If these projects have helped you, please give them a ⭐ Star to show your support!
 

@@ -79,6 +79,7 @@ const CODEX_LOCAL_ACCESS_API_PORT_ENV: &str = "COCKPIT_TOOLS_API_PORT";
 const CODEX_LOCAL_ACCESS_DEV_DEFAULT_PORT: u16 = 1456;
 const CODEX_LOCAL_ACCESS_TAKEOVER_BACKUP_VERSION: u32 = 1;
 const CODEX_LOCAL_ACCESS_RUNTIME_PROVIDER_ID: &str = "codex_local_access";
+const CODEX_LOCAL_ACCESS_RUNTIME_ACCOUNT_ID: &str = "codex_local_access_runtime";
 const CODEX_PROFILE_AUTH_FILE: &str = "auth.json";
 const CODEX_PROFILE_CONFIG_FILE: &str = "config.toml";
 const CODEX_PROVIDER_MODEL_CATALOG_FILE: &str = "cockpit-provider-model-catalog.json";
@@ -128,7 +129,7 @@ const CUSTOM_ROUTING_WEIGHT_MAX: u32 = 100;
 const GATEWAY_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 const GATEWAY_PORT_RELEASE_TIMEOUT: Duration = Duration::from_secs(5);
 const GATEWAY_PORT_RELEASE_POLL_INTERVAL: Duration = Duration::from_millis(100);
-const SIDECAR_READY_TIMEOUT: Duration = Duration::from_secs(8);
+const SIDECAR_READY_TIMEOUT: Duration = Duration::from_secs(15);
 const UPSTREAM_CODEX_BASE_URL: &str = "https://chatgpt.com/backend-api/codex";
 const DEFAULT_OPENAI_RESPONSES_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_CODEX_USER_AGENT: &str =
@@ -7787,7 +7788,7 @@ fn build_runtime_account(
     bound_oauth_account_id: Option<String>,
 ) -> CodexAccount {
     let mut runtime_account = CodexAccount::new_api_key(
-        "codex_local_access_runtime".to_string(),
+        CODEX_LOCAL_ACCESS_RUNTIME_ACCOUNT_ID.to_string(),
         "api-service-local".to_string(),
         api_key,
         CodexApiProviderMode::Custom,
@@ -10650,6 +10651,10 @@ fn provider_gateway_wire_api_for_account(account: &CodexAccount) -> String {
 pub fn account_requires_provider_gateway(account: &CodexAccount) -> bool {
     account.is_api_key_auth()
         && provider_gateway_wire_api_for_account(account) == "chat_completions"
+}
+
+pub fn is_local_access_runtime_account_id(account_id: &str) -> bool {
+    account_id.trim() == CODEX_LOCAL_ACCESS_RUNTIME_ACCOUNT_ID
 }
 
 fn is_provider_gateway_eligible_account(account: &CodexAccount) -> bool {

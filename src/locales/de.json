@@ -2284,7 +2284,7 @@
     },
     "sessionManager": {
       "title": "Sitzungsverwaltung",
-      "desc": "Synchronisierung und Bereinigung befinden sich hier zusammen: Über die Aktion oben kannst du in alle Instanzen synchronisieren und unten jedes Projekt erweitern, Sitzungen prüfen und in den Papierkorb verschieben.",
+      "desc": "Synchronisierung, Sichtbarkeitsreparatur, Bereinigung und Wiederherstellung sind hier gebündelt: oben Sitzungen synchronisieren, Sichtbarkeit reparieren oder aus dem Papierkorb wiederherstellen; darunter Projekte öffnen und Sitzungen prüfen oder löschen.",
       "actions": {
         "moveToTrash": "In den Papierkorb verschieben",
         "syncSessions": "Sitzungen synchronisieren",
@@ -2293,7 +2293,7 @@
         "repairVisibility": "Sichtbarkeit reparieren",
         "restoreSessions": "Sitzungen wiederherstellen",
         "copySessionId": "Sitzungs-ID kopieren",
-        "selectAllSessions": "Alle wählen",
+        "selectAllSessions": "Alle Sitzungen wählen",
         "clearSelectedSessions": "Auswahl aufheben",
         "copyToInstance": "In Instanz kopieren"
       },
@@ -2301,7 +2301,7 @@
         "title": "In den Papierkorb verschieben",
         "message": "Ausgewählte Sitzungen werden aus den jeweiligen Instanzen in den Papierkorb verschoben, damit sie später wiederhergestellt werden können. Laufende Instanzen müssen möglicherweise neu gestartet werden, bevor die Änderung sichtbar wird. Fortfahren?",
         "syncMessage": "Fehlende Threads und ihre Sitzungsdaten werden in alle Instanzen synchronisiert. Vorhandene Inhalte werden nicht erneut geschrieben, und die Dateien der Zielinstanz werden vor jedem Schreibvorgang gesichert. Fortfahren?",
-        "repairVisibilityMessage": "Dadurch werden die Anbieter-Metadaten in Rollout-Dateien und in state_5.sqlite anhand des model_provider aus der jeweiligen root-config.toml der Instanz repariert (wenn er fehlt, wird standardmäßig openai verwendet). Dateien, die geändert werden, werden vor dem Schreiben gesichert. Bei laufenden Instanzen kann ein Neustart nötig sein, bevor die Änderung sichtbar wird. Fortfahren?"
+        "repairVisibilityMessage": "Aktualisiert die offiziellen Codex-state-DB-Einträge, die die Sitzungen in der Seitenleiste steuern. Die state-DB-Dateien werden vor dem Schreiben gesichert."
       },
       "empty": {
         "title": "Keine Sitzungen zur Verwaltung",
@@ -2337,6 +2337,62 @@
         "selectedCount": "{{count}} Sitzung(en) ausgewählt",
         "existingCount": "{{count}} bereits im Ziel",
         "confirm": "Sitzungen kopieren"
+      },
+      "repairModal": {
+        "quickTitle": "Sichtbarkeit reparieren",
+        "quickDesc": "Aktualisiert die offiziellen Codex-state-DB-Einträge für die Seitenleiste.",
+        "deepTitle": "Sichtbarkeit reparieren",
+        "deepDesc": "Aktualisiert die offiziellen Codex-state-DB-Einträge für die Seitenleiste.",
+        "quickProgressTitle": "Reparaturfortschritt",
+        "deepProgressTitle": "Reparaturfortschritt",
+        "running": "Reparatur läuft...",
+        "startQuick": "Reparatur starten",
+        "startDeep": "Reparatur starten",
+        "progress": {
+          "queued": "Reparatur wird gestartet...",
+          "collectInstances": "Codex-Instanzen werden gesammelt...",
+          "scanInstances": "Instanzscan wird vorbereitet...",
+          "scanInstance": "{{instance}} wird gescannt ({{current}}/{{total}})...",
+          "backupInstance": "{{instance}} wird gesichert ({{current}}/{{total}})...",
+          "writeInstance": "{{instance}} wird geschrieben ({{current}}/{{total}})...",
+          "rebuildMetadata": "Offizieller Sitzungsstatus für {{instance}} wird aktualisiert...",
+          "pruneBackups": "Alte Backups werden bereinigt...",
+          "done": "Reparatur abgeschlossen",
+          "writeSqliteProvider": "SQLite-Sichtbarkeit für {{instance}} wird geschrieben...",
+          "writeRolloutFiles": "Schreiben alter Sitzungsdateien wird übersprungen...",
+          "writeSqliteTimestamps": "SQLite-Zeiten für {{instance}} werden korrigiert...",
+          "writeSessionIndex": "Schreiben alter Indexdateien wird übersprungen..."
+        },
+        "targetProvider": "Ziel-provider",
+        "defaultProvider": "Standard",
+        "loadingProviders": "Provider werden geladen...",
+        "noProvider": "Kein provider gefunden",
+        "providerLoadFailed": "Provider-Kandidaten konnten nicht geladen werden: {{error}}",
+        "scopeTitle": "Sitzungsumfang",
+        "scopeAll": "Alle Sitzungen",
+        "scopeAllDesc": "{{count}} Sitzung(en) in der aktuellen Liste reparieren.",
+        "scopeSelected": "Ausgewählte Sitzungen",
+        "scopeSelectedDesc": "Nur {{count}} ausgewählte Sitzung(en) reparieren.",
+        "scopeSelectedEmpty": "Wählen Sie zuerst Sitzungen in der Liste aus.",
+        "providerSource": {
+          "config": "Konfiguration",
+          "rollout": "Sitzungen",
+          "sqlite": "SQLite-DB"
+        },
+        "targetInstance": "Zielinstanz",
+        "loadingInstances": "Instanzen werden geladen...",
+        "noInstance": "Keine Instanz gefunden",
+        "instanceLoadFailed": "Instanzen konnten nicht geladen werden: {{error}}",
+        "defaultInstance": "Standardinstanz",
+        "runningInstance": "Läuft",
+        "instanceProvider": "Aktueller Provider",
+        "instanceScopeTitle": "Instanzumfang",
+        "instanceScopeTarget": "Nur Zielinstanz",
+        "instanceScopeTargetDesc": "Repariert nur die ausgewählte Instanz, meist schneller.",
+        "instanceScopeAll": "Alle Instanzen",
+        "instanceScopeAllDesc": "Repariert alle Codex-Instanzen bei gemeinsamer Wiederherstellung.",
+        "progressTitle": "Reparaturfortschritt",
+        "start": "Reparatur starten"
       }
     },
     "api": {
@@ -2709,15 +2765,17 @@
     },
     "apiSwitchNotice": {
       "title": "Codex-Sitzungen ausgeblendet",
-      "message": "Codex wurde von {{from}} zu {{to}} umgeschaltet. Aufgrund des offiziellen Verhaltens erscheinen vorhandene Sitzungen nach dem direkten Wechsel zwischen API und Konten möglicherweise nicht automatisch. Die Sitzungsanzeige wird jetzt automatisch repariert; später geht das auch über Sitzungsverwaltung > Sichtbarkeit reparieren.",
+      "message": "Codex wurde von {{from}} zu {{to}} gewechselt. Aufgrund des offiziellen Verhaltens werden bestehende Sitzungen nach so einem Wechsel eventuell nicht automatisch angezeigt. Die Sitzungssichtbarkeit wird automatisch repariert; später ist das auch in der Sitzungsverwaltung möglich.",
       "repairing": "Codex-Sitzungssichtbarkeit wird repariert...",
-      "repairFailed": "Die automatische Reparatur ist fehlgeschlagen. Sie können es später unter Sitzungsverwaltung > Sichtbarkeit reparieren erneut versuchen.",
+      "repairFailed": "Reparatur der Sichtbarkeit fehlgeschlagen. Du kannst es später in der Sitzungsverwaltung erneut versuchen.",
       "type": {
         "api": "API-Modus",
         "apiKey": "API-Schlüssel",
         "apiService": "API-Dienst",
         "account": "Konto"
-      }
+      },
+      "manualMessage": "Sichtbarkeit reparieren aktualisiert die offiziellen Codex-state-DB-Einträge, die die Sitzungen in der Seitenleiste steuern. Es ist für die Wiederherstellung nach Wechseln zwischen Konto und API-Key gedacht.",
+      "repairFailedWithError": "Reparatur der Sichtbarkeit fehlgeschlagen: {{error}}"
     },
     "accountNote": {
       "title": "Kontonotiz",
@@ -2966,6 +3024,13 @@
       "selectAllAccounts": "Alle Konten wählen",
       "selectReady": "OK-Konten wählen",
       "clearSelection": "Auswahl löschen"
+    },
+    "autoRepairMode": {
+      "label": "Auto-Reparaturlogik",
+      "tooltip": "Legt fest, welche Logik beim Wechsel die Sitzbarkeit repariert",
+      "legacyBefore4eb75d96": "Vor 4eb75d96",
+      "legacy4eb75d96": "Logik 4eb75d96",
+      "current": "Aktuelle Logik"
     }
   },
   "githubCopilot": {
