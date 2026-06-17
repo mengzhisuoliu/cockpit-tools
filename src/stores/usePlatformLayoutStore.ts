@@ -325,6 +325,39 @@ function defaultSidebarEntryIds(groups: PlatformLayoutGroup[]): PlatformLayoutEn
   ];
 }
 
+function isClaudeManagerPlatformId(platformId: unknown): boolean {
+  return platformId === 'claude_manager' || platformId === 'claude' || platformId === 'claude_cli';
+}
+
+function isClaudeManagerEntryId(entryId: unknown): boolean {
+  return typeof entryId === 'string' && parsePlatformEntryId(entryId) === 'claude_manager';
+}
+
+function prependClaudeManagerPlatformIds(raw: unknown): PlatformId[] {
+  const source = Array.isArray(raw) ? raw : [];
+  return ['claude_manager', ...source.filter((platformId) => !isClaudeManagerPlatformId(platformId))] as PlatformId[];
+}
+
+function prependClaudeManagerEntryIds(raw: unknown): PlatformLayoutEntryId[] {
+  const source = Array.isArray(raw) ? raw : [];
+  return [
+    makePlatformEntryId('claude_manager'),
+    ...source.filter((entryId) => !isClaudeManagerEntryId(entryId)),
+  ] as PlatformLayoutEntryId[];
+}
+
+function removeClaudeManagerPlatformIds(raw: unknown): PlatformId[] {
+  return Array.isArray(raw)
+    ? raw.filter((platformId) => !isClaudeManagerPlatformId(platformId)) as PlatformId[]
+    : [];
+}
+
+function removeClaudeManagerEntryIds(raw: unknown): PlatformLayoutEntryId[] {
+  return Array.isArray(raw)
+    ? raw.filter((entryId) => !isClaudeManagerEntryId(entryId)) as PlatformLayoutEntryId[]
+    : [];
+}
+
 function normalizeHidden(hidden: PlatformId[]): PlatformId[] {
   return sanitizePlatformIds(hidden);
 }
@@ -1094,11 +1127,33 @@ function loadPersistedState(): NormalizedLayoutStateData {
 
     const parsed = JSON.parse(raw) as PersistedPlatformLayout;
     const antigravityGroupFirstMigrated = parsed.antigravityGroupFirstMigrated === true;
+    const shouldPrependClaudeManager =
+      !Array.isArray(parsed.orderedPlatformIds)
+      || !parsed.orderedPlatformIds.includes('claude_manager');
 
-    const orderedPlatformIds = normalizeOrder(parsed.orderedPlatformIds ?? defaultPlatformOrder());
-    const hiddenPlatformIds = normalizeHidden(parsed.hiddenPlatformIds ?? []);
+    const rawOrderedPlatformIds = shouldPrependClaudeManager
+      ? prependClaudeManagerPlatformIds(parsed.orderedPlatformIds)
+      : parsed.orderedPlatformIds;
+    const rawHiddenPlatformIds = shouldPrependClaudeManager
+      ? removeClaudeManagerPlatformIds(parsed.hiddenPlatformIds)
+      : parsed.hiddenPlatformIds;
+    const rawSidebarPlatformIds = shouldPrependClaudeManager
+      ? prependClaudeManagerPlatformIds(parsed.sidebarPlatformIds)
+      : parsed.sidebarPlatformIds;
+    const rawOrderedEntryIds = shouldPrependClaudeManager
+      ? prependClaudeManagerEntryIds(parsed.orderedEntryIds)
+      : parsed.orderedEntryIds;
+    const rawHiddenEntryIds = shouldPrependClaudeManager
+      ? removeClaudeManagerEntryIds(parsed.hiddenEntryIds)
+      : parsed.hiddenEntryIds;
+    const rawSidebarEntryIds = shouldPrependClaudeManager
+      ? prependClaudeManagerEntryIds(parsed.sidebarEntryIds)
+      : parsed.sidebarEntryIds;
+
+    const orderedPlatformIds = normalizeOrder(rawOrderedPlatformIds ?? defaultPlatformOrder());
+    const hiddenPlatformIds = normalizeHidden(rawHiddenPlatformIds ?? []);
     const sidebarPlatformIds = normalizeSidebar(
-      parsed.sidebarPlatformIds ?? ['claude_manager', 'antigravity', 'codex'],
+      rawSidebarPlatformIds ?? ['claude_manager', 'antigravity', 'codex'],
       hiddenPlatformIds,
     );
 
@@ -1107,15 +1162,15 @@ function loadPersistedState(): NormalizedLayoutStateData {
       parsed.platformGroups === undefined,
     ).map((group) => sortGroupPlatformsByOrder(group, orderedPlatformIds));
 
-    const orderedEntryIds = normalizeEntryOrder(parsed.orderedEntryIds, platformGroups, orderedPlatformIds);
+    const orderedEntryIds = normalizeEntryOrder(rawOrderedEntryIds, platformGroups, orderedPlatformIds);
     const hiddenEntryIds = normalizeHiddenEntryIds(
-      parsed.hiddenEntryIds,
+      rawHiddenEntryIds,
       orderedEntryIds,
       platformGroups,
       hiddenPlatformIds,
     );
     const sidebarEntryIds = normalizeSidebarEntryIds(
-      parsed.sidebarEntryIds,
+      rawSidebarEntryIds,
       orderedEntryIds,
       hiddenEntryIds,
       platformGroups,
