@@ -2359,9 +2359,74 @@
   gap: 10px;
 }
 
+.claude-add-modal .claude-gateway-mapping-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 5%, var(--bg-card));
+}
+
+.claude-add-modal .claude-gateway-mapping-summary-header,
+.claude-add-modal .claude-gateway-mapping-editor-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.claude-add-modal .claude-gateway-mapping-summary-header > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.claude-add-modal .claude-gateway-mapping-summary-header strong,
+.claude-add-modal .claude-gateway-mapping-editor-toolbar span {
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.claude-add-modal .claude-gateway-mapping-summary-header span {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.claude-add-modal .claude-gateway-mapping-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.claude-add-modal .claude-gateway-mapping-preview-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.claude-add-modal .claude-gateway-mapping-preview-item span:first-child,
+.claude-add-modal .claude-gateway-mapping-preview-item span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.claude-add-modal .claude-gateway-mapping-preview-item span:nth-child(2),
+.claude-add-modal .claude-gateway-mapping-preview-more {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
 .claude-add-modal .claude-gateway-mapping-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
 }
@@ -2379,6 +2444,50 @@
 
 .claude-add-modal .claude-gateway-mapped-model-field .single-select-dropdown {
   width: 100%;
+}
+
+.claude-add-modal .claude-gateway-supports1m-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.claude-add-modal .claude-gateway-supports1m-toggle input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.claude-add-modal .claude-gateway-supports1m-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid color-mix(in srgb, var(--text-muted) 45%, var(--border));
+  border-radius: 4px;
+  color: var(--primary);
+  background: var(--bg-card);
+}
+
+.claude-add-modal .claude-gateway-supports1m-toggle:has(input:checked) {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, var(--bg-secondary));
 }
 
 .claude-add-modal .claude-gateway-segmented {
@@ -2437,6 +2546,12 @@
 }
 
 @media (max-width: 720px) {
+  .claude-add-modal .claude-gateway-mapping-summary-header,
+  .claude-add-modal .claude-gateway-mapping-editor-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .claude-add-modal .claude-gateway-mapping-row {
     grid-template-columns: 1fr;
   }

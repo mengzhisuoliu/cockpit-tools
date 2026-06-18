@@ -224,6 +224,14 @@ pub struct ClaudeDesktopGatewayModel {
 pub struct ClaudeDesktopGatewayModelMapping {
     pub desktop_model: String,
     pub upstream_model: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label_override: Option<String>,
+    #[serde(
+        default,
+        rename = "supports1m",
+        skip_serializing_if = "Option::is_none"
+    )]
+    pub supports_1m: Option<bool>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

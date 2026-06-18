@@ -19,13 +19,20 @@ pub struct ClaudeDesktopLocalGatewayEndpoint {
 }
 
 #[derive(Clone)]
+struct GatewayDesktopModel {
+    name: String,
+    label_override: Option<String>,
+    supports_1m: Option<bool>,
+}
+
+#[derive(Clone)]
 struct GatewayConfig {
     account_id: String,
     upstream_base_url: String,
     upstream_api_key: String,
     upstream_auth_scheme: String,
     mappings: BTreeMap<String, String>,
-    desktop_models: Vec<String>,
+    desktop_models: Vec<GatewayDesktopModel>,
     fingerprint: String,
 }
 
@@ -61,16 +68,25 @@ pub fn normalize_model_mappings(
 ) -> Option<Vec<ClaudeDesktopGatewayModelMapping>> {
     let mut seen = BTreeMap::<String, ClaudeDesktopGatewayModelMapping>::new();
     for mapping in mappings.into_iter().flatten() {
-        let desktop_model = mapping.desktop_model.trim();
-        let upstream_model = mapping.upstream_model.trim();
+        let desktop_model = mapping.desktop_model.trim().to_string();
+        let upstream_model = mapping.upstream_model.trim().to_string();
         if desktop_model.is_empty() || upstream_model.is_empty() {
             continue;
         }
         let key = desktop_model.to_ascii_lowercase();
+        let label_override = mapping
+            .label_override
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_string);
+        let supports_1m = mapping.supports_1m.filter(|value| *value);
         seen.entry(key)
             .or_insert_with(|| ClaudeDesktopGatewayModelMapping {
-                desktop_model: desktop_model.to_string(),
-                upstream_model: upstream_model.to_string(),
+                desktop_model,
+                upstream_model,
+                label_override,
+                supports_1m,
             });
     }
     (!seen.is_empty()).then(|| seen.into_values().collect())
@@ -95,6 +111,8 @@ pub fn build_default_model_mappings(
             Some(ClaudeDesktopGatewayModelMapping {
                 desktop_model: desktop_model.to_string(),
                 upstream_model: fallback.clone(),
+                label_override: None,
+                supports_1m: None,
             })
         })
         .collect()
@@ -192,7 +210,11 @@ impl GatewayConfig {
             .ok_or_else(|| "Claude Gateway 映射关系为空".to_string())?;
         let desktop_models = mappings
             .iter()
-            .map(|mapping| mapping.desktop_model.clone())
+            .map(|mapping| GatewayDesktopModel {
+                name: mapping.desktop_model.clone(),
+                label_override: mapping.label_override.clone(),
+                supports_1m: mapping.supports_1m,
+            })
             .collect::<Vec<_>>();
         let mappings = mappings
             .into_iter()
@@ -208,6 +230,13 @@ impl GatewayConfig {
             "authScheme": upstream_auth_scheme,
             "apiKeyHash": format!("{:x}", md5::compute(upstream_api_key.as_bytes())),
             "mappings": mappings,
+            "desktopModels": desktop_models.iter().map(|model| {
+                json!({
+                    "name": model.name.clone(),
+                    "labelOverride": model.label_override.clone(),
+                    "supports1m": model.supports_1m,
+                })
+            }).collect::<Vec<_>>(),
         })
         .to_string();
         Ok(Self {
@@ -271,12 +300,24 @@ fn handle_request(
             .desktop_models
             .iter()
             .map(|model| {
-                json!({
-                    "id": model,
+                let mut value = json!({
+                    "id": model.name.clone(),
                     "object": "model",
                     "created": 0,
                     "owned_by": "anthropic",
-                })
+                });
+                if let Some(label_override) = model
+                    .label_override
+                    .as_deref()
+                    .map(str::trim)
+                    .filter(|value| !value.is_empty())
+                {
+                    value["display_name"] = Value::String(label_override.to_string());
+                }
+                if model.supports_1m.unwrap_or(false) {
+                    value["supports1m"] = Value::Bool(true);
+                }
+                value
             })
             .collect::<Vec<_>>();
         let _ = request.respond(json_response(

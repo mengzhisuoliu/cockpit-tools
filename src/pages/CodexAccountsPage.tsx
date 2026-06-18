@@ -23,7 +23,6 @@ import {
   Check,
   Play,
   RotateCw,
-  Repeat,
   CircleAlert,
   Info,
   Rows3,
@@ -791,6 +790,26 @@ function getDefaultApiProviderPresetId(
   sponsorTemplates: SponsorApiProviderTemplate[],
 ): string {
   return sponsorTemplates[0]?.id ?? DEFAULT_CODEX_API_PROVIDER_ID;
+}
+
+function resolveApiProviderPresetDefaults(
+  providerId: string,
+  sponsorTemplates: SponsorApiProviderTemplate[],
+): { baseUrl: string; providerName: string } {
+  const sponsorTemplate = sponsorTemplates.find(
+    (template) => template.id === providerId,
+  );
+  if (sponsorTemplate) {
+    return {
+      baseUrl: sponsorTemplate.baseUrl,
+      providerName: sponsorTemplate.name,
+    };
+  }
+  const preset = findCodexApiProviderPresetById(providerId);
+  return {
+    baseUrl: preset?.baseUrls[0] ?? DEFAULT_CODEX_API_BASE_URL,
+    providerName: "",
+  };
 }
 
 export function CodexAccountsPage() {
@@ -2495,14 +2514,6 @@ export function CodexAccountsPage() {
     setEditingNewManagedProviderNameInput,
   ] = useState("");
   const [savingApiKeyCredentials, setSavingApiKeyCredentials] = useState(false);
-  const [quickSwitchAccountId, setQuickSwitchAccountId] = useState<
-    string | null
-  >(null);
-  const [quickSwitchProviderId, setQuickSwitchProviderId] =
-    useState<string>("");
-  const [quickSwitchApiKeyId, setQuickSwitchApiKeyId] = useState<string>("");
-  const [quickSwitchSubmitting, setQuickSwitchSubmitting] = useState(false);
-  const [quickSwitchError, setQuickSwitchError] = useState<string | null>(null);
   const [oauthBindingTargetKind, setOauthBindingTargetKind] =
     useState<OAuthBindingTargetKind | null>(null);
   const [oauthBindingAccountId, setOauthBindingAccountId] = useState<
@@ -2646,26 +2657,6 @@ export function CodexAccountsPage() {
         (item) => item.id === editingManagedProviderApiKeyId,
       ) ?? null,
     [editingManagedProviderApiKeyId, selectedEditingManagedProvider],
-  );
-  const quickSwitchAccount = useMemo(
-    () =>
-      quickSwitchAccountId
-        ? (accounts.find((item) => item.id === quickSwitchAccountId) ?? null)
-        : null,
-    [accounts, quickSwitchAccountId],
-  );
-  const selectedQuickSwitchProvider = useMemo(
-    () =>
-      managedProviders.find((item) => item.id === quickSwitchProviderId) ??
-      null,
-    [managedProviders, quickSwitchProviderId],
-  );
-  const selectedQuickSwitchApiKey = useMemo(
-    () =>
-      selectedQuickSwitchProvider?.apiKeys.find(
-        (item) => item.id === quickSwitchApiKeyId,
-      ) ?? null,
-    [quickSwitchApiKeyId, selectedQuickSwitchProvider],
   );
   const oauthAccounts = useMemo(
     () => accounts.filter((account) => !isCodexApiKeyAccount(account)),
@@ -2991,15 +2982,19 @@ export function CodexAccountsPage() {
       if (!pendingApiKeyFunCodexPrefillRef.current) {
         apiKeyFunPrefillModelCatalogRef.current = null;
       }
+      const defaultProvider = resolveApiProviderPresetDefaults(
+        defaultApiProviderPresetId,
+        sponsorApiProviderTemplates,
+      );
       setApiKeyInput("");
       setApiKeyInputVisible(false);
-      setApiBaseUrlInput(DEFAULT_CODEX_API_BASE_URL);
+      setApiBaseUrlInput(defaultProvider.baseUrl);
       setApiProviderPresetId(defaultApiProviderPresetId);
       setManagedProviderId("");
       setManagedProviderApiKeyId("");
-      setNewManagedProviderNameInput("");
+      setNewManagedProviderNameInput(defaultProvider.providerName);
     }
-  }, [defaultApiProviderPresetId, showAddModal]);
+  }, [defaultApiProviderPresetId, showAddModal, sponsorApiProviderTemplates]);
 
   useEffect(() => {
     if (showAddModal && addTab === "apikey") {
@@ -3011,20 +3006,40 @@ export function CodexAccountsPage() {
     if (!showAddModal || addTab !== "apikey") {
       return;
     }
-    setApiProviderPresetId((current) => {
-      if (sponsorApiProviderTemplates.length === 0) {
-        return current;
-      }
-      if (current === DEFAULT_CODEX_API_PROVIDER_ID || !current.trim()) {
-        return defaultApiProviderPresetId;
-      }
-      return current;
-    });
+    if (sponsorApiProviderTemplates.length === 0) {
+      return;
+    }
+    const shouldUseDefaultProvider =
+      apiProviderPresetId === DEFAULT_CODEX_API_PROVIDER_ID ||
+      !apiProviderPresetId.trim();
+    const nextProviderPresetId = shouldUseDefaultProvider
+      ? defaultApiProviderPresetId
+      : apiProviderPresetId;
+    const shouldSyncSponsorDefaults =
+      shouldUseDefaultProvider ||
+      (sponsorApiProviderTemplates.some(
+        (template) => template.id === nextProviderPresetId,
+      ) &&
+        normalizeHttpBaseUrl(apiBaseUrlInput) ===
+          normalizeHttpBaseUrl(DEFAULT_CODEX_API_BASE_URL));
+    if (apiProviderPresetId !== nextProviderPresetId) {
+      setApiProviderPresetId(nextProviderPresetId);
+    }
+    if (shouldSyncSponsorDefaults) {
+      const defaultProvider = resolveApiProviderPresetDefaults(
+        nextProviderPresetId,
+        sponsorApiProviderTemplates,
+      );
+      setApiBaseUrlInput(defaultProvider.baseUrl);
+      setNewManagedProviderNameInput(defaultProvider.providerName);
+    }
   }, [
     addTab,
+    apiBaseUrlInput,
+    apiProviderPresetId,
     defaultApiProviderPresetId,
     showAddModal,
-    sponsorApiProviderTemplates.length,
+    sponsorApiProviderTemplates,
   ]);
 
   useEffect(() => {
@@ -3095,30 +3110,6 @@ export function CodexAccountsPage() {
     );
     setEditingApiKeyCredentialsVisible(false);
   }, [editingManagedProviderApiKeyId, selectedEditingManagedProviderApiKey]);
-
-  useEffect(() => {
-    if (!quickSwitchAccountId) return;
-    if (accounts.some((item) => item.id === quickSwitchAccountId)) return;
-    setQuickSwitchAccountId(null);
-    setQuickSwitchProviderId("");
-    setQuickSwitchApiKeyId("");
-    setQuickSwitchError(null);
-  }, [accounts, quickSwitchAccountId]);
-
-  useEffect(() => {
-    if (!selectedQuickSwitchProvider) {
-      setQuickSwitchApiKeyId("");
-      return;
-    }
-    setQuickSwitchApiKeyId((prev) => {
-      if (
-        selectedQuickSwitchProvider.apiKeys.some((item) => item.id === prev)
-      ) {
-        return prev;
-      }
-      return selectedQuickSwitchProvider.apiKeys[0]?.id ?? "";
-    });
-  }, [selectedQuickSwitchProvider]);
 
   useEffect(() => {
     const syncCodeReviewVisibility = () => {
@@ -4514,124 +4505,6 @@ export function CodexAccountsPage() {
     },
     [selectedEditingManagedProvider],
   );
-
-  const closeQuickSwitchModal = useCallback(() => {
-    if (quickSwitchSubmitting) return;
-    setQuickSwitchAccountId(null);
-    setQuickSwitchProviderId("");
-    setQuickSwitchApiKeyId("");
-    setQuickSwitchError(null);
-  }, [quickSwitchSubmitting]);
-
-  const openQuickSwitchProviderModal = useCallback(
-    (account: CodexAccount) => {
-      if (!isCodexApiKeyAccount(account)) return;
-      const baseUrl = (account.api_base_url || "").trim();
-      const apiKey = (account.openai_api_key || "").trim();
-      const matchedProvider =
-        findCodexModelProviderById(managedProviders, account.api_provider_id) ??
-        findCodexModelProviderByBaseUrl(managedProviders, baseUrl);
-      const fallbackProvider = matchedProvider ?? managedProviders[0] ?? null;
-      const matchedApiKey = matchedProvider?.apiKeys.find(
-        (item) => item.apiKey.trim() === apiKey,
-      );
-      const fallbackApiKey =
-        matchedApiKey ?? fallbackProvider?.apiKeys[0] ?? null;
-
-      setQuickSwitchAccountId(account.id);
-      setQuickSwitchProviderId(fallbackProvider?.id ?? "");
-      setQuickSwitchApiKeyId(fallbackApiKey?.id ?? "");
-      setQuickSwitchError(null);
-    },
-    [managedProviders],
-  );
-
-  const handleSelectQuickSwitchProvider = useCallback(
-    (providerId: string) => {
-      setQuickSwitchProviderId(providerId);
-      const provider = managedProviders.find((item) => item.id === providerId);
-      setQuickSwitchApiKeyId(provider?.apiKeys[0]?.id ?? "");
-      setQuickSwitchError(null);
-    },
-    [managedProviders],
-  );
-
-  const handleSelectQuickSwitchApiKey = useCallback((apiKeyId: string) => {
-    setQuickSwitchApiKeyId(apiKeyId);
-    setQuickSwitchError(null);
-  }, []);
-
-  const handleSubmitQuickSwitch = useCallback(async () => {
-    if (!quickSwitchAccount) return;
-    if (!selectedQuickSwitchProvider) {
-      setQuickSwitchError(
-        t("codex.quickSwitch.validation.providerRequired", "请选择供应商"),
-      );
-      return;
-    }
-    if (!selectedQuickSwitchApiKey) {
-      setQuickSwitchError(
-        t("codex.quickSwitch.validation.apiKeyRequired", "请选择 API Key"),
-      );
-      return;
-    }
-
-    setQuickSwitchSubmitting(true);
-    setQuickSwitchError(null);
-    try {
-      await updateApiKeyCredentials(
-        quickSwitchAccount.id,
-        selectedQuickSwitchApiKey.apiKey,
-        selectedQuickSwitchProvider.baseUrl,
-        "custom",
-        selectedQuickSwitchProvider.id,
-        selectedQuickSwitchProvider.name,
-        selectedQuickSwitchProvider.modelCatalog,
-        selectedQuickSwitchProvider.supportsVision,
-        Object.fromEntries(
-          Object.entries(
-            selectedQuickSwitchProvider.modelCapabilities ?? {},
-          ).map(([model, capability]) => [
-            model,
-            capability.supportsVision === true,
-          ]),
-        ),
-        selectedQuickSwitchProvider.visionRoutingModel,
-        selectedQuickSwitchProvider.wireApi ?? undefined,
-      );
-      setMessage({
-        text: t("codex.quickSwitch.success", {
-          defaultValue: "已切换到供应商：{{provider}}",
-          provider: selectedQuickSwitchProvider.name,
-        }),
-      });
-      setApiKeyUsageMap((previous) => {
-        const next = { ...previous };
-        delete next[quickSwitchAccount.id];
-        return next;
-      });
-      setQuickSwitchAccountId(null);
-      setQuickSwitchProviderId("");
-      setQuickSwitchApiKeyId("");
-      setQuickSwitchError(null);
-    } catch (err) {
-      setQuickSwitchError(
-        t("codex.quickSwitch.failed", {
-          defaultValue: "切换供应商失败：{{error}}",
-          error: String(err).replace(/^Error:\s*/, ""),
-        }),
-      );
-    } finally {
-      setQuickSwitchSubmitting(false);
-    }
-  }, [
-    quickSwitchAccount,
-    selectedQuickSwitchApiKey,
-    selectedQuickSwitchProvider,
-    setMessage,
-    t,
-    updateApiKeyCredentials,
-  ]);
 
   const handleOpenProviderLink = useCallback(async (url: string) => {
     try {
@@ -8107,16 +7980,6 @@ export function CodexAccountsPage() {
                 >
                   {apiProviderLine}
                 </span>
-                {!isNewApiAccount && (
-                  <button
-                    type="button"
-                    className="codex-provider-inline-switch"
-                    onClick={() => openQuickSwitchProviderModal(account)}
-                    title={t("codex.quickSwitch.action", "快速切换供应商")}
-                  >
-                    {t("codex.quickSwitch.inlineAction", "切换")}
-                  </button>
-                )}
               </div>
               <div className="account-sub-line">
                 <span className="codex-login-subline" title={apiBaseUrlLine}>
@@ -8315,15 +8178,6 @@ export function CodexAccountsPage() {
                     aria-label={t("codex.accountNote.title", "账号备注")}
                   >
                     <FileText size={14} />
-                  </button>
-                )}
-                {isSponsorApiKeyAccount && (
-                  <button
-                    className="card-action-btn"
-                    onClick={() => openQuickSwitchProviderModal(account)}
-                    title={t("codex.quickSwitch.action", "快速切换供应商")}
-                  >
-                    <Repeat size={14} />
                   </button>
                 )}
                 {isApiKeyAccount && !isNewApiAccount && (
@@ -9411,16 +9265,6 @@ export function CodexAccountsPage() {
                     >
                       {apiProviderLine}
                     </span>
-                    {!isNewApiAccount && (
-                      <button
-                        type="button"
-                        className="codex-provider-inline-switch"
-                        onClick={() => openQuickSwitchProviderModal(account)}
-                        title={t("codex.quickSwitch.action", "快速切换供应商")}
-                      >
-                        {t("codex.quickSwitch.inlineAction", "切换")}
-                      </button>
-                    )}
                   </div>
                   <div className="account-sub-line codex-account-meta-inline">
                     <span
@@ -9628,15 +9472,6 @@ export function CodexAccountsPage() {
                   aria-label={t("codex.accountNote.title", "账号备注")}
                 >
                   <FileText size={14} />
-                </button>
-              )}
-              {isSponsorApiKeyAccount && (
-                <button
-                  className="action-btn"
-                  onClick={() => openQuickSwitchProviderModal(account)}
-                  title={t("codex.quickSwitch.action", "快速切换供应商")}
-                >
-                  <Repeat size={14} />
                 </button>
               )}
               {isApiKeyAccount && !isNewApiAccount && (
@@ -12354,164 +12189,6 @@ export function CodexAccountsPage() {
                         )}
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {quickSwitchAccountId && (
-            <div className="modal-overlay">
-              <div
-                className="modal-content codex-add-modal codex-api-key-edit-modal"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="modal-header">
-                  <h2>{t("codex.quickSwitch.title", "快速切换供应商")}</h2>
-                  <button
-                    className="modal-close"
-                    onClick={closeQuickSwitchModal}
-                    aria-label={t("common.close", "关闭")}
-                    disabled={quickSwitchSubmitting}
-                  >
-                    <X />
-                  </button>
-                </div>
-                <div className="modal-body">
-                  <div className="add-section">
-                    <p className="section-desc">
-                      {t(
-                        "codex.quickSwitch.desc",
-                        "为当前 API Key 账号快速切换到已保存的供应商与 API Key。",
-                      )}
-                    </p>
-                    {quickSwitchAccount && (
-                      <div className="section-desc">
-                        {t("codex.quickSwitch.currentAccount", {
-                          defaultValue: "当前账号：{{name}}",
-                          name: maskAccountText(
-                            resolvePresentation(quickSwitchAccount).displayName,
-                          ),
-                        })}
-                      </div>
-                    )}
-                    <div className="oauth-link">
-                      <label>
-                        {t(
-                          "codex.modelProviders.selectSavedProvider",
-                          "已保存供应商",
-                        )}
-                      </label>
-                      {managedProvidersLoading ? (
-                        <div className="section-desc">
-                          {t("common.loading", "加载中...")}
-                        </div>
-                      ) : managedProviders.length === 0 ? (
-                        <div className="add-status error">
-                          <CircleAlert size={16} />
-                          <span>
-                            {t(
-                              "codex.quickSwitch.noProviders",
-                              "暂无已保存供应商，请先在“模型供应商”中添加。",
-                            )}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="api-provider-chip-list">
-                          {managedProviders.map((provider) => (
-                            <button
-                              key={provider.id}
-                              className={`api-provider-chip ${quickSwitchProviderId === provider.id ? "active" : ""}`}
-                              onClick={() =>
-                                handleSelectQuickSwitchProvider(provider.id)
-                              }
-                              type="button"
-                              disabled={quickSwitchSubmitting}
-                            >
-                              <span>{provider.name}</span>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {selectedQuickSwitchProvider &&
-                      selectedQuickSwitchProvider.apiKeys.length > 0 && (
-                        <div className="oauth-link">
-                          <label>
-                            {t(
-                              "codex.modelProviders.selectSavedApiKey",
-                              "已保存 API Key",
-                            )}
-                          </label>
-                          <div className="api-provider-endpoint-list">
-                            {selectedQuickSwitchProvider.apiKeys.map((item) => (
-                              <button
-                                key={item.id}
-                                className={`api-provider-endpoint-chip ${quickSwitchApiKeyId === item.id ? "active" : ""}`}
-                                onClick={() =>
-                                  handleSelectQuickSwitchApiKey(item.id)
-                                }
-                                type="button"
-                                disabled={quickSwitchSubmitting}
-                              >
-                                {item.name ||
-                                  t(
-                                    "codex.modelProviders.unnamedKey",
-                                    "未命名 Key",
-                                  )}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                    {selectedQuickSwitchProvider &&
-                      selectedQuickSwitchProvider.apiKeys.length === 0 && (
-                        <div className="add-status error">
-                          <CircleAlert size={16} />
-                          <span>
-                            {t(
-                              "codex.quickSwitch.providerHasNoKeys",
-                              "该供应商没有可用 API Key，请先在模型供应商中添加。",
-                            )}
-                          </span>
-                        </div>
-                      )}
-
-                    {quickSwitchError && (
-                      <div className="add-status error">
-                        <CircleAlert size={16} />
-                        <span>{quickSwitchError}</span>
-                      </div>
-                    )}
-
-                    <div className="api-key-edit-actions">
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => {
-                          setActiveTab("providers");
-                          closeQuickSwitchModal();
-                        }}
-                        disabled={quickSwitchSubmitting}
-                      >
-                        {t("codex.quickSwitch.gotoProviders", "管理供应商")}
-                      </button>
-                      <button
-                        className="btn btn-primary"
-                        onClick={() => void handleSubmitQuickSwitch()}
-                        disabled={
-                          quickSwitchSubmitting ||
-                          managedProvidersLoading ||
-                          !selectedQuickSwitchProvider ||
-                          !selectedQuickSwitchApiKey
-                        }
-                      >
-                        {quickSwitchSubmitting
-                          ? t("common.saving", "保存中...")
-                          : t("codex.quickSwitch.apply", "立即切换")}
-                      </button>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

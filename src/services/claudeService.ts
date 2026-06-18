@@ -120,6 +120,7 @@ type ClaudeDesktopGatewayProviderInput = {
   apiProviderSourceTag?: string | null;
   apiProviderWebsite?: string | null;
   apiProviderApiKeyUrl?: string | null;
+  apiKeyField?: string | null;
   apiModelCatalog?: string[] | null;
   apiExtraEnv?: Record<string, string> | null;
   authScheme?: string | null;
@@ -143,6 +144,7 @@ function buildClaudeDesktopGatewayPayload(
     apiProviderSourceTag: provider?.apiProviderSourceTag?.trim() || null,
     apiProviderWebsite: provider?.apiProviderWebsite?.trim() || null,
     apiProviderApiKeyUrl: provider?.apiProviderApiKeyUrl?.trim() || null,
+    apiKeyField: provider?.apiKeyField?.trim() || null,
     apiModelCatalog: provider?.apiModelCatalog ?? null,
     apiExtraEnv: provider?.apiExtraEnv ?? null,
     authScheme: provider?.authScheme?.trim() || null,

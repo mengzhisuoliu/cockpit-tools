@@ -7,6 +7,22 @@ All notable changes to Cockpit Tools will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
+## [0.26.3] - 2026-06-19
+
+### Added
+- **Claude now supports more third-party model services**: when adding a Claude API account, users can choose common providers and have connection details and model setup filled automatically.
+- **Claude third-party model setup is easier to complete**: model mappings are generated from available models, so users only need to confirm how real models map to Claude-selectable models, with new mappings filled in automatically when more models are added.
+
+### Changed
+- **Claude default-account launch now feels closer to the official app**: switching the default account launches Claude in the normal official flow, while multi-instance launches remain separately managed.
+- **Claude third-party account details are more complete**: accounts keep provider, model capability, and display information so account cards and model catalogs stay consistent.
+- **Codex API Key account pages are cleaner**: duplicate provider-switch shortcuts have been removed, and card actions stay stable when more buttons are visible or the window is narrow.
+
+### Fixed
+- **Codex now fills the correct address when adding APIKEY.FUN accounts**: when APIKEY.FUN or another sponsor provider is selected by default, the account name and Base URL follow that provider instead of the OpenAI address.
+- **Claude signed-in accounts recover more easily from stale local paths**: when a usable local sign-in snapshot still exists, the account list can repair the record and reduce false "login unavailable" states.
+
+---
 ## [0.26.2] - 2026-06-18
 
 ### Fixed

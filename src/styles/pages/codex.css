@@ -2564,6 +2564,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  min-width: 0;
+  overflow: hidden;
   padding-top: 12px;
   border-top: 1px solid var(--border-light);
 }
@@ -2583,9 +2585,18 @@
 .codex-account-card .card-actions {
   display: flex;
   gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.codex-account-card .card-actions::-webkit-scrollbar {
+  display: none;
 }
 
 .codex-account-card .card-action-btn {
+  flex: 0 0 32px;
   width: 32px;
   height: 32px;
   border: none;

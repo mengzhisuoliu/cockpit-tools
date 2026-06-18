@@ -120,6 +120,8 @@ export type ClaudeDesktopGatewayConnectionMode = 'direct' | 'local_mapping';
 export interface ClaudeDesktopGatewayModelMapping {
   desktopModel: string;
   upstreamModel: string;
+  labelOverride?: string | null;
+  supports1m?: boolean | null;
 }
 
 export interface ClaudeDesktopGatewayModelsResult {
