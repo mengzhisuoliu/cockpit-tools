@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "No se pudo reiniciar Codex: {{error}}",
       "claudeSettingsTitle": "Ajustes de Claude",
       "claudeAutoRefresh": "Actualización automática de cuota de Claude",
-      "claudeAutoRefreshDesc": "Actualiza automáticamente en segundo plano la caché de cuota de las cuentas de Claude."
+      "claudeAutoRefreshDesc": "Actualiza automáticamente en segundo plano la caché de cuota de las cuentas de Claude.",
+      "claudeAppPath": "Destino de inicio de Claude Desktop",
+      "claudeAppPathDesc": "El perfil predeterminado puede usar un destino de Microsoft Store; las instancias múltiples necesitan el Claude.exe real."
     },
     "network": {
       "apiTitle": "API de cabina antigravedad",
@@ -1020,7 +1022,15 @@
       "title": "No se encontró la ruta de la aplicación",
       "desc": "No se pudo encontrar la ruta de la aplicación {{app}}. Establécela ahora para continuar.",
       "action": "Establecer ahora",
-      "codexLaunchHint": "Al desactivarlo, el cambio de cuenta y la sobrescritura de inicio de sesión seguirán ejecutándose, pero ya no se iniciará Codex App y este aviso de ruta no volverá a mostrarse."
+      "codexLaunchHint": "Al desactivarlo, el cambio de cuenta y la sobrescritura de inicio de sesión seguirán ejecutándose, pero ya no se iniciará Codex App y este aviso de ruta no volverá a mostrarse.",
+      "claudeMultiInstanceRequiresExe": "Las instancias múltiples de Claude requieren la ruta real de Claude.exe. Los destinos de Microsoft Store solo sirven para el perfil de escritorio predeterminado.",
+      "scanApps": "Escanear apps",
+      "scanRoots": "Rango de escaneo",
+      "scanRootsPlaceholder": "Opcional, elige una carpeta o raiz de unidad; vacio escanea WindowsApps por unidad e incluye apps del menu Inicio.",
+      "windowsApp": "App de Microsoft Store",
+      "defaultOnly": "Solo para el escritorio predeterminado; elige el Claude.exe real para instancias múltiples.",
+      "claudeScanEmpty": "No se encontró ningún destino de Claude Desktop. Elige Claude.exe manualmente o ajusta las rutas de escaneo.",
+      "claudeTargetPlaceholder": "Ruta de Claude.exe o shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "No se encontró la ruta de la aplicación {{app}}. Configúrela ahora para continuar."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Vincula primero una cuenta OAuth",
         "clearAction": "Desvincular",
         "clearSuccess": "Vínculo OAuth eliminado.",
-        "clearFailed": "No se pudo eliminar el vínculo OAuth: {{error}}"
+        "clearFailed": "No se pudo eliminar el vínculo OAuth: {{error}}",
+        "useLocalGateway": "Usar modo compatible de gateway local",
+        "localGatewayTooltip": "Enruta solicitudes de texto normales por el gateway local y elimina image_generation para proveedores sin generacion de imagenes.",
+        "localGatewayConfirm": {
+          "title": "Activar modo compatible de gateway local",
+          "message": "Al activarlo, esta cuenta API Key usara el modo compatible de gateway local al vincular OAuth: las solicitudes de texto quitaran image_generation y se mantendra la identidad OAuth. Continuar?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Actualización automática de cuota",
     "claude": {
-      "appPath": "Ruta de Claude"
+      "appPath": "Ruta de Claude",
+      "appTargetPlaceholder": "Ruta de Claude.exe o shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

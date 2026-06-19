@@ -64,6 +64,8 @@ pub struct CodexAccount {
     pub api_provider_id: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub api_provider_name: Option<String>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub bound_oauth_use_local_gateway: bool,
     pub user_id: Option<String>,
     pub plan_type: Option<String>,
     pub account_id: Option<String>,
@@ -243,6 +245,7 @@ impl CodexAccount {
             api_provider_mode: CodexApiProviderMode::OpenaiBuiltin,
             api_provider_id: None,
             api_provider_name: None,
+            bound_oauth_use_local_gateway: false,
             user_id: None,
             plan_type: None,
             account_id: None,

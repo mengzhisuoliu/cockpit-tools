@@ -1,4 +1,3 @@
-use std::collections::BTreeMap;
 use std::path::Path;
 
 use serde::Serialize;
@@ -67,7 +66,6 @@ struct ClaudeCliLaunchContext {
     working_dir: Option<String>,
     extra_args: String,
     use_config_env: bool,
-    env: BTreeMap<String, String>,
 }
 
 fn is_profile_initialized(user_data_dir: &str) -> bool {
@@ -115,7 +113,7 @@ fn inject_bound_account_for_instance_start(
 }
 
 fn inject_bound_account_for_cli_instance_start(
-    user_data_dir: &str,
+    config_dir: Option<&Path>,
     bind_account_id: Option<&str>,
 ) -> Result<(), String> {
     let bind_id = bind_account_id
@@ -137,9 +135,11 @@ fn inject_bound_account_for_cli_instance_start(
         );
     }
 
-    let config_dir = Path::new(user_data_dir);
-    let _ = modules::claude_account::sync_cli_account_from_config_dir_if_same(bind_id, config_dir)?;
-    modules::claude_account::inject_to_claude_config(bind_id, Some(Path::new(user_data_dir)))?;
+    if let Some(config_dir) = config_dir {
+        let _ =
+            modules::claude_account::sync_cli_account_from_config_dir_if_same(bind_id, config_dir)?;
+    }
+    modules::claude_account::inject_to_claude_config(bind_id, config_dir)?;
     crate::modules::provider_current_state::set_current_account_id(
         "claude_code_account",
         Some(bind_id),
@@ -149,28 +149,6 @@ fn inject_bound_account_for_cli_instance_start(
 
 fn is_cli_launch_mode(mode: &InstanceLaunchMode) -> bool {
     matches!(mode, InstanceLaunchMode::Cli)
-}
-
-fn resolve_cli_env_for_bind_account(
-    bind_account_id: Option<&str>,
-) -> Result<BTreeMap<String, String>, String> {
-    let bind_id = bind_account_id
-        .map(str::trim)
-        .filter(|value| !value.is_empty());
-    let Some(bind_id) = bind_id else {
-        return Ok(BTreeMap::new());
-    };
-
-    let account = modules::claude_account::load_account(bind_id)
-        .ok_or_else(|| format!("绑定账号不存在: {}", bind_id))?;
-    match account.auth_mode {
-        ClaudeAuthMode::ApiKey => modules::claude_account::build_api_key_cli_env_map(&account),
-        ClaudeAuthMode::DesktopOAuth | ClaudeAuthMode::DesktopGateway => Err(
-            "Claude 登录账号不能写入 Claude CLI 实例，请选择 Claude CLI OAuth / API Key 账号。"
-                .to_string(),
-        ),
-        _ => Ok(BTreeMap::new()),
-    }
 }
 
 fn default_user_data_dir_for_launch_mode(
@@ -223,7 +201,6 @@ fn resolve_cli_launch_context(instance_id: &str) -> Result<ClaudeCliLaunchContex
             working_dir: default_settings.working_dir,
             extra_args: default_settings.extra_args,
             use_config_env: false,
-            env: resolve_cli_env_for_bind_account(default_settings.bind_account_id.as_deref())?,
         });
     }
 
@@ -241,18 +218,42 @@ fn resolve_cli_launch_context(instance_id: &str) -> Result<ClaudeCliLaunchContex
         working_dir: instance.working_dir,
         extra_args: instance.extra_args,
         use_config_env: true,
-        env: resolve_cli_env_for_bind_account(instance.bind_account_id.as_deref())?,
     })
 }
 
 fn build_cli_launch_command(context: &ClaudeCliLaunchContext) -> String {
+    let env = std::collections::BTreeMap::new();
     crate::commands::claude::build_claude_cli_command_for_context(
         context.working_dir.as_deref(),
         context
             .use_config_env
             .then_some(context.user_data_dir.as_str()),
         &context.extra_args,
-        &context.env,
+        &env,
+    )
+}
+
+fn prepare_cli_instance_config(
+    instance_id: &str,
+    context: &ClaudeCliLaunchContext,
+) -> Result<(), String> {
+    if instance_id == DEFAULT_INSTANCE_ID {
+        let default_settings = modules::claude_instance::load_default_settings()?;
+        return inject_bound_account_for_cli_instance_start(
+            None,
+            default_settings.bind_account_id.as_deref(),
+        );
+    }
+
+    let store = modules::claude_instance::load_instance_store()?;
+    let instance = store
+        .instances
+        .into_iter()
+        .find(|item| item.id == instance_id)
+        .ok_or("Claude instance not found")?;
+    inject_bound_account_for_cli_instance_start(
+        Some(Path::new(&context.user_data_dir)),
+        instance.bind_account_id.as_deref(),
     )
 }
 
@@ -418,7 +419,7 @@ pub async fn claude_start_instance(
 
         if is_cli_launch_mode(&default_settings.launch_mode) {
             inject_bound_account_for_cli_instance_start(
-                &default_dir_str,
+                None,
                 default_settings.bind_account_id.as_deref(),
             )?;
             let updated = modules::claude_instance::update_default_pid(None)?;
@@ -465,7 +466,7 @@ pub async fn claude_start_instance(
 
     if is_cli_launch_mode(&instance.launch_mode) {
         inject_bound_account_for_cli_instance_start(
-            &instance.user_data_dir,
+            Some(Path::new(&instance.user_data_dir)),
             instance.bind_account_id.as_deref(),
         )?;
         let updated = modules::claude_instance::update_instance_last_launched(&instance.id)?;
@@ -477,7 +478,7 @@ pub async fn claude_start_instance(
         ));
     }
 
-    modules::claude_instance::ensure_claude_launch_path_configured()?;
+    modules::claude_instance::ensure_claude_multi_instance_launch_path_configured()?;
 
     if let Some(pid) = modules::claude_instance::resolve_claude_pid(
         instance.last_pid,
@@ -650,6 +651,7 @@ pub async fn claude_get_instance_launch_command(
     instance_id: String,
 ) -> Result<ClaudeInstanceLaunchInfo, String> {
     let context = resolve_cli_launch_context(&instance_id)?;
+    prepare_cli_instance_config(&instance_id, &context)?;
     Ok(ClaudeInstanceLaunchInfo {
         instance_id,
         launch_command: build_cli_launch_command(&context),
@@ -663,6 +665,7 @@ pub async fn claude_execute_instance_launch_command(
     terminal: Option<String>,
 ) -> Result<String, String> {
     let context = resolve_cli_launch_context(&instance_id)?;
+    prepare_cli_instance_config(&instance_id, &context)?;
     let command = build_cli_launch_command(&context);
     crate::commands::claude::execute_claude_cli_command(&command, terminal)
 }

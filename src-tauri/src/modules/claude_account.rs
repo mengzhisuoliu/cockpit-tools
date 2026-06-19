@@ -1137,12 +1137,6 @@ fn find_windows_store_claude_desktop_user_data_dir() -> Option<PathBuf> {
 }
 
 pub fn get_default_claude_code_config_dir() -> Result<PathBuf, String> {
-    if let Ok(value) = std::env::var("CLAUDE_CONFIG_DIR") {
-        let trimmed = value.trim();
-        if !trimmed.is_empty() {
-            return Ok(PathBuf::from(trimmed));
-        }
-    }
     let home = dirs::home_dir().ok_or_else(|| "无法获取用户主目录".to_string())?;
     Ok(home.join(".claude"))
 }

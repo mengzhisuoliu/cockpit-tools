@@ -963,10 +963,16 @@ export function InstancesManager<TAccount extends AccountLike>({
 
   const handleMissingPathError = (error: unknown, instanceId?: string) => {
     const message = String(error ?? "");
-    if (!message.startsWith("APP_PATH_NOT_FOUND:")) {
+    const missingPathPrefix = "APP_PATH_NOT_FOUND:";
+    const multiInstanceExePrefix = "CLAUDE_MULTI_INSTANCE_REQUIRES_EXE:";
+    const isMissingPath = message.startsWith(missingPathPrefix);
+    const isMultiInstanceExeRequired = message.startsWith(multiInstanceExePrefix);
+    if (!isMissingPath && !isMultiInstanceExeRequired) {
       return false;
     }
-    const rawApp = message.slice("APP_PATH_NOT_FOUND:".length);
+    const rawApp = isMultiInstanceExeRequired
+      ? message.slice(multiInstanceExePrefix.length)
+      : message.slice(missingPathPrefix.length);
     const app =
       rawApp === "codex" ||
       rawApp === "claude" ||

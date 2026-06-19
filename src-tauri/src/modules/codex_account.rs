@@ -2490,6 +2490,7 @@ fn upsert_account_with_hints_and_reauth_target(
         acc.api_provider_id = None;
         acc.api_provider_name = None;
         acc.bound_oauth_account_id = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.subscription_active_until = subscription_active_until.clone();
@@ -2509,6 +2510,7 @@ fn upsert_account_with_hints_and_reauth_target(
         acc.api_provider_id = None;
         acc.api_provider_name = None;
         acc.bound_oauth_account_id = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.subscription_active_until = subscription_active_until.clone();
@@ -4150,6 +4152,7 @@ async fn activate_provider_gateway_after_switch_if_needed(
     account: &CodexAccount,
 ) -> Result<(), String> {
     if !crate::modules::codex_local_access::account_requires_provider_gateway(account) {
+        crate::modules::codex_local_access::stop_provider_gateways_for_profile(base_dir).await;
         return Ok(());
     }
 
@@ -4158,7 +4161,7 @@ async fn activate_provider_gateway_after_switch_if_needed(
         account.id,
         base_dir.display()
     ));
-    crate::modules::codex_local_access::activate_provider_gateway_for_dir(base_dir, &account.id)
+    crate::modules::codex_local_access::ensure_provider_gateway_for_dir(base_dir, &account.id)
         .await?;
     Ok(())
 }
@@ -4603,6 +4606,7 @@ fn upsert_account_from_access_token(
         acc.api_provider_id = None;
         acc.api_provider_name = None;
         acc.bound_oauth_account_id = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.subscription_active_until = subscription_active_until.clone();
@@ -4624,6 +4628,7 @@ fn upsert_account_from_access_token(
         acc.api_provider_id = None;
         acc.api_provider_name = None;
         acc.bound_oauth_account_id = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.subscription_active_until = subscription_active_until.clone();
@@ -8131,6 +8136,7 @@ pub fn update_account_app_speed(
 pub async fn update_api_key_bound_oauth_account(
     account_id: &str,
     bound_oauth_account_id: Option<String>,
+    bound_oauth_use_local_gateway: bool,
 ) -> Result<CodexAccount, String> {
     let mut account =
         load_account(account_id).ok_or_else(|| format!("账号不存在: {}", account_id))?;
@@ -8144,6 +8150,7 @@ pub async fn update_api_key_bound_oauth_account(
         let _ = validate_api_key_bound_oauth_account(&account, bound_id)?;
     }
     account.bound_oauth_account_id = bound_id.clone();
+    account.bound_oauth_use_local_gateway = bound_id.is_some() && bound_oauth_use_local_gateway;
     save_account(&account)?;
 
     let is_current = load_account_index()
@@ -8157,7 +8164,10 @@ pub async fn update_api_key_bound_oauth_account(
             let oauth_account =
                 refresh_bound_oauth_account_for_api_key(&account, "bind-oauth").await?;
             write_api_key_account_bundle_with_oauth_to_dir(&codex_home, &account, &oauth_account)?;
+            activate_provider_gateway_after_switch_if_needed(&codex_home, &account).await?;
         } else {
+            crate::modules::codex_local_access::stop_provider_gateways_for_profile(&codex_home)
+                .await;
             write_prepared_account_bundle_to_dir(&codex_home, &account)?;
         }
     }

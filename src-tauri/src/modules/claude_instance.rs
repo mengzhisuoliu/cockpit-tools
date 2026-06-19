@@ -800,6 +800,9 @@ enum ClaudeWindowsLaunchTarget {
 const WINDOWS_SHELL_APP_PROCESS_MATCH: &str = "__claude_windows_shell_app__";
 
 #[cfg(target_os = "windows")]
+const CLAUDE_MULTI_INSTANCE_REQUIRES_EXE_ERROR: &str = "CLAUDE_MULTI_INSTANCE_REQUIRES_EXE:claude";
+
+#[cfg(target_os = "windows")]
 fn is_windows_claude_code_cli_path(path: &Path) -> bool {
     let file_name = path
         .file_name()
@@ -893,16 +896,28 @@ fn split_scan_roots(value: Option<&str>) -> Vec<PathBuf> {
 }
 
 #[cfg(target_os = "windows")]
-fn default_windows_claude_scan_roots() -> Vec<PathBuf> {
+fn windows_drive_roots() -> Vec<PathBuf> {
+    ('C'..='Z')
+        .map(|drive| PathBuf::from(format!("{}:\\", drive)))
+        .filter(|path| path.exists())
+        .collect()
+}
+
+#[cfg(target_os = "windows")]
+fn windows_claude_scan_roots(scan_roots: Option<&str>) -> Vec<PathBuf> {
+    let configured = split_scan_roots(scan_roots);
+    if !configured.is_empty() {
+        return configured;
+    }
+
     let mut roots = Vec::new();
-    if let Ok(local_appdata) = std::env::var("LOCALAPPDATA") {
-        roots.push(Path::new(&local_appdata).join("Programs"));
-    }
-    if let Ok(program_files) = std::env::var("PROGRAMFILES") {
-        roots.push(PathBuf::from(program_files));
-    }
-    if let Ok(program_files_x86) = std::env::var("PROGRAMFILES(X86)") {
-        roots.push(PathBuf::from(program_files_x86));
+    let mut seen = HashSet::new();
+    for root in windows_drive_roots() {
+        let key = normalize_path_for_compare(root.to_string_lossy().as_ref());
+        if key.is_empty() || !seen.insert(key) {
+            continue;
+        }
+        roots.push(root);
     }
     roots
 }
@@ -929,6 +944,83 @@ fn push_claude_exe_candidate(
         source: source.to_string(),
         supports_multi_instance: true,
     });
+}
+
+#[cfg(target_os = "windows")]
+fn windows_apps_dir_for_scan_root(root: &Path) -> Option<PathBuf> {
+    let mut current = if root.is_file() {
+        root.parent()?.to_path_buf()
+    } else {
+        root.to_path_buf()
+    };
+
+    loop {
+        let is_windows_apps_dir = current
+            .file_name()
+            .and_then(|value| value.to_str())
+            .map(|value| value.eq_ignore_ascii_case("WindowsApps"))
+            .unwrap_or(false);
+        if is_windows_apps_dir {
+            return Some(current);
+        }
+        if !current.pop() {
+            break;
+        }
+    }
+
+    let program_files_windows_apps = root.join("Program Files").join("WindowsApps");
+    if program_files_windows_apps.exists() {
+        return Some(program_files_windows_apps);
+    }
+
+    let direct_windows_apps = root.join("WindowsApps");
+    if direct_windows_apps.exists() {
+        return Some(direct_windows_apps);
+    }
+
+    None
+}
+
+#[cfg(target_os = "windows")]
+fn scan_windows_apps_claude_exe_under_root(
+    root: &Path,
+    candidates: &mut Vec<ClaudeDesktopLaunchCandidate>,
+    seen: &mut HashSet<String>,
+) -> bool {
+    let Some(windows_apps_dir) = windows_apps_dir_for_scan_root(root) else {
+        return false;
+    };
+    let entries = match fs::read_dir(&windows_apps_dir) {
+        Ok(entries) => entries,
+        Err(_) => return false,
+    };
+
+    let mut package_dirs = entries
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.is_dir())
+        .filter(|path| {
+            path.file_name()
+                .and_then(|value| value.to_str())
+                .map(|value| value.to_ascii_lowercase().starts_with("claude"))
+                .unwrap_or(false)
+        })
+        .collect::<Vec<_>>();
+    package_dirs.sort_by(|left, right| {
+        right
+            .file_name()
+            .and_then(|value| value.to_str())
+            .cmp(&left.file_name().and_then(|value| value.to_str()))
+    });
+
+    let mut found = false;
+    for package_dir in package_dirs {
+        let exe = package_dir.join("app").join("claude.exe");
+        let before = candidates.len();
+        push_claude_exe_candidate(candidates, seen, exe, "windows_apps");
+        found = found || candidates.len() > before;
+    }
+    found
 }
 
 #[cfg(target_os = "windows")]
@@ -1031,20 +1123,102 @@ fn scan_windows_start_apps_for_claude(
 }
 
 #[cfg(target_os = "windows")]
+fn scan_windows_appx_packages_for_claude(
+    scan_roots: Option<&str>,
+    candidates: &mut Vec<ClaudeDesktopLaunchCandidate>,
+    seen: &mut HashSet<String>,
+) -> bool {
+    use std::os::windows::process::CommandExt;
+
+    let configured_roots = split_scan_roots(scan_roots);
+    let normalized_roots = configured_roots
+        .iter()
+        .map(|root| normalize_path_for_compare(root.to_string_lossy().as_ref()))
+        .filter(|root| !root.is_empty())
+        .collect::<Vec<_>>();
+
+    let output = Command::new("powershell.exe")
+        .args([
+            "-NoProfile",
+            "-NonInteractive",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-Command",
+            "Get-AppxPackage | Where-Object { $_.Name -like '*Claude*' -or $_.PackageFamilyName -like '*Claude*' -or $_.PackageFullName -like '*Claude*' } | ForEach-Object { $_.InstallLocation }",
+        ])
+        .creation_flags(0x08000000)
+        .stdin(Stdio::null())
+        .output();
+    let Ok(output) = output else {
+        return false;
+    };
+    if !output.status.success() {
+        return false;
+    }
+
+    let mut found = false;
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    for line in stdout.lines() {
+        let install_location = line.trim();
+        if install_location.is_empty() {
+            continue;
+        }
+        let install_dir = PathBuf::from(install_location);
+        let normalized_install_dir = normalize_path_for_compare(install_location);
+        if !normalized_roots.is_empty()
+            && !normalized_roots
+                .iter()
+                .any(|root| {
+                    normalized_install_dir.starts_with(root.as_str())
+                        || root.starts_with(normalized_install_dir.as_str())
+                })
+        {
+            continue;
+        }
+        let before = candidates.len();
+        push_claude_exe_candidate(
+            candidates,
+            seen,
+            install_dir.join("app").join("claude.exe"),
+            "windows_appx",
+        );
+        found = found || candidates.len() > before;
+    }
+    found
+}
+
+#[cfg(target_os = "windows")]
 pub fn scan_claude_desktop_launch_targets(
     scan_roots: Option<&str>,
 ) -> Vec<ClaudeDesktopLaunchCandidate> {
     let mut candidates = Vec::new();
     let mut seen = HashSet::new();
 
-    scan_windows_start_apps_for_claude(&mut candidates, &mut seen);
-
-    for root in default_windows_claude_scan_roots()
-        .into_iter()
-        .chain(split_scan_roots(scan_roots))
-    {
-        scan_claude_exe_under_root(&root, &mut candidates, &mut seen);
+    let has_configured_roots = !split_scan_roots(scan_roots).is_empty();
+    let roots = windows_claude_scan_roots(scan_roots);
+    let mut found_windows_apps_exe = false;
+    for root in &roots {
+        if scan_windows_apps_claude_exe_under_root(root, &mut candidates, &mut seen) {
+            found_windows_apps_exe = true;
+            if !has_configured_roots {
+                break;
+            }
+        }
     }
+
+    if !found_windows_apps_exe
+        && scan_windows_appx_packages_for_claude(scan_roots, &mut candidates, &mut seen)
+    {
+        found_windows_apps_exe = true;
+    }
+
+    if has_configured_roots && !found_windows_apps_exe {
+        for root in &roots {
+            scan_claude_exe_under_root(root, &mut candidates, &mut seen);
+        }
+    }
+
+    scan_windows_start_apps_for_claude(&mut candidates, &mut seen);
 
     candidates
 }
@@ -1053,7 +1227,36 @@ pub fn scan_claude_desktop_launch_targets(
 pub fn scan_claude_desktop_launch_targets(
     _scan_roots: Option<&str>,
 ) -> Vec<ClaudeDesktopLaunchCandidate> {
-    Vec::new()
+    let mut candidates = Vec::new();
+
+    #[cfg(target_os = "macos")]
+    {
+        if let Some(path) = detect_claude_exec_path() {
+            let target = normalize_claude_path_for_config(&path);
+            candidates.push(ClaudeDesktopLaunchCandidate {
+                target_type: "app".to_string(),
+                label: "Claude.app".to_string(),
+                target,
+                source: "default".to_string(),
+                supports_multi_instance: true,
+            });
+        }
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        if let Some(path) = detect_claude_exec_path() {
+            candidates.push(ClaudeDesktopLaunchCandidate {
+                target_type: "exe".to_string(),
+                label: "Claude".to_string(),
+                target: path.to_string_lossy().to_string(),
+                source: "default".to_string(),
+                supports_multi_instance: true,
+            });
+        }
+    }
+
+    candidates
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -1164,8 +1367,23 @@ fn resolve_claude_windows_launch_target() -> Result<ClaudeWindowsLaunchTarget, S
 }
 
 #[cfg(target_os = "windows")]
+fn resolve_claude_windows_multi_instance_launch_target() -> Result<PathBuf, String> {
+    match resolve_claude_windows_launch_target()? {
+        ClaudeWindowsLaunchTarget::Executable(path) => Ok(path),
+        ClaudeWindowsLaunchTarget::ShellApp(_) => {
+            Err(CLAUDE_MULTI_INSTANCE_REQUIRES_EXE_ERROR.to_string())
+        }
+    }
+}
+
+#[cfg(target_os = "windows")]
 pub fn ensure_claude_launch_path_configured() -> Result<(), String> {
     resolve_claude_windows_launch_target().map(|_| ())
+}
+
+#[cfg(target_os = "windows")]
+pub fn ensure_claude_multi_instance_launch_path_configured() -> Result<(), String> {
+    resolve_claude_windows_multi_instance_launch_target().map(|_| ())
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -1186,6 +1404,11 @@ fn resolve_claude_launch_path() -> Result<PathBuf, String> {
 #[cfg(not(target_os = "windows"))]
 pub fn ensure_claude_launch_path_configured() -> Result<(), String> {
     resolve_claude_launch_path().map(|_| ())
+}
+
+#[cfg(not(target_os = "windows"))]
+pub fn ensure_claude_multi_instance_launch_path_configured() -> Result<(), String> {
+    ensure_claude_launch_path_configured()
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -1529,6 +1752,21 @@ fn spawn_claude_windows(
     }
     let child =
         spawn_command_with_trace(&mut cmd).map_err(|e| format!("启动 Claude 失败: {}", e))?;
+    if matches!(launch_target, ClaudeWindowsLaunchTarget::ShellApp(_)) {
+        let probe_started = std::time::Instant::now();
+        let timeout = std::time::Duration::from_secs(6);
+        while probe_started.elapsed() < timeout {
+            if let Some(resolved_pid) = resolve_claude_pid(None, None) {
+                return Ok(resolved_pid);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(200));
+        }
+        modules::logger::log_warn(&format!(
+            "[Claude Start] Windows shell app target launched but no Claude.exe PID matched in 6s; explorer pid={}",
+            child.id()
+        ));
+        return Err("Claude Desktop 已发起启动，但 6 秒内未匹配到真实 Claude.exe 进程".to_string());
+    }
     Ok(child.id())
 }
 
@@ -1627,7 +1865,8 @@ pub fn start_claude_with_args_with_new_window(
     }
     #[cfg(target_os = "windows")]
     {
-        let launch_target = resolve_claude_windows_launch_target()?;
+        let launch_path = resolve_claude_windows_multi_instance_launch_target()?;
+        let launch_target = ClaudeWindowsLaunchTarget::Executable(launch_path);
         return spawn_claude_windows(&launch_target, Some(target), extra_args, use_new_window);
     }
     #[cfg(target_os = "macos")]

@@ -2673,6 +2673,10 @@ export function CodexAccountsPage() {
     useState("");
   const [oauthBindingSaving, setOauthBindingSaving] = useState(false);
   const [oauthBindingAutoSwitch, setOauthBindingAutoSwitch] = useState(false);
+  const [
+    oauthBindingUseLocalGateway,
+    setOauthBindingUseLocalGateway,
+  ] = useState(false);
   const [oauthBindingSearchQuery, setOauthBindingSearchQuery] = useState("");
   const [oauthBindingFilterTypes, setOauthBindingFilterTypes] = useState<
     string[]
@@ -2898,6 +2902,7 @@ export function CodexAccountsPage() {
       setOauthBindingAccountId(null);
       setOauthBindingSelectedAccountId("");
       setOauthBindingAutoSwitch(false);
+      setOauthBindingUseLocalGateway(false);
       setOauthBindingSearchQuery("");
       setOauthBindingFilterTypes([]);
       setOauthBindingTagFilter([]);
@@ -2908,6 +2913,7 @@ export function CodexAccountsPage() {
       setOauthBindingAccountId(null);
       setOauthBindingSelectedAccountId("");
       setOauthBindingAutoSwitch(false);
+      setOauthBindingUseLocalGateway(false);
       setOauthBindingSearchQuery("");
       setOauthBindingFilterTypes([]);
       setOauthBindingTagFilter([]);
@@ -3692,6 +3698,7 @@ export function CodexAccountsPage() {
     setOauthBindingAccountId(null);
     setOauthBindingSelectedAccountId("");
     setOauthBindingAutoSwitch(false);
+    setOauthBindingUseLocalGateway(false);
     setOauthBindingSearchQuery("");
     setOauthBindingFilterTypes([]);
     setOauthBindingTagFilter([]);
@@ -3702,6 +3709,33 @@ export function CodexAccountsPage() {
     if (oauthBindingSaving) return;
     resetOAuthBindingModal();
   }, [oauthBindingSaving, resetOAuthBindingModal]);
+
+  const handleOAuthBindingLocalGatewayToggle = useCallback(
+    async (checked: boolean) => {
+      if (!checked) {
+        setOauthBindingUseLocalGateway(false);
+        return;
+      }
+      const confirmed = await confirmDialog(
+        t(
+          "codex.api.oauthBinding.localGatewayConfirm.message",
+          "开启后，该 API Key 账号绑定 OAuth 时会通过本地网关兼容模式启动：普通文本请求会自动移除 image_generation，避免部分供应商报“Image generation is not enabled”；OAuth 账号信息仍会保留。是否继续？",
+        ),
+        {
+          title: t(
+            "codex.api.oauthBinding.localGatewayConfirm.title",
+            "启用本地网关兼容模式",
+          ),
+          okLabel: t("common.confirm", "确认"),
+          cancelLabel: t("common.cancel", "取消"),
+        },
+      );
+      if (confirmed) {
+        setOauthBindingUseLocalGateway(true);
+      }
+    },
+    [t],
+  );
 
   const openOAuthBindingModal = useCallback(
     (account: CodexAccount, options?: { autoSwitch?: boolean }) => {
@@ -3715,6 +3749,9 @@ export function CodexAccountsPage() {
           : "",
       );
       setOauthBindingAutoSwitch(options?.autoSwitch ?? false);
+      setOauthBindingUseLocalGateway(
+        Boolean(account.bound_oauth_use_local_gateway),
+      );
       setOauthBindingSearchQuery("");
       setOauthBindingFilterTypes([]);
       setOauthBindingTagFilter([]);
@@ -3738,6 +3775,7 @@ export function CodexAccountsPage() {
           : "",
       );
       setOauthBindingAutoSwitch(options?.autoSwitch ?? false);
+      setOauthBindingUseLocalGateway(false);
       setOauthBindingSearchQuery("");
       setOauthBindingFilterTypes([]);
       setOauthBindingTagFilter([]);
@@ -3917,6 +3955,7 @@ export function CodexAccountsPage() {
         await updateApiKeyBoundOAuthAccount(
           oauthBindingAccount.id,
           selectedOAuthBindingAccount.id,
+          oauthBindingUseLocalGateway,
         );
       }
       setMessage({
@@ -3944,6 +3983,7 @@ export function CodexAccountsPage() {
     oauthBindingAccount,
     oauthBindingAutoSwitch,
     oauthBindingTargetKind,
+    oauthBindingUseLocalGateway,
     isOAuthBindingEligibleAccount,
     selectedOAuthBindingAccount,
     setMessage,
@@ -3969,7 +4009,7 @@ export function CodexAccountsPage() {
           );
         setLocalAccessState(nextState);
       } else if (oauthBindingAccount) {
-        await updateApiKeyBoundOAuthAccount(oauthBindingAccount.id, null);
+        await updateApiKeyBoundOAuthAccount(oauthBindingAccount.id, null, false);
       }
       setMessage({
         text: t("codex.api.oauthBinding.clearSuccess", "OAuth 绑定已解除"),
@@ -12394,12 +12434,41 @@ export function CodexAccountsPage() {
                       </div>
                     </div>
                     <div className="codex-oauth-binding-picker">
-                      <label>
-                        {t(
-                          "codex.api.oauthBinding.selectLabel",
-                          "选择 OAuth 账号",
+                      <div className="codex-oauth-binding-picker-header">
+                        <label>
+                          {t(
+                            "codex.api.oauthBinding.selectLabel",
+                            "选择 OAuth 账号",
+                          )}
+                        </label>
+                        {oauthBindingTargetKind === "api_key_account" && (
+                          <label
+                            className="codex-oauth-binding-gateway-toggle"
+                            title={t(
+                              "codex.api.oauthBinding.localGatewayTooltip",
+                              "开启后普通文本请求会通过本地网关移除 image_generation，用于兼容未开通图片生成的供应商。",
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={oauthBindingUseLocalGateway}
+                              onChange={(event) =>
+                                void handleOAuthBindingLocalGatewayToggle(
+                                  event.target.checked,
+                                )
+                              }
+                              disabled={oauthBindingSaving}
+                            />
+                            <span>
+                              {t(
+                                "codex.api.oauthBinding.useLocalGateway",
+                                "使用本地网关兼容模式",
+                              )}
+                            </span>
+                            <Info size={14} />
+                          </label>
                         )}
-                      </label>
+                      </div>
                       {oauthAccounts.length === 0 ? (
                         <div className="add-status error">
                           <CircleAlert size={16} />

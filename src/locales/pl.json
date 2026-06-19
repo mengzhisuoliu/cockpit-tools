@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Nie udało się zrestartować Codex: {{error}}",
       "claudeSettingsTitle": "Ustawienia Claude",
       "claudeAutoRefresh": "Automatyczne odświeżanie limitu Claude",
-      "claudeAutoRefreshDesc": "Automatycznie odświeża w tle pamięć podręczną limitów kont Claude."
+      "claudeAutoRefreshDesc": "Automatycznie odświeża w tle pamięć podręczną limitów kont Claude.",
+      "claudeAppPath": "Cel uruchamiania Claude Desktop",
+      "claudeAppPathDesc": "Profil domyślny może używać celu Microsoft Store; wiele instancji wymaga prawdziwego Claude.exe."
     },
     "network": {
       "apiTitle": "API kokpitu antygrawitacyjnego",
@@ -1020,7 +1022,15 @@
       "title": "Nie znaleziono ścieżki aplikacji",
       "desc": "Nie udało się znaleźć ścieżki aplikacji {{app}}. Ustaw ją teraz, aby kontynuować.",
       "action": "Ustaw teraz",
-      "codexLaunchHint": "Po wyłączeniu przełączanie konta i nadpisanie logowania nadal będą działać, ale aplikacja Codex nie będzie już uruchamiana i ten monit o ścieżkę nie pojawi się ponownie."
+      "codexLaunchHint": "Po wyłączeniu przełączanie konta i nadpisanie logowania nadal będą działać, ale aplikacja Codex nie będzie już uruchamiana i ten monit o ścieżkę nie pojawi się ponownie.",
+      "claudeMultiInstanceRequiresExe": "Wiele instancji Claude wymaga prawdziwej ścieżki Claude.exe. Cele Microsoft Store są tylko dla domyślnego profilu pulpitu.",
+      "scanApps": "Skanuj aplikacje",
+      "scanRoots": "Zakres skanowania",
+      "scanRootsPlaceholder": "Opcjonalnie wybierz folder lub katalog glowny dysku; puste pole skanuje WindowsApps wedlug dyskow i dodaje aplikacje menu Start.",
+      "windowsApp": "Aplikacja Microsoft Store",
+      "defaultOnly": "Tylko domyślny pulpit; dla wielu instancji wybierz prawdziwy Claude.exe.",
+      "claudeScanEmpty": "Nie znaleziono celu Claude Desktop. Wybierz Claude.exe ręcznie albo zmień zakres skanowania.",
+      "claudeTargetPlaceholder": "Ścieżka Claude.exe albo shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Nie znaleziono ścieżki aplikacji {{app}}. Skonfiguruj ją teraz, aby kontynuować."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Najpierw powiąż konto OAuth",
         "clearAction": "Odłącz",
         "clearSuccess": "Powiązanie OAuth usunięte.",
-        "clearFailed": "Nie udało się usunąć powiązania OAuth: {{error}}"
+        "clearFailed": "Nie udało się usunąć powiązania OAuth: {{error}}",
+        "useLocalGateway": "Uzyj lokalnego trybu zgodnosci bramy",
+        "localGatewayTooltip": "Kieruje zwykle zadania tekstowe przez lokalna brame i usuwa image_generation dla dostawcow bez generowania obrazow.",
+        "localGatewayConfirm": {
+          "title": "Wlacz lokalny tryb zgodnosci bramy",
+          "message": "Po wlaczeniu to konto API Key przy polaczeniu OAuth uzyje lokalnego trybu zgodnosci: zadania tekstowe usuna image_generation, a tozsamosc OAuth zostanie zachowana. Kontynuowac?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Auto odświeżanie limitu",
     "claude": {
-      "appPath": "Ścieżka Claude"
+      "appPath": "Ścieżka Claude",
+      "appTargetPlaceholder": "Ścieżka Claude.exe albo shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

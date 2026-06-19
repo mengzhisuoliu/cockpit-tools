@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Nepodařilo se restartovat Codex: {{error}}",
       "claudeSettingsTitle": "Nastavení Claude",
       "claudeAutoRefresh": "Automatická obnova kvóty Claude",
-      "claudeAutoRefreshDesc": "Automaticky na pozadí obnovuje mezipaměť kvóty účtů Claude."
+      "claudeAutoRefreshDesc": "Automaticky na pozadí obnovuje mezipaměť kvóty účtů Claude.",
+      "claudeAppPath": "Cíl spuštění Claude Desktop",
+      "claudeAppPathDesc": "Výchozí profil může použít cíl Microsoft Store; více instancí potřebuje skutečný Claude.exe."
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API​",
@@ -1020,7 +1022,15 @@
       "title": "Cesta k aplikaci nebyla nalezena",
       "desc": "Nepodařilo se najít cestu k aplikaci {{app}}. Pro pokračování ji nyní nastavte.",
       "action": "Nastavit nyní",
-      "codexLaunchHint": "Po vypnutí se přepnutí účtu a přepsání přihlášení stále provede, ale aplikace Codex se už nespustí a tato výzva k cestě se znovu nezobrazí."
+      "codexLaunchHint": "Po vypnutí se přepnutí účtu a přepsání přihlášení stále provede, ale aplikace Codex se už nespustí a tato výzva k cestě se znovu nezobrazí.",
+      "claudeMultiInstanceRequiresExe": "Více instancí Claude vyžaduje skutečnou cestu k Claude.exe. Cíle Microsoft Store jsou jen pro výchozí desktopový profil.",
+      "scanApps": "Skenovat aplikace",
+      "scanRoots": "Rozsah skenovani",
+      "scanRootsPlaceholder": "Volitelne, vyberte slozku nebo koren disku; prazdne pole projde WindowsApps podle disku a prida aplikace Start.",
+      "windowsApp": "Aplikace Microsoft Store",
+      "defaultOnly": "Pouze výchozí desktop; pro více instancí vyberte skutečný Claude.exe.",
+      "claudeScanEmpty": "Nebyl nalezen žádný cíl Claude Desktop. Vyberte Claude.exe ručně nebo upravte rozsah skenování.",
+      "claudeTargetPlaceholder": "Cesta Claude.exe nebo shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Cesta k aplikaci {{app}} nebyla nalezena. Nastavte ji nyní pro pokračování."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Nejdříve připojte účet OAuth",
         "clearAction": "Odpojit",
         "clearSuccess": "Propojení OAuth bylo odebráno.",
-        "clearFailed": "Odebrání propojení OAuth selhalo: {{error}}"
+        "clearFailed": "Odebrání propojení OAuth selhalo: {{error}}",
+        "useLocalGateway": "Pouzit lokalni rezim kompatibility brany",
+        "localGatewayTooltip": "Smeruje bezne textove pozadavky pres lokalni branu a odebere image_generation pro poskytovatele bez generovani obrazku.",
+        "localGatewayConfirm": {
+          "title": "Zapnout lokalni rezim kompatibility brany",
+          "message": "Po zapnuti tento ucet API Key pri vazbe OAuth pouzije lokalni rezim kompatibility: bezne textove pozadavky odeberou image_generation, identita OAuth zustane zachovana. Pokracovat?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Automatická obnova kvóty",
     "claude": {
-      "appPath": "Cesta Claude"
+      "appPath": "Cesta Claude",
+      "appTargetPlaceholder": "Cesta Claude.exe nebo shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

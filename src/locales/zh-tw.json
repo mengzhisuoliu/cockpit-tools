@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "重新啟動 Codex 失敗：{{error}}",
       "claudeSettingsTitle": "Claude 設定",
       "claudeAutoRefresh": "Claude 自動重新整理額度",
-      "claudeAutoRefreshDesc": "在背景自動更新 Claude 帳號額度快取"
+      "claudeAutoRefreshDesc": "在背景自動更新 Claude 帳號額度快取",
+      "claudeAppPath": "Claude Desktop 啟動目標",
+      "claudeAppPathDesc": "預設實例可使用 Microsoft Store 應用目標；多開實例請選擇真實 Claude.exe。"
     },
     "network": {
       "apiTitle": "反重力駕駛艙 API",
@@ -1020,7 +1022,15 @@
       "title": "找不到應用程式路徑",
       "desc": "找不到 {{app}} 的應用程式路徑。請立即設定以繼續。",
       "codexLaunchHint": "關閉後僅執行切號與登入覆蓋，不再嘗試啟動 Codex App，也不會再次要求設定啟動路徑。",
-      "action": "立即設定"
+      "action": "立即設定",
+      "claudeMultiInstanceRequiresExe": "Claude 多開實例需要真實 Claude.exe 路徑；Microsoft Store 啟動目標僅適用於預設桌面端。",
+      "scanApps": "掃描應用",
+      "scanRoots": "掃描範圍",
+      "scanRootsPlaceholder": "選填，選擇一個目錄或磁碟根目錄；留空時按磁碟掃描 WindowsApps 並補充開始功能表應用。",
+      "windowsApp": "微軟商店",
+      "defaultOnly": "僅適用於預設桌面端；多開實例請選擇真實 Claude.exe。",
+      "claudeScanEmpty": "未掃描到 Claude Desktop，請手動選擇 Claude.exe 或調整掃描範圍。",
+      "claudeTargetPlaceholder": "Claude.exe 路徑或 shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "找不到 {{app}} 的應用程式路徑，請立即設定以繼續。"
@@ -2130,7 +2140,13 @@
         "switchRequiresBinding": "請先綁定 OAuth 帳號",
         "clearAction": "解除綁定",
         "clearSuccess": "OAuth 綁定已解除",
-        "clearFailed": "解除 OAuth 綁定失敗：{{error}}"
+        "clearFailed": "解除 OAuth 綁定失敗：{{error}}",
+        "useLocalGateway": "使用本地網關相容模式",
+        "localGatewayTooltip": "開啟後普通文字請求會透過本地網關移除 image_generation，用於相容未開通圖片生成的供應商。",
+        "localGatewayConfirm": {
+          "title": "啟用本地網關相容模式",
+          "message": "開啟後，該 API Key 帳號綁定 OAuth 時會透過本地網關相容模式啟動：普通文字請求會自動移除 image_generation，避免部分供應商報錯；OAuth 帳號資訊仍會保留。是否繼續？"
+        }
       }
     },
     "local": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "配額自動重新整理",
     "claude": {
-      "appPath": "Claude 路徑"
+      "appPath": "Claude 路徑",
+      "appTargetPlaceholder": "Claude.exe 路徑或 shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

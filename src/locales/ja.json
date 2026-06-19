@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Codex の再起動に失敗しました: {{error}}",
       "claudeSettingsTitle": "Claude 設定",
       "claudeAutoRefresh": "Claude 使用量の自動更新",
-      "claudeAutoRefreshDesc": "Claude アカウントの使用量キャッシュをバックグラウンドで自動更新します。"
+      "claudeAutoRefreshDesc": "Claude アカウントの使用量キャッシュをバックグラウンドで自動更新します。",
+      "claudeAppPath": "Claude Desktop 起動ターゲット",
+      "claudeAppPathDesc": "既定プロファイルは Microsoft Store ターゲットを使用できます。複数インスタンスには実際の Claude.exe が必要です。"
     },
     "network": {
       "apiTitle": "反重力コックピット API",
@@ -1020,7 +1022,15 @@
       "title": "アプリのパスが見つかりません",
       "desc": "{{app}} のアプリパスが見つかりません。続行するには今すぐ設定してください。",
       "action": "今すぐ設定",
-      "codexLaunchHint": "オフにすると、アカウント切替とログイン上書きは引き続き実行されますが、Codex アプリは起動されず、この起動パスの案内も再表示されません。"
+      "codexLaunchHint": "オフにすると、アカウント切替とログイン上書きは引き続き実行されますが、Codex アプリは起動されず、この起動パスの案内も再表示されません。",
+      "claudeMultiInstanceRequiresExe": "Claude の複数インスタンスには実際の Claude.exe パスが必要です。Microsoft Store ターゲットは既定のデスクトップ用のみです。",
+      "scanApps": "アプリをスキャン",
+      "scanRoots": "Sukyan hani",
+      "scanRootsPlaceholder": "Nin-i de foruda mata wa doraibu ruto wo sentaku; kuuran nara WindowsApps wo doraibu betsu ni sukyaan shi Start menyu apuri mo fukumemasu.",
+      "windowsApp": "Microsoft Store アプリ",
+      "defaultOnly": "既定のデスクトップ用のみ。複数インスタンスには実際の Claude.exe を選択してください。",
+      "claudeScanEmpty": "Claude Desktop ターゲットが見つかりません。Claude.exe を手動で選ぶか、スキャン範囲を調整してください。",
+      "claudeTargetPlaceholder": "Claude.exe のパスまたは shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "{{app}} のアプリパスが見つかりません。続行するには今すぐ設定してください。"
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "先に OAuth アカウントを連携してください",
         "clearAction": "連携解除",
         "clearSuccess": "OAuth 連携を解除しました",
-        "clearFailed": "OAuth 連携の解除に失敗しました：{{error}}"
+        "clearFailed": "OAuth 連携の解除に失敗しました：{{error}}",
+        "useLocalGateway": "Rokaru getowei gokansei modo wo tsukau",
+        "localGatewayTooltip": "Tsujo no tekisuto rikuesuto wo rokaru getowei ni nagashi, gazo seisei ga nai purobaida de image_generation wo hazushimasu.",
+        "localGatewayConfirm": {
+          "title": "Rokaru getowei gokansei modo wo yuko ni suru",
+          "message": "Yuko ni?????? API Key akaunto ? OAuth rento ji ni rokaru getowei gokansei modo wo tsukai, tekisuto rikuesuto kara image_generation wo hazushi, OAuth no doitsusei wa hoji shimasu. Tsuzukemasu ka?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "クォータ自動更新",
     "claude": {
-      "appPath": "Claude パス"
+      "appPath": "Claude パス",
+      "appTargetPlaceholder": "Claude.exe のパスまたは shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

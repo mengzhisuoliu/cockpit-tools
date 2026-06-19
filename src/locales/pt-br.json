@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Falha ao reiniciar o Codex: {{error}}",
       "claudeSettingsTitle": "Configurações do Claude",
       "claudeAutoRefresh": "Atualização automática de cota do Claude",
-      "claudeAutoRefreshDesc": "Atualiza automaticamente em segundo plano o cache de cota das contas do Claude."
+      "claudeAutoRefreshDesc": "Atualiza automaticamente em segundo plano o cache de cota das contas do Claude.",
+      "claudeAppPath": "Alvo de inicialização do Claude Desktop",
+      "claudeAppPathDesc": "O perfil padrão pode usar um alvo da Microsoft Store; perfis multi-instância precisam do Claude.exe real."
     },
     "network": {
       "apiTitle": "API de cockpit antigravidade",
@@ -1020,7 +1022,15 @@
       "title": "Caminho do aplicativo não encontrado",
       "desc": "Não foi possível encontrar o caminho do aplicativo {{app}}. Defina agora para continuar.",
       "action": "Definir agora",
-      "codexLaunchHint": "Ao desativar, a troca de conta e a sobrescrita de login continuam funcionando, mas o app Codex não será mais iniciado e este aviso de caminho não aparecerá novamente."
+      "codexLaunchHint": "Ao desativar, a troca de conta e a sobrescrita de login continuam funcionando, mas o app Codex não será mais iniciado e este aviso de caminho não aparecerá novamente.",
+      "claudeMultiInstanceRequiresExe": "Perfis multi-instância do Claude exigem o caminho real do Claude.exe. Alvos da Microsoft Store servem apenas para o perfil desktop padrão.",
+      "scanApps": "Escanear apps",
+      "scanRoots": "Intervalo de varredura",
+      "scanRootsPlaceholder": "Opcional, escolha uma pasta ou raiz de unidade; deixe vazio para varrer WindowsApps por unidade e incluir apps do menu Iniciar.",
+      "windowsApp": "App da Microsoft Store",
+      "defaultOnly": "Apenas desktop padrão; escolha o Claude.exe real para perfis multi-instância.",
+      "claudeScanEmpty": "Nenhum alvo do Claude Desktop foi encontrado. Escolha o Claude.exe manualmente ou ajuste as raízes de escaneamento.",
+      "claudeTargetPlaceholder": "Caminho do Claude.exe ou shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "O caminho do aplicativo {{app}} não foi encontrado. Configure-o agora para continuar."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Vincule uma conta OAuth primeiro",
         "clearAction": "Desvincular",
         "clearSuccess": "Vínculo OAuth removido.",
-        "clearFailed": "Falha ao remover vínculo OAuth: {{error}}"
+        "clearFailed": "Falha ao remover vínculo OAuth: {{error}}",
+        "useLocalGateway": "Usar modo de compatibilidade do gateway local",
+        "localGatewayTooltip": "Roteia pedidos de texto comuns pelo gateway local e remove image_generation para provedores sem geracao de imagem.",
+        "localGatewayConfirm": {
+          "title": "Ativar modo de compatibilidade do gateway local",
+          "message": "Ao ativar, esta conta API Key usara o gateway local ao vincular OAuth: pedidos de texto removem image_generation e a identidade OAuth sera mantida. Continuar?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Atualização automática de cota",
     "claude": {
-      "appPath": "Caminho do Claude"
+      "appPath": "Caminho do Claude",
+      "appTargetPlaceholder": "Caminho do Claude.exe ou shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

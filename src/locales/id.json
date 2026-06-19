@@ -830,7 +830,9 @@
       "codexAppSpeedLaunchFailed": "Gagal memulai ulang Codex: {{error}}",
       "claudeSettingsTitle": "Pengaturan Claude",
       "claudeAutoRefresh": "Penyegaran otomatis kuota Claude",
-      "claudeAutoRefreshDesc": "Menyegarkan cache kuota akun Claude secara otomatis di latar belakang."
+      "claudeAutoRefreshDesc": "Menyegarkan cache kuota akun Claude secara otomatis di latar belakang.",
+      "claudeAppPath": "Target peluncuran Claude Desktop",
+      "claudeAppPathDesc": "Profil default dapat memakai target Microsoft Store; profil multi-instans membutuhkan Claude.exe asli."
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1066,7 +1068,15 @@
       "title": "Jalur aplikasi tidak ditemukan",
       "desc": "Tidak dapat menemukan jalur aplikasi {{app}}. Silakan atur sekarang untuk melanjutkan.",
       "codexLaunchHint": "Jika dinonaktifkan, penggantian akun dan penimpaan login tetap berjalan, tetapi Aplikasi Codex tidak akan diluncurkan lagi dan perintah jalur ini tidak akan muncul kembali.",
-      "action": "Atur sekarang"
+      "action": "Atur sekarang",
+      "claudeMultiInstanceRequiresExe": "Profil multi-instans Claude memerlukan jalur Claude.exe asli. Target Microsoft Store hanya untuk profil desktop default.",
+      "scanApps": "Pindai aplikasi",
+      "scanRoots": "Cakupan pindai",
+      "scanRootsPlaceholder": "Opsional, pilih folder atau root drive; kosongkan untuk memindai WindowsApps per drive dan menyertakan aplikasi menu Start.",
+      "windowsApp": "Aplikasi Microsoft Store",
+      "defaultOnly": "Hanya desktop default; pilih Claude.exe asli untuk profil multi-instans.",
+      "claudeScanEmpty": "Target Claude Desktop tidak ditemukan. Pilih Claude.exe secara manual atau sesuaikan cakupan pindai.",
+      "claudeTargetPlaceholder": "Jalur Claude.exe atau shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Path aplikasi {{app}} tidak ditemukan. Silakan konfigurasi sekarang untuk melanjutkan."
@@ -2179,7 +2189,13 @@
         "switchRequiresBinding": "Tautkan akun OAuth terlebih dahulu",
         "clearAction": "Lepas tautan",
         "clearSuccess": "Tautan OAuth dihapus.",
-        "clearFailed": "Gagal menghapus tautan OAuth: {{error}}"
+        "clearFailed": "Gagal menghapus tautan OAuth: {{error}}",
+        "useLocalGateway": "Gunakan mode kompatibilitas gateway lokal",
+        "localGatewayTooltip": "Merutekan permintaan teks biasa lewat gateway lokal dan menghapus image_generation untuk penyedia tanpa generasi gambar.",
+        "localGatewayConfirm": {
+          "title": "Aktifkan mode kompatibilitas gateway lokal",
+          "message": "Jika aktif, akun API Key ini memakai mode kompatibilitas gateway lokal saat ditautkan ke OAuth: permintaan teks menghapus image_generation, identitas OAuth tetap dipakai. Lanjutkan?"
+        }
       }
     },
     "local": {
@@ -3480,7 +3496,8 @@
     },
     "claudeRefreshInterval": "Muat ulang kuota otomatis",
     "claude": {
-      "appPath": "Jalur Claude"
+      "appPath": "Jalur Claude",
+      "appTargetPlaceholder": "Jalur Claude.exe atau shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

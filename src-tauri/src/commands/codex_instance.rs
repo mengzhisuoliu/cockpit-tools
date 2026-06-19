@@ -165,7 +165,17 @@ async fn ensure_provider_gateway_for_bind_account(
     let Some(provider_gateway_account_id) =
         modules::codex_instance::parse_provider_gateway_bind_account_id(bind_account_id)
     else {
-        return Ok(());
+        let Some(account) = modules::codex_account::load_account(bind_account_id) else {
+            return Ok(());
+        };
+        if !modules::codex_local_access::account_requires_provider_gateway(&account) {
+            return Ok(());
+        }
+        return modules::codex_local_access::ensure_provider_gateway_for_dir(
+            profile_dir,
+            bind_account_id,
+        )
+        .await;
     };
     modules::codex_local_access::ensure_provider_gateway_for_dir(
         profile_dir,

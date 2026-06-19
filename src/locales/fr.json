@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Impossible de redémarrer Codex : {{error}}",
       "claudeSettingsTitle": "Paramètres Claude",
       "claudeAutoRefresh": "Actualisation auto du quota Claude",
-      "claudeAutoRefreshDesc": "Actualise automatiquement en arrière-plan le cache de quota des comptes Claude."
+      "claudeAutoRefreshDesc": "Actualise automatiquement en arrière-plan le cache de quota des comptes Claude.",
+      "claudeAppPath": "Cible de lancement Claude Desktop",
+      "claudeAppPathDesc": "Le profil par défaut peut utiliser une cible Microsoft Store ; les instances multiples nécessitent le vrai Claude.exe."
     },
     "network": {
       "apiTitle": "API du cockpit antigravité",
@@ -1020,7 +1022,15 @@
       "title": "Chemin de l’application introuvable",
       "desc": "Impossible de trouver le chemin de l’application {{app}}. Veuillez le définir maintenant pour continuer.",
       "action": "Définir maintenant",
-      "codexLaunchHint": "Une fois désactivé, le changement de compte et l'écrasement de connexion continuent de s'exécuter, mais l'application Codex ne sera plus lancée et cette invite de chemin ne réapparaîtra pas."
+      "codexLaunchHint": "Une fois désactivé, le changement de compte et l'écrasement de connexion continuent de s'exécuter, mais l'application Codex ne sera plus lancée et cette invite de chemin ne réapparaîtra pas.",
+      "claudeMultiInstanceRequiresExe": "Les instances multiples Claude nécessitent le vrai chemin Claude.exe. Les cibles Microsoft Store sont réservées au profil bureau par défaut.",
+      "scanApps": "Analyser les apps",
+      "scanRoots": "Zone analyse",
+      "scanRootsPlaceholder": "Facultatif, choisissez un dossier ou une racine de lecteur; vide, WindowsApps est analyse par lecteur avec les apps du menu Demarrer.",
+      "windowsApp": "Appli Microsoft Store",
+      "defaultOnly": "Profil bureau par défaut uniquement ; choisissez le vrai Claude.exe pour les instances multiples.",
+      "claudeScanEmpty": "Aucune cible Claude Desktop trouvée. Choisissez Claude.exe manuellement ou ajustez les dossiers à analyser.",
+      "claudeTargetPlaceholder": "Chemin Claude.exe ou shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Le chemin de l'application {{app}} est introuvable. Veuillez le configurer maintenant pour continuer."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Liez d’abord un compte OAuth",
         "clearAction": "Dissocier",
         "clearSuccess": "Liaison OAuth supprimée.",
-        "clearFailed": "Échec de la suppression de la liaison OAuth : {{error}}"
+        "clearFailed": "Échec de la suppression de la liaison OAuth : {{error}}",
+        "useLocalGateway": "Utiliser le mode de compatibilite passerelle locale",
+        "localGatewayTooltip": "Achemine les requetes texte normales via la passerelle locale et retire image_generation pour les fournisseurs sans generation image.",
+        "localGatewayConfirm": {
+          "title": "Activer le mode de compatibilite passerelle locale",
+          "message": "Une fois active, ce compte API Key utilisera la passerelle locale avec OAuth: les requetes texte retirent image_generation et l identite OAuth reste conservee. Continuer?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Actualisation auto du quota",
     "claude": {
-      "appPath": "Chemin Claude"
+      "appPath": "Chemin Claude",
+      "appTargetPlaceholder": "Chemin Claude.exe ou shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

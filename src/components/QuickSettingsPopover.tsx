@@ -992,6 +992,28 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
     }
   };
 
+  const handlePickClaudeScanRoot = async () => {
+    try {
+      const selected = await open({ multiple: false, directory: true });
+      const path = Array.isArray(selected) ? selected[0] : selected;
+      if (!path || !config) return;
+      setClaudeLaunchCandidates([]);
+      saveConfig({ claude_app_scan_roots: path });
+    } catch (err) {
+      console.error('Failed to pick Claude scan root:', err);
+      setError(t('quickSettings.error.pickPathFailed', {
+        error: String(err),
+        defaultValue: '选择路径失败：{{error}}',
+      }));
+    }
+  };
+
+  const handleClearClaudeScanRoot = () => {
+    if (!config || pathDetecting) return;
+    setClaudeLaunchCandidates([]);
+    saveConfig({ claude_app_scan_roots: '' });
+  };
+
   const handleResetAppPath = async (
     target:
       | 'antigravity'
@@ -2094,6 +2116,40 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
                   <FolderOpen size={15} />
                   <span>{getAppPathLabel()}</span>
                 </div>
+                {type === 'claude' && config && (
+                  <div className="qs-claude-scan-roots">
+                    <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
+                    <div className="qs-claude-scan-root-row">
+                      <input
+                        type="text"
+                        className="qs-path-input qs-claude-scan-roots-input"
+                        value={config.claude_app_scan_roots}
+                        placeholder={t(
+                          'appPath.missing.scanRootsPlaceholder',
+                          '可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。',
+                        )}
+                        readOnly
+                        disabled={pathDetecting}
+                      />
+                      <div className="qs-path-actions">
+                        <button
+                          className="qs-btn"
+                          onClick={handlePickClaudeScanRoot}
+                          disabled={pathDetecting}
+                        >
+                          {t('settings.general.codexPathSelect', '选择')}
+                        </button>
+                        <button
+                          className="qs-btn"
+                          onClick={handleClearClaudeScanRoot}
+                          disabled={pathDetecting || !config.claude_app_scan_roots.trim()}
+                        >
+                          {t('common.clear', '清除')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div className="qs-path-control">
                   <input
                     type="text"
@@ -2171,20 +2227,6 @@ export function QuickSettingsPopover({ type }: QuickSettingsPopoverProps) {
 
                 {type === 'claude' && config && (
                   <>
-                    <div className="qs-claude-scan-roots">
-                      <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
-                      <textarea
-                        className="qs-path-input qs-claude-scan-roots-input"
-                        value={config.claude_app_scan_roots}
-                        placeholder={t(
-                          'appPath.missing.scanRootsPlaceholder',
-                          '可选，每行一个目录；留空仅扫描常见安装位置和开始菜单应用',
-                        )}
-                        onChange={(event) =>
-                          saveConfig({ claude_app_scan_roots: event.target.value })
-                        }
-                      />
-                    </div>
                     {claudeLaunchCandidates.length > 0 && (
                       <div className="qs-claude-candidate-list">
                         {claudeLaunchCandidates.map((candidate) => (

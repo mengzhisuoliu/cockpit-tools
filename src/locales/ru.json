@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Не удалось перезапустить Codex: {{error}}",
       "claudeSettingsTitle": "Настройки Claude",
       "claudeAutoRefresh": "Автообновление квоты Claude",
-      "claudeAutoRefreshDesc": "Автоматически обновляет кэш квоты аккаунтов Claude в фоне."
+      "claudeAutoRefreshDesc": "Автоматически обновляет кэш квоты аккаунтов Claude в фоне.",
+      "claudeAppPath": "Цель запуска Claude Desktop",
+      "claudeAppPathDesc": "Стандартный профиль может использовать цель Microsoft Store; нескольким экземплярам нужен реальный Claude.exe."
     },
     "network": {
       "apiTitle": "API антигравитационной кабины",
@@ -1020,7 +1022,15 @@
       "title": "Путь к приложению не найден",
       "desc": "Не удалось найти путь к приложению {{app}}. Установите его сейчас, чтобы продолжить.",
       "action": "Установить сейчас",
-      "codexLaunchHint": "После отключения переключение аккаунта и перезапись входа продолжат выполняться, но приложение Codex больше не будет запускаться, и этот запрос пути больше не появится."
+      "codexLaunchHint": "После отключения переключение аккаунта и перезапись входа продолжат выполняться, но приложение Codex больше не будет запускаться, и этот запрос пути больше не появится.",
+      "claudeMultiInstanceRequiresExe": "Для нескольких экземпляров Claude нужен реальный путь к Claude.exe. Цели Microsoft Store подходят только для стандартного настольного профиля.",
+      "scanApps": "Сканировать приложения",
+      "scanRoots": "Oblast skanirovaniya",
+      "scanRootsPlaceholder": "Neobyazatelno: vyberite papku ili koren diska; pustoe pole skaniruet WindowsApps po diskam i dobavlyaet prilozheniya menyu Pusk.",
+      "windowsApp": "Приложение Microsoft Store",
+      "defaultOnly": "Только для стандартного рабочего стола; для нескольких экземпляров выберите реальный Claude.exe.",
+      "claudeScanEmpty": "Цель Claude Desktop не найдена. Выберите Claude.exe вручную или измените области сканирования.",
+      "claudeTargetPlaceholder": "Путь Claude.exe или shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Путь приложения {{app}} не найден. Настройте его сейчас для продолжения."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Сначала свяжите OAuth-аккаунт",
         "clearAction": "Отвязать",
         "clearSuccess": "Привязка OAuth удалена.",
-        "clearFailed": "Не удалось удалить привязку OAuth: {{error}}"
+        "clearFailed": "Не удалось удалить привязку OAuth: {{error}}",
+        "useLocalGateway": "Ispolzovat lokalnyy rezhim sovmestimosti shlyuza",
+        "localGatewayTooltip": "Napravlyaet obychnye tekstovye zaprosy cherez lokalnyy shlyuz i ubiraet image_generation dlya provayderov bez generatsii izobrazheniy.",
+        "localGatewayConfirm": {
+          "title": "Vklyuchit lokalnyy rezhim sovmestimosti shlyuza",
+          "message": "Posle vklyucheniya etot API Key akkaunt pri svyazi OAuth budet ispolzovat lokalnyy rezhim: tekstovye zaprosy ubirayut image_generation, a OAuth lichnost sokhranyaetsya. Prodolzhit?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Автообновление квоты",
     "claude": {
-      "appPath": "Путь Claude"
+      "appPath": "Путь Claude",
+      "appTargetPlaceholder": "Путь Claude.exe или shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

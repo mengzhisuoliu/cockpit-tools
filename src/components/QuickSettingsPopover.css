@@ -326,7 +326,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .qs-claude-scan-roots label {
@@ -335,11 +335,16 @@
   font-weight: 600;
 }
 
+.qs-claude-scan-root-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
 .qs-claude-scan-roots-input {
   width: 100%;
-  min-height: 72px;
-  resize: vertical;
-  line-height: 1.5;
+  min-height: 0;
 }
 
 .qs-claude-candidate-list {

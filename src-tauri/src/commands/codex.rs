@@ -901,8 +901,14 @@ pub fn update_codex_api_key_credentials(
 pub async fn update_codex_api_key_bound_oauth_account(
     account_id: String,
     bound_oauth_account_id: Option<String>,
+    bound_oauth_use_local_gateway: Option<bool>,
 ) -> Result<CodexAccount, String> {
-    codex_account::update_api_key_bound_oauth_account(&account_id, bound_oauth_account_id).await
+    codex_account::update_api_key_bound_oauth_account(
+        &account_id,
+        bound_oauth_account_id,
+        bound_oauth_use_local_gateway.unwrap_or(false),
+    )
+    .await
 }
 
 #[tauri::command]

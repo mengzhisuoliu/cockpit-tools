@@ -393,7 +393,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 10px;
+  margin-bottom: 10px;
 }
 
 .app-path-missing-scan-roots label {
@@ -402,11 +402,16 @@
   font-weight: 600;
 }
 
+.app-path-missing-scan-root-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
 .app-path-missing-scan-roots-input {
   width: 100%;
-  min-height: 74px;
-  resize: vertical;
-  line-height: 1.5;
+  min-height: 0;
 }
 
 .app-path-candidate-list {

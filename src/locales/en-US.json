@@ -1080,7 +1080,9 @@
       "codexAppSpeedLaunchFailed": "Failed to restart Codex: {{error}}",
       "claudeSettingsTitle": "Claude Settings",
       "claudeAutoRefresh": "Claude quota auto refresh",
-      "claudeAutoRefreshDesc": "Automatically refresh cached quota for Claude accounts in the background."
+      "claudeAutoRefreshDesc": "Automatically refresh cached quota for Claude accounts in the background.",
+      "claudeAppPath": "Claude Desktop launch target",
+      "claudeAppPathDesc": "The default profile can use a Microsoft Store target; multi-instance profiles need the real Claude.exe."
     },
     "network": {
       "apiTitle": "Antigravity Cockpit API",
@@ -1218,7 +1220,15 @@
       "title": "Application path not found",
       "desc": "Could not find the {{app}} application path. Please set it now to continue.",
       "codexLaunchHint": "When turned off, account switching and login overwrite still run, but Codex App will no longer be launched and this path prompt will not appear again.",
-      "action": "Set now"
+      "action": "Set now",
+      "claudeMultiInstanceRequiresExe": "Claude multi-instance profiles require the real Claude.exe path. Microsoft Store targets are only for the default desktop profile.",
+      "scanApps": "Scan apps",
+      "scanRoots": "Scan range",
+      "scanRootsPlaceholder": "Optional, choose a folder or drive root; leave blank to scan WindowsApps by drive and include Start menu apps.",
+      "windowsApp": "Microsoft Store",
+      "defaultOnly": "Default desktop only; choose the real Claude.exe for multi-instance profiles.",
+      "claudeScanEmpty": "No Claude Desktop target was found. Choose Claude.exe manually or adjust the scan roots.",
+      "claudeTargetPlaceholder": "Claude.exe path or shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "The app path for {{app}} was not found. Please configure it now to continue."
@@ -2356,7 +2366,13 @@
         "switchRequiresBinding": "Link an OAuth account first.",
         "clearAction": "Unlink",
         "clearSuccess": "OAuth link removed.",
-        "clearFailed": "Failed to remove OAuth link: {{error}}"
+        "clearFailed": "Failed to remove OAuth link: {{error}}",
+        "useLocalGateway": "Use local gateway compatibility mode",
+        "localGatewayTooltip": "Routes normal text requests through the local gateway and removes image_generation for providers without image generation enabled.",
+        "localGatewayConfirm": {
+          "title": "Enable local gateway compatibility mode",
+          "message": "When enabled, this API-key account will use local gateway compatibility mode while linked to OAuth: normal text requests remove image_generation to avoid \"Image generation is not enabled\" errors, while OAuth account identity is kept. Continue?"
+        }
       }
     },
     "cockpitApi": {
@@ -3632,7 +3648,8 @@
     },
     "claudeRefreshInterval": "Quota auto refresh",
     "claude": {
-      "appPath": "Claude path"
+      "appPath": "Claude path",
+      "appTargetPlaceholder": "Claude.exe path or shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

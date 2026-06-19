@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Không thể khởi động lại Codex: {{error}}",
       "claudeSettingsTitle": "Cài đặt Claude",
       "claudeAutoRefresh": "Tự động làm mới hạn mức Claude",
-      "claudeAutoRefreshDesc": "Tự động làm mới bộ nhớ đệm hạn mức cho tài khoản Claude trong nền."
+      "claudeAutoRefreshDesc": "Tự động làm mới bộ nhớ đệm hạn mức cho tài khoản Claude trong nền.",
+      "claudeAppPath": "Mục tiêu khởi chạy Claude Desktop",
+      "claudeAppPathDesc": "Hồ sơ mặc định có thể dùng mục tiêu Microsoft Store; hồ sơ đa phiên bản cần Claude.exe thật."
     },
     "network": {
       "apiTitle": "API Antigravity Cockpit",
@@ -1020,7 +1022,15 @@
       "title": "Không tìm thấy đường dẫn ứng dụng",
       "desc": "Không tìm thấy đường dẫn ứng dụng {{app}}. Vui lòng đặt ngay để tiếp tục.",
       "action": "Đặt ngay",
-      "codexLaunchHint": "Khi tắt, thao tác chuyển tài khoản và ghi đè đăng nhập vẫn chạy, nhưng ứng dụng Codex sẽ không còn được khởi động và lời nhắc đường dẫn này cũng sẽ không xuất hiện lại."
+      "codexLaunchHint": "Khi tắt, thao tác chuyển tài khoản và ghi đè đăng nhập vẫn chạy, nhưng ứng dụng Codex sẽ không còn được khởi động và lời nhắc đường dẫn này cũng sẽ không xuất hiện lại.",
+      "claudeMultiInstanceRequiresExe": "Hồ sơ đa phiên bản Claude cần đường dẫn Claude.exe thật. Mục tiêu Microsoft Store chỉ dùng cho hồ sơ desktop mặc định.",
+      "scanApps": "Quét ứng dụng",
+      "scanRoots": "Pham vi quet",
+      "scanRootsPlaceholder": "Tuy chon, chon mot thu muc hoac goc o dia; de trong de quet WindowsApps theo o dia va them ung dung menu Start.",
+      "windowsApp": "Ứng dụng Microsoft Store",
+      "defaultOnly": "Chỉ dành cho desktop mặc định; hãy chọn Claude.exe thật cho hồ sơ đa phiên bản.",
+      "claudeScanEmpty": "Không tìm thấy mục tiêu Claude Desktop. Hãy chọn Claude.exe thủ công hoặc chỉnh phạm vi quét.",
+      "claudeTargetPlaceholder": "Đường dẫn Claude.exe hoặc shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Không tìm thấy đường dẫn ứng dụng {{app}}. Vui lòng cấu hình ngay để tiếp tục."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Hãy liên kết tài khoản OAuth trước",
         "clearAction": "Bỏ liên kết",
         "clearSuccess": "Đã bỏ liên kết OAuth.",
-        "clearFailed": "Không thể bỏ liên kết OAuth: {{error}}"
+        "clearFailed": "Không thể bỏ liên kết OAuth: {{error}}",
+        "useLocalGateway": "Dung che do tuong thich gateway cuc bo",
+        "localGatewayTooltip": "Dinh tuyen yeu cau van ban thuong qua gateway cuc bo va go image_generation voi nha cung cap chua bat tao anh.",
+        "localGatewayConfirm": {
+          "title": "Bat che do tuong thich gateway cuc bo",
+          "message": "Khi bat, tai khoan API Key nay se dung gateway cuc bo khi lien ket OAuth: yeu cau van ban go image_generation, danh tinh OAuth van duoc giu. Tiep tuc?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Tự làm mới hạn mức",
     "claude": {
-      "appPath": "Đường dẫn Claude"
+      "appPath": "Đường dẫn Claude",
+      "appTargetPlaceholder": "Đường dẫn Claude.exe hoặc shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

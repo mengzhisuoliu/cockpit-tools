@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Codex konnte nicht neu gestartet werden: {{error}}",
       "claudeSettingsTitle": "Claude-Einstellungen",
       "claudeAutoRefresh": "Claude-Kontingent automatisch aktualisieren",
-      "claudeAutoRefreshDesc": "Aktualisiert den Kontingent-Cache für Claude-Konten automatisch im Hintergrund."
+      "claudeAutoRefreshDesc": "Aktualisiert den Kontingent-Cache für Claude-Konten automatisch im Hintergrund.",
+      "claudeAppPath": "Claude-Desktop-Startziel",
+      "claudeAppPathDesc": "Das Standardprofil kann ein Microsoft-Store-Ziel verwenden; Mehrfachinstanzen benötigen die echte Claude.exe."
     },
     "network": {
       "apiTitle": "Antigravity-Cockpit-API",
@@ -1020,7 +1022,15 @@
       "title": "Anwendungspfad nicht gefunden",
       "desc": "Der Anwendungspfad für {{app}} wurde nicht gefunden. Bitte jetzt festlegen, um fortzufahren.",
       "action": "Jetzt festlegen",
-      "codexLaunchHint": "Wenn deaktiviert, laufen Kontowechsel und Login-Überschreibung weiter, aber die Codex-App wird nicht mehr gestartet und dieser Pfadhinweis erscheint nicht erneut."
+      "codexLaunchHint": "Wenn deaktiviert, laufen Kontowechsel und Login-Überschreibung weiter, aber die Codex-App wird nicht mehr gestartet und dieser Pfadhinweis erscheint nicht erneut.",
+      "claudeMultiInstanceRequiresExe": "Claude-Mehrfachinstanzen benötigen den echten Claude.exe-Pfad. Microsoft-Store-Ziele gelten nur für das Standard-Desktopprofil.",
+      "scanApps": "Apps scannen",
+      "scanRoots": "Scanbereich",
+      "scanRootsPlaceholder": "Optional, Ordner oder Laufwerkswurzel waehlen; leer scannt WindowsApps je Laufwerk und ergaenzt Startmenue-Apps.",
+      "windowsApp": "Microsoft-Store-App",
+      "defaultOnly": "Nur für das Standard-Desktopprofil; für Mehrfachinstanzen bitte die echte Claude.exe wählen.",
+      "claudeScanEmpty": "Kein Claude-Desktop-Ziel gefunden. Wähle Claude.exe manuell oder passe die Scanbereiche an.",
+      "claudeTargetPlaceholder": "Claude.exe-Pfad oder shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "Der App-Pfad für {{app}} wurde nicht gefunden. Bitte jetzt konfigurieren, um fortzufahren."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Bitte zuerst ein OAuth-Konto binden",
         "clearAction": "Trennen",
         "clearSuccess": "OAuth-Verknüpfung entfernt.",
-        "clearFailed": "OAuth-Verknüpfung konnte nicht entfernt werden: {{error}}"
+        "clearFailed": "OAuth-Verknüpfung konnte nicht entfernt werden: {{error}}",
+        "useLocalGateway": "Lokalen Gateway-Kompatibilitaetsmodus verwenden",
+        "localGatewayTooltip": "Leitet normale Textanfragen ueber den lokalen Gateway und entfernt image_generation fuer Anbieter ohne Bildgenerierung.",
+        "localGatewayConfirm": {
+          "title": "Lokalen Gateway-Kompatibilitaetsmodus aktivieren",
+          "message": "Nach Aktivierung nutzt dieses API-Key-Konto beim OAuth-Link den lokalen Gateway-Kompatibilitaetsmodus: normale Textanfragen entfernen image_generation, die OAuth-Identitaet bleibt erhalten. Fortfahren?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Kontingent automatisch aktualisieren",
     "claude": {
-      "appPath": "Claude-Pfad"
+      "appPath": "Claude-Pfad",
+      "appTargetPlaceholder": "Claude.exe-Pfad oder shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

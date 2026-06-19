@@ -830,7 +830,9 @@
       "codexAppSpeedLaunchFailed": "فشلت إعادة تشغيل Codex: {{error}}",
       "claudeSettingsTitle": "إعدادات Claude",
       "claudeAutoRefresh": "تحديث حصة Claude تلقائيًا",
-      "claudeAutoRefreshDesc": "يحدّث ذاكرة الحصة المؤقتة لحسابات Claude تلقائيًا في الخلفية."
+      "claudeAutoRefreshDesc": "يحدّث ذاكرة الحصة المؤقتة لحسابات Claude تلقائيًا في الخلفية.",
+      "claudeAppPath": "هدف تشغيل Claude Desktop",
+      "claudeAppPathDesc": "يمكن للملف الافتراضي استخدام هدف Microsoft Store؛ أما الملفات متعددة المثيلات فتحتاج Claude.exe الحقيقي."
     },
     "network": {
       "apiTitle": "واجهة برمجة تطبيقات قمرة القيادة المضادة للجاذبية",
@@ -1066,7 +1068,15 @@
       "title": "لم يتم العثور على مسار التطبيق",
       "desc": "تعذر العثور على مسار تطبيق {{app}}. الرجاء تعيينه الآن للمتابعة.",
       "action": "تعيين الآن",
-      "codexLaunchHint": "عند إيقافه، يستمر تبديل الحساب واستبدال تسجيل الدخول، لكن لن يتم تشغيل تطبيق Codex بعد الآن ولن يظهر هذا التنبيه لمسار التشغيل مرة أخرى."
+      "codexLaunchHint": "عند إيقافه، يستمر تبديل الحساب واستبدال تسجيل الدخول، لكن لن يتم تشغيل تطبيق Codex بعد الآن ولن يظهر هذا التنبيه لمسار التشغيل مرة أخرى.",
+      "claudeMultiInstanceRequiresExe": "تتطلب ملفات Claude متعددة المثيلات مسار Claude.exe الحقيقي. أهداف Microsoft Store مخصصة لملف سطح المكتب الافتراضي فقط.",
+      "scanApps": "فحص التطبيقات",
+      "scanRoots": "Nitaq al-fahs",
+      "scanRootsPlaceholder": "Ikhtiyari: ikhtar mujalladan aw jadhra qurs; idha turik farighan, yamsah WindowsApps hasab al-aqras wa yudif tatbiqat Start.",
+      "windowsApp": "تطبيق Microsoft Store",
+      "defaultOnly": "لسطح المكتب الافتراضي فقط؛ اختر Claude.exe الحقيقي للملفات متعددة المثيلات.",
+      "claudeScanEmpty": "لم يتم العثور على هدف Claude Desktop. اختر Claude.exe يدويا أو عدل نطاقات الفحص.",
+      "claudeTargetPlaceholder": "مسار Claude.exe أو shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "لم يتم العثور على مسار تطبيق {{app}}. يرجى الضبط الآن للمتابعة."
@@ -2578,7 +2588,13 @@
         "switchRequiresBinding": "اربط حساب OAuth أولا",
         "clearAction": "إلغاء الربط",
         "clearSuccess": "تم إلغاء ربط OAuth.",
-        "clearFailed": "فشل إلغاء ربط OAuth: {{error}}"
+        "clearFailed": "فشل إلغاء ربط OAuth: {{error}}",
+        "useLocalGateway": "Istikhdam bawwabat mahalliya tawafuqiya",
+        "localGatewayTooltip": "Yumarrir talab al-nass al-adi abra bawwaba mahalliya wa yahdhif image_generation lil-muwarridin bila tawlid suwar.",
+        "localGatewayConfirm": {
+          "title": "Tafiel bawwabat mahalliya tawafuqiya",
+          "message": "Inda tafielha, yastakhdim hadha hisab API Key bawwaba mahalliya athna rabt OAuth: talab al-nass al-adi yahdhif image_generation, ma baqa huwiyat OAuth. Hal tastamir?"
+        }
       }
     },
     "modelProviders": {
@@ -3380,7 +3396,8 @@
     },
     "claudeRefreshInterval": "تحديث الحصة تلقائيًا",
     "claude": {
-      "appPath": "مسار Claude"
+      "appPath": "مسار Claude",
+      "appTargetPlaceholder": "مسار Claude.exe أو shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

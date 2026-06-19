@@ -1560,6 +1560,26 @@ export function SettingsPage() {
     }
   };
 
+  const handlePickClaudeScanRoot = async () => {
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: true,
+      });
+      const path = Array.isArray(selected) ? selected[0] : selected;
+      if (!path) return;
+      setClaudeAppScanRoots(path);
+      setClaudeLaunchCandidates([]);
+    } catch (err) {
+      console.error('选择 Claude 扫描范围失败:', err);
+    }
+  };
+
+  const handleClearClaudeScanRoot = () => {
+    setClaudeAppScanRoots('');
+    setClaudeLaunchCandidates([]);
+  };
+
   const handlePickCodexSpecifiedAppPath = async () => {
     try {
       const selected = await open({
@@ -3608,6 +3628,37 @@ export function SettingsPage() {
                       </div>
                     </div>
                     <div className="row-control row-control--grow settings-claude-launch-control">
+                      <div className="settings-claude-scan-roots">
+                        <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
+                        <div className="settings-claude-scan-root-row">
+                          <input
+                            type="text"
+                            className="settings-input settings-claude-scan-roots-input"
+                            value={claudeAppScanRoots}
+                            placeholder={t(
+                              'appPath.missing.scanRootsPlaceholder',
+                              '可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。',
+                            )}
+                            readOnly
+                          />
+                          <button
+                            className="btn btn-secondary"
+                            onClick={handlePickClaudeScanRoot}
+                            disabled={isAppPathResetDetecting('claude')}
+                          >
+                            {t('settings.general.codexPathSelect', '选择')}
+                          </button>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={handleClearClaudeScanRoot}
+                            disabled={
+                              isAppPathResetDetecting('claude') || !claudeAppScanRoots.trim()
+                            }
+                          >
+                            {t('common.clear', '清除')}
+                          </button>
+                        </div>
+                      </div>
                       <div className="settings-claude-launch-row">
                         <input
                           type="text"
@@ -3639,18 +3690,6 @@ export function SettingsPage() {
                             ? t('common.loading', '加载中...')
                             : getResetLabelByTarget('claude')}
                         </button>
-                      </div>
-                      <div className="settings-claude-scan-roots">
-                        <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
-                        <textarea
-                          className="settings-input settings-claude-scan-roots-input"
-                          value={claudeAppScanRoots}
-                          placeholder={t(
-                            'appPath.missing.scanRootsPlaceholder',
-                            '可选，每行一个目录；留空仅扫描常见安装位置和开始菜单应用',
-                          )}
-                          onChange={(e) => setClaudeAppScanRoots(e.target.value)}
-                        />
                       </div>
                       {claudeLaunchCandidates.length > 0 ? (
                         <div className="settings-claude-candidate-list">

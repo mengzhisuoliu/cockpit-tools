@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Codex를 재시작하지 못했습니다: {{error}}",
       "claudeSettingsTitle": "Claude 설정",
       "claudeAutoRefresh": "Claude 할당량 자동 새로고침",
-      "claudeAutoRefreshDesc": "백그라운드에서 Claude 계정의 할당량 캐시를 자동으로 갱신합니다."
+      "claudeAutoRefreshDesc": "백그라운드에서 Claude 계정의 할당량 캐시를 자동으로 갱신합니다.",
+      "claudeAppPath": "Claude Desktop 시작 대상",
+      "claudeAppPathDesc": "기본 프로필은 Microsoft Store 대상을 사용할 수 있지만, 다중 인스턴스에는 실제 Claude.exe가 필요합니다."
     },
     "network": {
       "apiTitle": "반중력 조종석 API",
@@ -1020,7 +1022,15 @@
       "title": "애플리케이션 경로를 찾을 수 없음",
       "desc": "{{app}} 애플리케이션 경로를 찾을 수 없습니다. 계속하려면 지금 설정해 주세요.",
       "action": "지금 설정",
-      "codexLaunchHint": "끄면 계정 전환과 로그인 덮어쓰기는 계속 실행되지만, Codex 앱은 더 이상 실행되지 않으며 이 실행 경로 안내도 다시 표시되지 않습니다."
+      "codexLaunchHint": "끄면 계정 전환과 로그인 덮어쓰기는 계속 실행되지만, Codex 앱은 더 이상 실행되지 않으며 이 실행 경로 안내도 다시 표시되지 않습니다.",
+      "claudeMultiInstanceRequiresExe": "Claude 다중 인스턴스는 실제 Claude.exe 경로가 필요합니다. Microsoft Store 대상은 기본 데스크톱에만 사용할 수 있습니다.",
+      "scanApps": "앱 스캔",
+      "scanRoots": "Seukaen beomwi",
+      "scanRootsPlaceholder": "Seontaek sahang: poldeo ttoneun deuraibeu ruteu seontaek; biwo dumyeon WindowsAppsreul deuraibeu byeollo geomsaek hago sijak menyu aebeul pohamhamnida.",
+      "windowsApp": "Microsoft Store 앱",
+      "defaultOnly": "기본 데스크톱 전용입니다. 다중 인스턴스에는 실제 Claude.exe를 선택하세요.",
+      "claudeScanEmpty": "Claude Desktop 대상을 찾지 못했습니다. Claude.exe를 직접 선택하거나 스캔 범위를 조정하세요.",
+      "claudeTargetPlaceholder": "Claude.exe 경로 또는 shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "{{app}} 앱 경로를 찾을 수 없습니다. 계속하려면 지금 설정하세요."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "먼저 OAuth 계정을 연결하세요",
         "clearAction": "연결 해제",
         "clearSuccess": "OAuth 연결이 해제되었습니다",
-        "clearFailed": "OAuth 연결 해제 실패: {{error}}"
+        "clearFailed": "OAuth 연결 해제 실패: {{error}}",
+        "useLocalGateway": "Rokeol geiteuwei hohwan modeu sayong",
+        "localGatewayTooltip": "Ilban tekseuteu yocheongeul rokeol geiteuweiro bonaego, imiji saengseong-eul jiwonhaji anneun gonggeupjaeseo image_generationeul jegeohamnida.",
+        "localGatewayConfirm": {
+          "title": "Rokeol geiteuwei hohwan modeu kyeogi",
+          "message": "Kyeomyeon i API Key gyejeongeun OAuth yeongyeol si rokeol geiteuwei hohwan modeureul sayonghamyeo, tekseuteu yocheongeseo image_generationeul jegeohago OAuth jeongboneun yujidoemnida. Gyesokhalkkayo?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "할당량 자동 새로고침",
     "claude": {
-      "appPath": "Claude 경로"
+      "appPath": "Claude 경로",
+      "appTargetPlaceholder": "Claude.exe 경로 또는 shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

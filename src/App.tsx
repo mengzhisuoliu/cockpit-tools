@@ -218,6 +218,11 @@ type ClaudeDesktopLaunchCandidate = {
   supports_multi_instance: boolean;
 };
 
+function isClaudeWindowsAppLaunchTarget(value: string): boolean {
+  const trimmed = value.trim().toLowerCase();
+  return trimmed.startsWith('shell:appsfolder\\') || trimmed.startsWith('shell:appsfolder/');
+}
+
 const WAKEUP_ENABLED_KEY = 'agtools.wakeup.enabled';
 const TASKS_STORAGE_KEY = 'agtools.wakeup.tasks';
 const WAKEUP_FORCE_DISABLE_MIGRATION_KEY = 'agtools.wakeup.migration.force_disable_0_8_14';
@@ -2744,7 +2749,12 @@ function MainApp() {
                 ? config.zed_app_path
               : config.antigravity_app_path;
         if (active) {
-          setAppPathDraft(currentPath || '');
+          const normalizedPath = currentPath || '';
+          const shouldClearClaudeDefaultTarget =
+            appPathMissing.app === 'claude' &&
+            appPathMissing.retry?.kind === 'instance' &&
+            isClaudeWindowsAppLaunchTarget(normalizedPath);
+          setAppPathDraft(shouldClearClaudeDefaultTarget ? '' : normalizedPath);
           setAppPathScanRootsDraft(config.claude_app_scan_roots || '');
           setAppPathCodexLaunchOnSwitch(config.codex_launch_on_switch ?? true);
         }
@@ -2774,10 +2784,46 @@ function MainApp() {
     }
   };
 
+  const handlePickMissingClaudeScanRoot = async () => {
+    if (appPathSetting || appPathDetecting) return;
+    try {
+      const selected = await open({
+        multiple: false,
+        directory: true,
+      });
+      const path = Array.isArray(selected) ? selected[0] : selected;
+      if (path) {
+        setAppPathActionError('');
+        setAppPathScanRootsDraft(path);
+      }
+    } catch (error) {
+      console.error('选择 Claude 扫描范围失败:', error);
+    }
+  };
+
+  const handleClearMissingClaudeScanRoot = () => {
+    if (appPathSetting || appPathDetecting) return;
+    setAppPathActionError('');
+    setAppPathScanRootsDraft('');
+  };
+
   const handleSaveMissingAppPath = async () => {
     if (!appPathMissing || appPathSetting || appPathDetecting) return;
     const path = appPathDraft.trim();
     if (!path) return;
+    if (
+      appPathMissing.app === 'claude' &&
+      appPathMissing.retry?.kind === 'instance' &&
+      isClaudeWindowsAppLaunchTarget(path)
+    ) {
+      setAppPathActionError(
+        t(
+          'appPath.missing.claudeMultiInstanceRequiresExe',
+          'Claude 多开实例需要真实 Claude.exe 路径；Microsoft Store 启动目标仅适用于默认桌面端。',
+        ),
+      );
+      return;
+    }
     setAppPathSetting(true);
     setAppPathActionError('');
     try {
@@ -2884,6 +2930,19 @@ function MainApp() {
           },
         );
         setClaudeLaunchCandidates(candidates);
+        if (appPathMissing.retry?.kind === 'instance') {
+          const exeCandidate = candidates.find((candidate) => candidate.supports_multi_instance);
+          if (exeCandidate) {
+            setAppPathDraft(exeCandidate.target);
+          } else if (candidates.length > 0) {
+            setAppPathActionError(
+              t(
+                'appPath.missing.claudeMultiInstanceRequiresExe',
+                'Claude 多开实例需要真实 Claude.exe 路径；Microsoft Store 启动目标仅适用于默认桌面端。',
+              ),
+            );
+          }
+        }
         if (candidates.length === 0) {
           setAppPathActionError(
             t('appPath.missing.claudeScanEmpty', '未扫描到 Claude Desktop，请手动选择 Claude.exe 或调整扫描范围。'),
@@ -2938,6 +2997,13 @@ function MainApp() {
   };
 
   const handleSelectClaudeLaunchCandidate = (candidate: ClaudeDesktopLaunchCandidate) => {
+    if (
+      appPathMissing?.app === 'claude' &&
+      appPathMissing.retry?.kind === 'instance' &&
+      !candidate.supports_multi_instance
+    ) {
+      return;
+    }
     setAppPathActionError('');
     setAppPathDraft(candidate.target);
   };
@@ -3128,6 +3194,8 @@ function MainApp() {
               : t('quickSettings.antigravity.appPath', '启动路径')
     : t('quickSettings.antigravity.appPath', '启动路径');
   const appPathMissingBusy = appPathSetting || appPathDetecting || appPathCodexLaunchSetting;
+  const claudeMultiInstanceNeedsExe =
+    appPathMissing?.app === 'claude' && appPathMissing.retry?.kind === 'instance';
   const shouldRenderUpdateNotification = showUpdateNotification
     || (updateRemindersEnabled && updateAction.state !== 'hidden');
 
@@ -3209,6 +3277,14 @@ function MainApp() {
                     app: appPathMissingAppName,
                   })}
                 </p>
+                {claudeMultiInstanceNeedsExe ? (
+                  <p className="app-path-missing-hint">
+                    {t(
+                      'appPath.missing.claudeMultiInstanceRequiresExe',
+                      'Claude 多开实例需要真实 Claude.exe 路径；Microsoft Store 启动目标仅适用于默认桌面端。',
+                    )}
+                  </p>
+                ) : null}
               </div>
 
               {appPathMissing.app === 'codex' ? (
@@ -3241,6 +3317,40 @@ function MainApp() {
                   <FolderOpen size={15} />
                   <span>{appPathMissingPathLabel}</span>
                 </div>
+                {appPathMissing.app === 'claude' ? (
+                  <div className="app-path-missing-scan-roots">
+                    <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
+                    <div className="app-path-missing-scan-root-row">
+                      <input
+                        type="text"
+                        className="qs-path-input app-path-missing-scan-roots-input"
+                        value={appPathScanRootsDraft}
+                        placeholder={t(
+                          'appPath.missing.scanRootsPlaceholder',
+                          '可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。',
+                        )}
+                        readOnly
+                        disabled={appPathMissingBusy}
+                      />
+                      <div className="qs-path-actions">
+                        <button
+                          className="qs-btn"
+                          onClick={handlePickMissingClaudeScanRoot}
+                          disabled={appPathMissingBusy}
+                        >
+                          {t('settings.general.codexPathSelect', '选择')}
+                        </button>
+                        <button
+                          className="qs-btn"
+                          onClick={handleClearMissingClaudeScanRoot}
+                          disabled={appPathMissingBusy || !appPathScanRootsDraft.trim()}
+                        >
+                          {t('common.clear', '清除')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
                 <div className="qs-path-control">
                   <input
                     type="text"
@@ -3305,19 +3415,6 @@ function MainApp() {
                 </div>
                 {appPathMissing.app === 'claude' ? (
                   <>
-                    <div className="app-path-missing-scan-roots">
-                      <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
-                      <textarea
-                        className="qs-path-input app-path-missing-scan-roots-input"
-                        value={appPathScanRootsDraft}
-                        placeholder={t(
-                          'appPath.missing.scanRootsPlaceholder',
-                          '可选，每行一个目录；留空仅扫描常见安装位置和开始菜单应用',
-                        )}
-                        onChange={(event) => setAppPathScanRootsDraft(event.target.value)}
-                        disabled={appPathMissingBusy}
-                      />
-                    </div>
                     {claudeLaunchCandidates.length > 0 ? (
                       <div className="app-path-candidate-list">
                         {claudeLaunchCandidates.map((candidate) => (
@@ -3328,7 +3425,10 @@ function MainApp() {
                               appPathDraft.trim() === candidate.target ? ' selected' : ''
                             }`}
                             onClick={() => handleSelectClaudeLaunchCandidate(candidate)}
-                            disabled={appPathMissingBusy}
+                            disabled={
+                              appPathMissingBusy ||
+                              (claudeMultiInstanceNeedsExe && !candidate.supports_multi_instance)
+                            }
                           >
                             <div className="app-path-candidate-main">
                               <span>{candidate.label || 'Claude Desktop'}</span>

@@ -10650,7 +10650,27 @@ fn provider_gateway_wire_api_for_account(account: &CodexAccount) -> String {
 
 pub fn account_requires_provider_gateway(account: &CodexAccount) -> bool {
     account.is_api_key_auth()
-        && provider_gateway_wire_api_for_account(account) == "chat_completions"
+        && (provider_gateway_wire_api_for_account(account) == "chat_completions"
+            || (account.bound_oauth_use_local_gateway
+                && normalize_optional_account_ref(account.bound_oauth_account_id.as_deref())
+                    .is_some()))
+}
+
+fn account_uses_oauth_provider_gateway_compat(account: &CodexAccount) -> bool {
+    account.is_api_key_auth()
+        && account.bound_oauth_use_local_gateway
+        && normalize_optional_account_ref(account.bound_oauth_account_id.as_deref()).is_some()
+}
+
+fn provider_gateway_image_generation_mode_for_account(
+    account: &CodexAccount,
+    inherited_mode: CodexLocalAccessImageGenerationMode,
+) -> CodexLocalAccessImageGenerationMode {
+    if account_uses_oauth_provider_gateway_compat(account) {
+        CodexLocalAccessImageGenerationMode::ImagesOnly
+    } else {
+        inherited_mode
+    }
 }
 
 pub fn is_local_access_runtime_account_id(account_id: &str) -> bool {
@@ -10773,6 +10793,10 @@ fn build_provider_gateway_collection_for_profile(
     collection.access_scope = CodexLocalAccessScope::Localhost;
     collection.client_base_url_host = CodexLocalAccessClientBaseUrlHost::default();
     collection.gateway_mode = CodexLocalAccessGatewayMode::Sidecar;
+    collection.image_generation_mode = provider_gateway_image_generation_mode_for_account(
+        account,
+        collection.image_generation_mode,
+    );
     collection.account_ids.clear();
     collection.custom_routing_rules.clear();
     collection.account_model_rules.clear();
@@ -17796,7 +17820,8 @@ mod tests {
         prepare_gateway_request, prepare_gateway_request_with_default_service_tier,
         prepare_websocket_initial_request, profile_base_url_matches,
         provider_gateway_bound_oauth_account_id_for_account,
-        provider_gateway_default_model_for_account, provider_gateway_models_for_account,
+        provider_gateway_default_model_for_account,
+        provider_gateway_image_generation_mode_for_account, provider_gateway_models_for_account,
         read_http_request, recover_invalid_stats_file, remove_account_refs_from_collection,
         remove_codex_local_access_config, resolve_plan_rank, resolve_supported_model_alias,
         resolve_upstream_target, restore_config_toml_from_takeover_backup,
@@ -18080,6 +18105,30 @@ HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings
         account.api_wire_api = Some("chat_completions".to_string());
 
         assert!(account_requires_provider_gateway(&account));
+    }
+
+    #[test]
+    fn bound_oauth_api_key_requires_provider_gateway_only_when_enabled() {
+        let mut account = CodexAccount::new_api_key(
+            "local-account-id".to_string(),
+            "relay@example.com".to_string(),
+            "sk-test".to_string(),
+            CodexApiProviderMode::Custom,
+            Some("https://relay.example.com/v1".to_string()),
+            Some("relay".to_string()),
+            Some("Relay".to_string()),
+            Vec::new(),
+        );
+        account.api_wire_api = Some("responses".to_string());
+        account.bound_oauth_account_id = Some("oauth-1".to_string());
+
+        assert!(!account_requires_provider_gateway(&account));
+
+        account.bound_oauth_use_local_gateway = true;
+        assert!(account_requires_provider_gateway(&account));
+
+        account.bound_oauth_account_id = None;
+        assert!(!account_requires_provider_gateway(&account));
     }
 
     #[test]
@@ -21252,6 +21301,40 @@ data: {"error":{"code":"server_error","type":"upstream","message":"stream aborte
         assert_eq!(
             provider_gateway_bound_oauth_account_id_for_account(&account).as_deref(),
             Some("oauth-1")
+        );
+    }
+
+    #[test]
+    fn provider_gateway_oauth_compat_forces_images_only_mode() {
+        let mut account = CodexAccount::new_api_key(
+            "api-1".to_string(),
+            "api-key@example.com".to_string(),
+            "sk-test".to_string(),
+            CodexApiProviderMode::Custom,
+            Some("https://relay.example.com/v1".to_string()),
+            Some("relay".to_string()),
+            Some("Relay".to_string()),
+            vec!["gpt-5.4".to_string()],
+        );
+        account.api_wire_api = Some("responses".to_string());
+        account.bound_oauth_account_id = Some("oauth-1".to_string());
+        account.bound_oauth_use_local_gateway = true;
+
+        assert_eq!(
+            provider_gateway_image_generation_mode_for_account(
+                &account,
+                CodexLocalAccessImageGenerationMode::Disabled,
+            ),
+            CodexLocalAccessImageGenerationMode::ImagesOnly
+        );
+
+        account.bound_oauth_use_local_gateway = false;
+        assert_eq!(
+            provider_gateway_image_generation_mode_for_account(
+                &account,
+                CodexLocalAccessImageGenerationMode::Disabled,
+            ),
+            CodexLocalAccessImageGenerationMode::Disabled
         );
     }
 

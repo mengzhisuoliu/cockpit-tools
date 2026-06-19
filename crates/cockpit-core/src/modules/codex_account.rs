@@ -1815,6 +1815,7 @@ fn upsert_account_with_hints_and_reauth_target(
         acc.api_provider_mode = CodexApiProviderMode::OpenaiBuiltin;
         acc.api_provider_id = None;
         acc.api_provider_name = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.account_id = account_id.clone();
@@ -1831,6 +1832,7 @@ fn upsert_account_with_hints_and_reauth_target(
         acc.api_provider_mode = CodexApiProviderMode::OpenaiBuiltin;
         acc.api_provider_id = None;
         acc.api_provider_name = None;
+        acc.bound_oauth_use_local_gateway = false;
         acc.user_id = user_id;
         acc.plan_type = plan_type.clone();
         acc.account_id = account_id.clone();

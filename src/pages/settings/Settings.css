@@ -188,11 +188,17 @@
   font-weight: 600;
 }
 
+.settings-claude-scan-root-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
 .settings-claude-scan-roots-input {
   width: 100%;
-  min-height: 74px;
-  resize: vertical;
-  line-height: 1.5;
+  min-height: 0;
 }
 
 .settings-claude-candidate-list {

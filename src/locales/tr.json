@@ -784,7 +784,9 @@
       "codexAppSpeedLaunchFailed": "Codex yeniden başlatılamadı: {{error}}",
       "claudeSettingsTitle": "Claude Ayarları",
       "claudeAutoRefresh": "Claude kota otomatik yenileme",
-      "claudeAutoRefreshDesc": "Claude hesaplarının kota önbelleğini arka planda otomatik yeniler."
+      "claudeAutoRefreshDesc": "Claude hesaplarının kota önbelleğini arka planda otomatik yeniler.",
+      "claudeAppPath": "Claude Desktop başlatma hedefi",
+      "claudeAppPathDesc": "Varsayılan profil Microsoft Store hedefi kullanabilir; çoklu örnekler gerçek Claude.exe ister."
     },
     "network": {
       "apiTitle": "Yerçekimine Karşı Kokpit API'si",
@@ -1020,7 +1022,15 @@
       "title": "Uygulama yolu bulunamadı",
       "desc": "{{app}} uygulama yolu bulunamadı. Devam etmek için şimdi ayarlayın.",
       "action": "Şimdi ayarla",
-      "codexLaunchHint": "Kapattığınızda hesap değiştirme ve giriş üzerine yazma çalışmaya devam eder, ancak Codex uygulaması artık başlatılmaz ve bu yol istemi tekrar gösterilmez."
+      "codexLaunchHint": "Kapattığınızda hesap değiştirme ve giriş üzerine yazma çalışmaya devam eder, ancak Codex uygulaması artık başlatılmaz ve bu yol istemi tekrar gösterilmez.",
+      "claudeMultiInstanceRequiresExe": "Claude çoklu örnekleri gerçek Claude.exe yolunu gerektirir. Microsoft Store hedefleri yalnızca varsayılan masaüstü profili içindir.",
+      "scanApps": "Uygulamaları tara",
+      "scanRoots": "Tarama araligi",
+      "scanRootsPlaceholder": "Istege bagli: klasor veya surucu koku secin; bos birakilirsa WindowsApps suruculere gore taranir ve Baslat menusu uygulamalari eklenir.",
+      "windowsApp": "Microsoft Store uygulaması",
+      "defaultOnly": "Yalnızca varsayılan masaüstü; çoklu örnekler için gerçek Claude.exe seçin.",
+      "claudeScanEmpty": "Claude Desktop hedefi bulunamadı. Claude.exe dosyasını elle seçin veya tarama kapsamını değiştirin.",
+      "claudeTargetPlaceholder": "Claude.exe yolu veya shell:AppsFolder\\..."
     },
     "modal": {
       "desc": "{{app}} uygulama yolu bulunamadı. Devam etmek için lütfen şimdi yapılandırın."
@@ -2532,7 +2542,13 @@
         "switchRequiresBinding": "Önce bir OAuth hesabı bağlayın",
         "clearAction": "Bağı kaldır",
         "clearSuccess": "OAuth bağlantısı kaldırıldı.",
-        "clearFailed": "OAuth bağlantısı kaldırılamadı: {{error}}"
+        "clearFailed": "OAuth bağlantısı kaldırılamadı: {{error}}",
+        "useLocalGateway": "Yerel gateway uyumluluk modunu kullan",
+        "localGatewayTooltip": "Normal metin isteklerini yerel gateway uzerinden yonlendirir ve gorsel uretimi olmayan saglayicilarda image_generation alanini kaldirir.",
+        "localGatewayConfirm": {
+          "title": "Yerel gateway uyumluluk modunu etkinlestir",
+          "message": "Etkinlestirilince bu API Key hesabi OAuth bagliyken yerel gateway uyumluluk modunu kullanir: metin istekleri image_generation alanini kaldirir, OAuth kimligi korunur. Devam edilsin mi?"
+        }
       }
     },
     "modelProviders": {
@@ -3334,7 +3350,8 @@
     },
     "claudeRefreshInterval": "Kota otomatik yenileme",
     "claude": {
-      "appPath": "Claude yolu"
+      "appPath": "Claude yolu",
+      "appTargetPlaceholder": "Claude.exe yolu veya shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

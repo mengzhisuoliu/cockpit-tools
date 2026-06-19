@@ -1140,7 +1140,9 @@
       "codexAppSpeedLaunchFailed": "重启 Codex 失败：{{error}}",
       "claudeSettingsTitle": "Claude 设置",
       "claudeAutoRefresh": "Claude 自动刷新配额",
-      "claudeAutoRefreshDesc": "后台自动更新 Claude 账号配额缓存"
+      "claudeAutoRefreshDesc": "后台自动更新 Claude 账号配额缓存",
+      "claudeAppPath": "Claude Desktop 启动目标",
+      "claudeAppPathDesc": "默认实例可使用 Microsoft Store 应用目标；多开实例请选择真实 Claude.exe。"
     },
     "network": {
       "apiTitle": "反重力驾驶舱 API",
@@ -1221,7 +1223,15 @@
       "title": "未找到应用程序路径",
       "desc": "未找到 {{app}} 应用程序路径，请立即设置后继续启动。",
       "codexLaunchHint": "关闭后仅执行切号与登录覆盖，不再尝试启动 Codex App，也不会再次要求设置启动路径。",
-      "action": "立即设置"
+      "action": "立即设置",
+      "claudeMultiInstanceRequiresExe": "Claude 多开实例需要真实 Claude.exe 路径；Microsoft Store 启动目标仅适用于默认桌面端。",
+      "scanApps": "扫描应用",
+      "scanRoots": "扫描范围",
+      "scanRootsPlaceholder": "可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。",
+      "windowsApp": "微软商店",
+      "defaultOnly": "仅适用于默认桌面端；多开实例请选择真实 Claude.exe。",
+      "claudeScanEmpty": "未扫描到 Claude Desktop，请手动选择 Claude.exe 或调整扫描范围。",
+      "claudeTargetPlaceholder": "Claude.exe 路径或 shell:AppsFolder\\..."
     }
   },
   "accounts": {
@@ -2356,7 +2366,13 @@
         "switchRequiresBinding": "请先绑定 OAuth 账号",
         "clearAction": "解除绑定",
         "clearSuccess": "OAuth 绑定已解除",
-        "clearFailed": "解除 OAuth 绑定失败：{{error}}"
+        "clearFailed": "解除 OAuth 绑定失败：{{error}}",
+        "useLocalGateway": "使用本地网关兼容模式",
+        "localGatewayTooltip": "开启后普通文本请求会通过本地网关移除 image_generation，用于兼容未开通图片生成的供应商。",
+        "localGatewayConfirm": {
+          "title": "启用本地网关兼容模式",
+          "message": "开启后，该 API Key 账号绑定 OAuth 时会通过本地网关兼容模式启动：普通文本请求会自动移除 image_generation，避免部分供应商报“Image generation is not enabled”；OAuth 账号信息仍会保留。是否继续？"
+        }
       }
     },
     "cockpitApi": {
@@ -3632,7 +3648,8 @@
     },
     "claudeRefreshInterval": "配额自动刷新",
     "claude": {
-      "appPath": "Claude 路径"
+      "appPath": "Claude 路径",
+      "appTargetPlaceholder": "Claude.exe 路径或 shell:AppsFolder\\..."
     }
   },
   "quotaAlert": {

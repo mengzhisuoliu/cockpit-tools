@@ -351,12 +351,7 @@ fn prepare_claude_cli_launch(
     }
     let normalized_working_dir = normalize_cli_working_dir(working_dir)?;
     claude_account::inject_to_claude_config(account_id, None)?;
-    let env = if account.auth_mode == ClaudeAuthMode::ApiKey {
-        claude_account::build_api_key_cli_env_map(&account)?
-    } else {
-        BTreeMap::new()
-    };
-    let command = build_claude_cli_command(&normalized_working_dir, &env)?;
+    let command = build_claude_cli_command(&normalized_working_dir, &BTreeMap::new())?;
     crate::modules::provider_current_state::set_current_account_id(
         "claude_code_account",
         Some(account_id),

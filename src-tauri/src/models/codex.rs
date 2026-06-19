@@ -99,6 +99,8 @@ pub struct CodexAccount {
     pub api_vision_routing_model: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub bound_oauth_account_id: Option<String>,
+    #[serde(default, skip_serializing_if = "is_false")]
+    pub bound_oauth_use_local_gateway: bool,
     pub user_id: Option<String>,
     pub plan_type: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -338,6 +340,7 @@ impl CodexAccount {
             api_model_vision_support: HashMap::new(),
             api_vision_routing_model: None,
             bound_oauth_account_id: None,
+            bound_oauth_use_local_gateway: false,
             user_id: None,
             plan_type: None,
             subscription_active_until: None,
