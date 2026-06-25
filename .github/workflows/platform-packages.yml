@@ -129,7 +129,7 @@ jobs:
         if: startsWith(matrix.runner, 'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential curl file libssl-dev pkg-config zip unzip
+          sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev patchelf pkg-config libsoup-3.0-dev javascriptcoregtk-4.1 libjavascriptcoregtk-4.1-dev libnm-dev xdg-utils zip unzip
 
       - name: Rust setup
         if: matrix.rust_targets == ''
@@ -174,9 +174,12 @@ jobs:
           const fs = require('node:fs');
           const cargoArgs = (process.env.CARGO_ARGS || '').split(/\s+/).filter(Boolean);
           const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
+          const crateNameByPlatformId = new Map([
+            ['claude_manager', 'cockpit-claude-adapter'],
+          ]);
           for (const pkg of index.packages || []) {
             if (pkg.installKind !== 'sidecarAdapter') continue;
-            const crate = `cockpit-${pkg.id.replace(/_/g, '-')}-adapter`;
+            const crate = crateNameByPlatformId.get(pkg.id) || `cockpit-${pkg.id.replace(/_/g, '-')}-adapter`;
             execFileSync('cargo', ['build', '--release', '-p', crate, ...cargoArgs], { stdio: 'inherit' });
           }
           NODE
