@@ -141,6 +141,12 @@ jobs:
         with:
           targets: ${{ matrix.rust_targets }}
 
+      - name: Go setup
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: sidecars/cockpit-cliproxy/go.mod
+          cache-dependency-path: sidecars/cockpit-cliproxy/go.sum
+
       - name: Node.js setup
         uses: actions/setup-node@v4
         with:
@@ -182,6 +188,66 @@ jobs:
             const crate = crateNameByPlatformId.get(pkg.id) || `cockpit-${pkg.id.replace(/_/g, '-')}-adapter`;
             execFileSync('cargo', ['build', '--release', '-p', crate, ...cargoArgs], { stdio: 'inherit' });
           }
+          NODE
+
+      - name: Build Codex helper sidecar
+        shell: bash
+        env:
+          PACKAGE_OS: ${{ matrix.package_os }}
+          PACKAGE_ARCH: ${{ matrix.package_arch }}
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const { execFileSync } = require('node:child_process');
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          const os = process.env.PACKAGE_OS;
+          const arch = process.env.PACKAGE_ARCH;
+          const goOsByPackageOs = new Map([
+            ['macos', 'darwin'],
+            ['windows', 'windows'],
+            ['linux', 'linux'],
+          ]);
+          const goArchByPackageArch = new Map([
+            ['x86_64', 'amd64'],
+            ['aarch64', 'arm64'],
+          ]);
+          const rustTargetByPackageOs = new Map([
+            ['macos', `${arch}-apple-darwin`],
+            ['windows', `${arch}-pc-windows-msvc`],
+            ['linux', `${arch}-unknown-linux-gnu`],
+          ]);
+          const goos = goOsByPackageOs.get(os);
+          const goarch = goArchByPackageArch.get(arch);
+          const rustTarget = rustTargetByPackageOs.get(os);
+          if (!goos || !goarch || !rustTarget) {
+            throw new Error(`Unsupported Codex helper target: ${os}/${arch}`);
+          }
+
+          const sidecarDir = path.resolve('sidecars/cockpit-cliproxy');
+          const outputDir = path.join(sidecarDir, 'bin');
+          const output = path.join(outputDir, `cockpit-cliproxy-${rustTarget}${os === 'windows' ? '.exe' : ''}`);
+          fs.mkdirSync(outputDir, { recursive: true });
+          execFileSync('go', [
+            'build',
+            '-trimpath',
+            '-ldflags',
+            '-s -w',
+            '-o',
+            output,
+            '.',
+          ], {
+            cwd: sidecarDir,
+            env: {
+              ...process.env,
+              GOOS: goos,
+              GOARCH: goarch,
+              CGO_ENABLED: '0',
+            },
+            stdio: 'inherit',
+          });
+          console.log(`Built ${path.relative(process.cwd(), output)}`);
           NODE
 
       - name: Package platform artifacts

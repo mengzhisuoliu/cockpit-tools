@@ -17,7 +17,7 @@ on:
         default: "platform-test"
         type: string
       test_version:
-        description: "Optional semver override for test updater checks, for example 1.0.1-test.1"
+        description: "Optional test semver override. Use MSI-safe numeric prerelease, for example 1.0.1-1002"
         required: false
         default: ""
         type: string

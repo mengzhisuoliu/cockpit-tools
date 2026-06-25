@@ -250,7 +250,7 @@ npm run package:platform-index -- --metadata-dir platform-packages/dist-ci --ver
 5. 测试平台包必须发布到 `platform-packages/test/dist`，测试索引必须发布到 `platform-packages/test/index.json`；正式 `platform-packages/index.json` 不得被测试包更新。
 6. `.github/workflows/platform-packages.yml` 的 `workflow_dispatch channel=test` 是平台包测试构建入口；需要真实远端下载时，勾选 `publish_test_branch`，把测试 zip 与 index 发布到 `platform-test` 分支。
 7. `.github/workflows/build-matrix.yml` 的 `workflow_dispatch channel=test` 是测试桌面端构建入口；需要真实 Tauri updater 验证时，勾选 `publish_test_release`，把 signed updater artifacts 和 `latest-test.json` 发布到 `test-latest` prerelease。
-8. 需要连续测试多个桌面端版本时，使用 `test_version` 输入临时覆盖测试构建版本，例如 `1.0.1-test.1`、`1.0.1-test.2`；该覆盖只允许用于测试通道，不得写入正式版本号或正式更新日志。
+8. 需要连续测试多个桌面端版本时，使用 `test_version` 输入临时覆盖测试构建版本；为兼容 Windows MSI，测试版本的 prerelease 标识必须是纯数字且单段不超过 `65535`，例如 `1.0.1-1001`、`1.0.1-1002`。该覆盖只允许用于测试通道，不得写入正式版本号或正式更新日志。
 9. Tauri updater 真机更新依赖签名产物；测试 release 必须使用与 `tauri.test.conf.json` 中 `pubkey` 匹配的签名密钥生成 artifacts。
 10. GitHub Actions artifacts 可用于手动下载 Windows/macOS/Linux 测试包；真实 updater 验证必须使用 `test-latest` prerelease 上的 `latest-test.json` 与对应签名资产。
 

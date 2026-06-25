@@ -131,7 +131,7 @@ Core Shell + Platform Package + Remote React UI + Sidecar Adapter + runtimeReady
 3. 测试平台包索引固定为 `https://raw.githubusercontent.com/jlcodes99/cockpit-tools/platform-test/platform-packages/test/index.json`；测试 zip 放在 `platform-packages/test/dist`。
 4. 手动构建测试平台包时使用 `.github/workflows/platform-packages.yml` 的 `workflow_dispatch channel=test`；需要真实远端下载时再勾选 `publish_test_branch`。
 5. 手动构建测试桌面端时使用 `.github/workflows/build-matrix.yml` 的 `workflow_dispatch channel=test`；需要真实 Tauri updater 验证时再勾选 `publish_test_release`。
-6. 连续验证升级提示时，只允许通过 `test_version` 临时生成 `1.0.1-test.1`、`1.0.1-test.2` 等测试版本；禁止把测试版本写进正式 `package.json`、正式 `CHANGELOG` 或正式 release tag。
+6. 连续验证升级提示时，只允许通过 `test_version` 临时生成测试版本；为兼容 Windows MSI，测试版本 prerelease 标识必须是纯数字且单段不超过 `65535`，例如 `1.0.1-1001`、`1.0.1-1002`。禁止把测试版本写进正式 `package.json`、正式 `CHANGELOG` 或正式 release tag。
 7. 测试通道可以复用正式签名密钥，但必须保持 endpoint 隔离；正式 `latest.json` 和正式 `platform-packages/index.json` 不得引用 test channel artifact。
 8. 后续新平台迁移完成后，必须先通过 test channel 验证 Windows/macOS/Linux 对应 artifact 的安装、卸载、检查更新、更新弹框、更新日志和包大小，再考虑进入正式通道。
 

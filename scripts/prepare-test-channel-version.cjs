@@ -5,6 +5,7 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..');
 const VERSION_RE = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u;
+const MSI_PRERELEASE_LIMIT = 65535;
 
 function fail(message) {
   console.error(`[prepare-test-channel-version] ${message}`);
@@ -40,6 +41,31 @@ function writeJson(filePath, data) {
   fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }
 
+function validateWindowsMsiCompatibleVersion(version) {
+  const [withoutBuild, build] = version.split('+', 2);
+  if (build) {
+    fail(`Test version must not contain build metadata for Windows MSI compatibility: ${version}`);
+  }
+
+  const prereleaseIndex = withoutBuild.indexOf('-');
+  if (prereleaseIndex < 0) return;
+
+  const prerelease = withoutBuild.slice(prereleaseIndex + 1);
+  for (const identifier of prerelease.split('.')) {
+    if (!/^\d+$/u.test(identifier)) {
+      fail(
+        `Test version prerelease identifiers must be numeric-only for Windows MSI compatibility: ${version}. Use a version like 1.0.1-1002.`,
+      );
+    }
+    const value = Number(identifier);
+    if (!Number.isSafeInteger(value) || value > MSI_PRERELEASE_LIMIT) {
+      fail(
+        `Test version prerelease identifiers must be <= ${MSI_PRERELEASE_LIMIT} for Windows MSI compatibility: ${version}`,
+      );
+    }
+  }
+}
+
 function updatePackageJson(version) {
   const filePath = path.join(ROOT, 'package.json');
   const pkg = readJson(filePath);
@@ -69,6 +95,7 @@ function main() {
   if (!VERSION_RE.test(version)) {
     fail(`Invalid semver: ${version}`);
   }
+  validateWindowsMsiCompatibleVersion(version);
 
   updatePackageJson(version);
   updatePackageLock(version);
