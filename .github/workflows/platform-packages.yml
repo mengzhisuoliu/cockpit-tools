@@ -356,7 +356,12 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -C "${TEST_BRANCH}"
+          if git ls-remote --exit-code --heads origin "${TEST_BRANCH}" >/dev/null 2>&1; then
+            git fetch --depth=1 origin "${TEST_BRANCH}:refs/remotes/origin/${TEST_BRANCH}"
+            git switch -C "${TEST_BRANCH}" "origin/${TEST_BRANCH}"
+          else
+            git switch -C "${TEST_BRANCH}"
+          fi
 
           mkdir -p platform-packages/test/dist
           rm -f platform-packages/test/dist/*.zip
