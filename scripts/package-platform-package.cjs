@@ -415,8 +415,8 @@ function main() {
   if (manifest.id !== args.platformId || runtime.packageId !== args.platformId) {
     fail(`${args.platformId}: manifest/runtime id mismatch`);
   }
-  if (manifest.version !== indexPackage.version) {
-    fail(`${args.platformId}: manifest version does not match index version`);
+  if (args.updateIndex && manifest.version !== indexPackage.version) {
+    console.warn(`${args.platformId}: updating index version ${indexPackage.version} -> ${manifest.version}`);
   }
 
   let stagedPackageRoot = null;

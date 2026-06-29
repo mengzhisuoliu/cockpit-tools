@@ -169,8 +169,34 @@ jobs:
           node <<'NODE'
           const { execFileSync } = require('node:child_process');
           const fs = require('node:fs');
-          const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
-          for (const pkg of index.packages || []) {
+          const path = require('node:path');
+
+          function loadPlatformPackages() {
+            const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
+            const packageRoot = 'platform-packages';
+            const manifestsById = new Map();
+            for (const dirent of fs.readdirSync(packageRoot, { withFileTypes: true })) {
+              if (!dirent.isDirectory()) continue;
+              const manifestPath = path.join(packageRoot, dirent.name, 'manifest.json');
+              if (!fs.existsSync(manifestPath)) continue;
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              manifestsById.set(manifest.id || dirent.name, manifest);
+            }
+
+            const packages = [];
+            for (const indexedPackage of index.packages || []) {
+              const manifest = manifestsById.get(indexedPackage.id);
+              if (!manifest) continue;
+              packages.push({ ...indexedPackage, ...manifest });
+              manifestsById.delete(indexedPackage.id);
+            }
+            for (const manifest of manifestsById.values()) {
+              packages.push(manifest);
+            }
+            return packages.filter((pkg) => pkg.packageMode === 'hotUpdate');
+          }
+
+          for (const pkg of loadPlatformPackages()) {
             execFileSync(process.execPath, ['scripts/build-platform-ui.cjs', pkg.id], { stdio: 'inherit' });
           }
           NODE
@@ -184,12 +210,38 @@ jobs:
           node <<'NODE'
           const { execFileSync } = require('node:child_process');
           const fs = require('node:fs');
+          const path = require('node:path');
           const cargoArgs = (process.env.CARGO_ARGS || '').split(/\s+/).filter(Boolean);
-          const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
           const crateNameByPlatformId = new Map([
             ['claude_manager', 'cockpit-claude-adapter'],
           ]);
-          for (const pkg of index.packages || []) {
+
+          function loadPlatformPackages() {
+            const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
+            const packageRoot = 'platform-packages';
+            const manifestsById = new Map();
+            for (const dirent of fs.readdirSync(packageRoot, { withFileTypes: true })) {
+              if (!dirent.isDirectory()) continue;
+              const manifestPath = path.join(packageRoot, dirent.name, 'manifest.json');
+              if (!fs.existsSync(manifestPath)) continue;
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              manifestsById.set(manifest.id || dirent.name, manifest);
+            }
+
+            const packages = [];
+            for (const indexedPackage of index.packages || []) {
+              const manifest = manifestsById.get(indexedPackage.id);
+              if (!manifest) continue;
+              packages.push({ ...indexedPackage, ...manifest });
+              manifestsById.delete(indexedPackage.id);
+            }
+            for (const manifest of manifestsById.values()) {
+              packages.push(manifest);
+            }
+            return packages.filter((pkg) => pkg.packageMode === 'hotUpdate');
+          }
+
+          for (const pkg of loadPlatformPackages()) {
             if (pkg.installKind !== 'sidecarAdapter') continue;
             const crate = crateNameByPlatformId.get(pkg.id) || `cockpit-${pkg.id.replace(/_/g, '-')}-adapter`;
             execFileSync('cargo', ['build', '--release', '-p', crate, ...cargoArgs], { stdio: 'inherit' });
@@ -269,8 +321,33 @@ jobs:
           const { execFileSync } = require('node:child_process');
           const fs = require('node:fs');
           const path = require('node:path');
-          const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
-          for (const pkg of index.packages || []) {
+
+          function loadPlatformPackages() {
+            const index = JSON.parse(fs.readFileSync('platform-packages/index.json', 'utf8'));
+            const packageRoot = 'platform-packages';
+            const manifestsById = new Map();
+            for (const dirent of fs.readdirSync(packageRoot, { withFileTypes: true })) {
+              if (!dirent.isDirectory()) continue;
+              const manifestPath = path.join(packageRoot, dirent.name, 'manifest.json');
+              if (!fs.existsSync(manifestPath)) continue;
+              const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+              manifestsById.set(manifest.id || dirent.name, manifest);
+            }
+
+            const packages = [];
+            for (const indexedPackage of index.packages || []) {
+              const manifest = manifestsById.get(indexedPackage.id);
+              if (!manifest) continue;
+              packages.push({ ...indexedPackage, ...manifest });
+              manifestsById.delete(indexedPackage.id);
+            }
+            for (const manifest of manifestsById.values()) {
+              packages.push(manifest);
+            }
+            return packages.filter((pkg) => pkg.packageMode === 'hotUpdate');
+          }
+
+          for (const pkg of loadPlatformPackages()) {
             const metadataName = `${pkg.id}-${pkg.version}-${process.env.PACKAGE_OS}-${process.env.PACKAGE_ARCH}.json`;
             const args = [
               'scripts/package-platform-package.cjs',
