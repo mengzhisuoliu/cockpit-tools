@@ -301,9 +301,22 @@ fn ensure_host_event_bridge() -> Result<HostEventBridge, String> {
         url: format!("http://{}{}", address, HOST_EVENT_PATH),
         token: token.clone(),
     };
-    std::thread::spawn(move || {
-        for request in server.incoming_requests() {
-            handle_host_event_request(request, &token);
+    std::thread::spawn(move || loop {
+        match server.recv_timeout(Duration::from_millis(200)) {
+            Ok(Some(request)) => {
+                let token = token.clone();
+                std::thread::spawn(move || {
+                    handle_host_event_request(request, &token);
+                });
+            }
+            Ok(None) => {}
+            Err(error) => {
+                logger::log_warn(&format!(
+                    "[PlatformAdapter] adapter 事件桥接收请求失败: {}",
+                    error
+                ));
+                break;
+            }
         }
     });
     logger::log_info(&format!(
@@ -696,6 +709,12 @@ fn call_platform_adapter_value_with_timeout(
     timeout: Duration,
 ) -> Result<Value, String> {
     let started_at = Instant::now();
+    logger::log_info(&format!(
+        "[PlatformAdapter][Diag] adapter 调用开始: platform={}, method={}, timeout={}ms",
+        platform_id,
+        method,
+        timeout.as_millis()
+    ));
     platform_package::ensure_platform_package_installed(platform_id)?;
     let endpoint_started_at = Instant::now();
     let endpoint = adapter_endpoint(platform_id)?;

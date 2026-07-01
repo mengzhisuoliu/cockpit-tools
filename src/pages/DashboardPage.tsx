@@ -20,6 +20,7 @@ import {
   canOpenPlatformFromPackages,
   canShowPlatformEntryFromPackages,
   getPlatformPackageFromPackages,
+  isPlatformPackageStartupPlaceholder,
   usePlatformPackageStore,
 } from '../stores/usePlatformPackageStore';
 import { getPlatformPackageShortStatus } from '../components/PlatformPackageToolbar';
@@ -132,7 +133,39 @@ interface DashboardPageProps {
 const DASHBOARD_DEFERRED_PREFETCH_DELAY_MS = 6000;
 const DASHBOARD_DEFERRED_PREFETCH_BATCH_SIZE = 1;
 const DASHBOARD_DEFERRED_PREFETCH_BATCH_DELAY_MS = 1200;
-let dashboardStartupPrefetched = false;
+const DASHBOARD_DISPLAY_GROUPS_CACHE_KEY = 'agtools.dashboard.display_groups.cache.v1';
+let dashboardStartupBaseLoaded = false;
+let dashboardStartupPrefetchedForPackageVersion = '';
+
+function loadCachedDashboardDisplayGroups(): DisplayGroup[] {
+  if (typeof localStorage === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(DASHBOARD_DISPLAY_GROUPS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as { groups?: unknown };
+    return Array.isArray(parsed.groups) ? (parsed.groups as DisplayGroup[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistDashboardDisplayGroups(groups: DisplayGroup[]): void {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      DASHBOARD_DISPLAY_GROUPS_CACHE_KEY,
+      JSON.stringify({ savedAt: Date.now(), groups }),
+    );
+  } catch {
+    // Cache writes are best effort only.
+  }
+}
 
 function normalizeDashboardCardPlatformId(platformId: PlatformId): PlatformId {
   return platformId === 'antigravity_ide' ? 'antigravity' : platformId;
@@ -356,7 +389,7 @@ export function DashboardPage({
     (value?: string | null) => maskSensitiveValue(value, privacyModeEnabled),
     [privacyModeEnabled],
   );
-  const [agDisplayGroups, setAgDisplayGroups] = React.useState<DisplayGroup[]>([]);
+  const [agDisplayGroups, setAgDisplayGroups] = React.useState<DisplayGroup[]>(loadCachedDashboardDisplayGroups);
   const platformPackages = usePlatformPackageStore((state) => state.packages);
   const platformPackagesInitialized = usePlatformPackageStore((state) => state.initialized);
   const canOpenPackagePlatform = useCallback(
@@ -376,11 +409,14 @@ export function DashboardPage({
     [platformPackages, platformPackagesInitialized],
   );
   const getPackageEntryStatus = useCallback(
-    (platformId: PlatformId) => getPlatformPackageShortStatus(
-      getPlatformPackageFromPackages(platformPackages, platformId),
-      t,
-    ),
-    [platformPackages, t],
+    (platformId: PlatformId) => {
+      const state = getPlatformPackageFromPackages(platformPackages, platformId);
+      return getPlatformPackageShortStatus(
+        isPlatformPackageStartupPlaceholder(state, platformPackagesInitialized) ? null : state,
+        t,
+      );
+    },
+    [platformPackages, platformPackagesInitialized, t],
   );
   const navigateToPlatform = useCallback((platformId: PlatformId) => {
     setAntigravityRuntimeTargetFromPlatform(platformId);
@@ -623,6 +659,7 @@ export function DashboardPage({
           if (!disposed) {
             setAgDisplayGroups(groups);
           }
+          persistDashboardDisplayGroups(groups);
         })
         .catch((error) => {
           console.error('Failed to load display groups:', error);
@@ -630,8 +667,11 @@ export function DashboardPage({
     };
 
     // 首屏优先：先拉 Antigravity 数据，其它平台延后，避免启动期并发请求过多。
-    void Promise.allSettled([fetchAgAccounts(), fetchAgCurrent(antigravityRuntimeTarget)]);
-    loadDisplayGroups();
+    if (!dashboardStartupBaseLoaded) {
+      dashboardStartupBaseLoaded = true;
+      void Promise.allSettled([fetchAgAccounts(), fetchAgCurrent(antigravityRuntimeTarget)]);
+      loadDisplayGroups();
+    }
 
     const deferredTasks: Array<() => Promise<unknown>> = [
       async () => {
@@ -747,8 +787,26 @@ export function DashboardPage({
       runNextBatch();
     };
 
-    if (!dashboardStartupPrefetched) {
-      dashboardStartupPrefetched = true;
+    const installedRuntimeSignature = platformPackages
+      .filter((item) =>
+        item.packageMode === 'hotUpdate'
+        && item.runtimeReady
+        && (
+          item.installStatus === 'installed'
+          || item.installStatus === 'updateAvailable'
+        ),
+      )
+      .map((item) => `${item.platformId}:${item.installedVersion || item.latestVersion || 'ready'}`)
+      .sort()
+      .join('|');
+    const packageVersion = platformPackagesInitialized
+      ? `ready:${installedRuntimeSignature}`
+      : installedRuntimeSignature
+        ? `cache:${installedRuntimeSignature}`
+        : '';
+
+    if (packageVersion && dashboardStartupPrefetchedForPackageVersion !== packageVersion) {
+      dashboardStartupPrefetchedForPackageVersion = packageVersion;
       deferredTimer = window.setTimeout(loadDeferredPlatforms, DASHBOARD_DEFERRED_PREFETCH_DELAY_MS);
     }
 
@@ -761,7 +819,27 @@ export function DashboardPage({
         window.clearTimeout(deferredBatchTimer);
       }
     };
-  }, []);
+  }, [
+    antigravityRuntimeTarget,
+    fetchAgAccounts,
+    fetchAgCurrent,
+    fetchCodexAccounts,
+    fetchCodexCurrent,
+    fetchClaudeAccounts,
+    fetchZedAccounts,
+    fetchGitHubCopilotAccounts,
+    fetchWindsurfAccounts,
+    fetchKiroAccounts,
+    fetchCursorAccounts,
+    fetchGeminiAccounts,
+    fetchCodebuddyAccounts,
+    fetchCodebuddyCnAccounts,
+    fetchQoderAccounts,
+    fetchTraeAccounts,
+    fetchWorkbuddyAccounts,
+    platformPackages,
+    platformPackagesInitialized,
+  ]);
 
   React.useEffect(() => {
     void fetchAgCurrent(antigravityRuntimeTarget);

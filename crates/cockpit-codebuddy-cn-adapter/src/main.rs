@@ -9,6 +9,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -362,6 +363,56 @@ fn ensure_codebuddy_state_db_path(user_data_dir: &str) -> Result<PathBuf, String
     Ok(preferred)
 }
 
+#[cfg(target_os = "windows")]
+fn ensure_codebuddy_cn_local_state(state_db_path: &Path) -> Result<(), String> {
+    let Some(data_root) = state_db_path
+        .parent()
+        .and_then(|path| path.parent())
+        .and_then(|path| path.parent())
+    else {
+        return Err(format!(
+            "无法从 state.vscdb 路径定位 CodeBuddy CN 数据目录: {}",
+            state_db_path.display()
+        ));
+    };
+
+    let local_state = data_root.join("Local State");
+    if local_state.exists() {
+        return Ok(());
+    }
+
+    let fallback = std::env::var("APPDATA")
+        .ok()
+        .map(PathBuf::from)
+        .map(|path| path.join("CodeBuddy").join("Local State"))
+        .filter(|path| path.exists())
+        .ok_or_else(|| {
+            format!(
+                "CodeBuddy CN Local State 不存在，且未找到可复用的 CodeBuddy Local State: {}",
+                local_state.display()
+            )
+        })?;
+
+    if let Some(parent) = local_state.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|error| format!("创建 CodeBuddy CN 数据目录失败: {}", error))?;
+    }
+    fs::copy(&fallback, &local_state).map_err(|error| {
+        format!(
+            "复制 CodeBuddy Local State 到 CodeBuddy CN 失败: source={}, target={}, error={}",
+            fallback.display(),
+            local_state.display(),
+            error
+        )
+    })?;
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+fn ensure_codebuddy_cn_local_state(_state_db_path: &Path) -> Result<(), String> {
+    Ok(())
+}
+
 fn verify_state_db_injection(state_db_path: &Path, db_key: &str) -> Result<(), String> {
     let conn = rusqlite::Connection::open(state_db_path)
         .map_err(|error| format!("注入校验失败，无法打开 state.vscdb: {}", error))?;
@@ -388,6 +439,7 @@ fn inject_account_to_state_db(
     state_db_path: &Path,
 ) -> Result<(), String> {
     let session_json = build_session_json(account);
+    ensure_codebuddy_cn_local_state(state_db_path)?;
     let secret_key = r#"{"extensionId":"tencent-cloud.coding-copilot","key":"planning-genie.new.accessTokencn"}"#;
     let db_key = format!("secret://{}", secret_key);
 
@@ -734,6 +786,12 @@ fn switch_inject(runtime: &Runtime, payload: Value) -> Result<Value, String> {
     let payload: AccountIdPayload = parse_payload(payload)?;
     let account = codebuddy_cn_account::load_account(&payload.account_id)
         .ok_or_else(|| format!("CodeBuddy CN account not found: {}", payload.account_id))?;
+    process::close_codebuddy_cn(20).map_err(|error| {
+        format!(
+            "CodeBuddy CN 正在运行且未能正常关闭（{}）。请先关闭 CodeBuddy CN 后重试切号。",
+            error
+        )
+    })?;
     inject_account_to_default_client(&payload.account_id)?;
     let _ = codebuddy_cn_instance::update_default_settings(
         Some(Some(payload.account_id.clone())),
@@ -901,9 +959,9 @@ fn is_authorized(request: &tiny_http::Request, token: &str) -> bool {
 }
 
 fn handle_http_request(
-    runtime: &Runtime,
-    shutdown: &AtomicBool,
-    token: &str,
+    runtime: Arc<Runtime>,
+    shutdown: Arc<AtomicBool>,
+    token: String,
     mut request: tiny_http::Request,
 ) {
     if request.method() != &Method::Post || request.url() != "/rpc" {
@@ -914,7 +972,7 @@ fn handle_http_request(
         );
         return;
     }
-    if !is_authorized(&request, token) {
+    if !is_authorized(&request, &token) {
         write_json_response(
             request,
             401,
@@ -949,7 +1007,7 @@ fn handle_http_request(
     };
 
     let should_shutdown = rpc_request.method == "adapter.shutdown";
-    let response = match handle_rpc(runtime, rpc_request) {
+    let response = match handle_rpc(runtime.as_ref(), rpc_request) {
         Ok(data) => success_response(data),
         Err(error) => error_response(error),
     };
@@ -962,7 +1020,7 @@ fn handle_http_request(
 fn main() {
     cockpit_core::modules::logger::init_logger();
 
-    let runtime = Runtime::new().expect("create tokio runtime");
+    let runtime = Arc::new(Runtime::new().expect("create tokio runtime"));
     let server = Server::http("127.0.0.1:0").expect("bind codebuddy cn adapter server");
     let address = server.server_addr().to_string();
     let port = address
@@ -983,10 +1041,21 @@ fn main() {
         })
     );
 
-    for request in server.incoming_requests() {
-        handle_http_request(&runtime, &shutdown, &token, request);
-        if shutdown.load(Ordering::SeqCst) {
-            break;
+    while !shutdown.load(Ordering::SeqCst) {
+        match server.recv_timeout(Duration::from_millis(200)) {
+            Ok(Some(request)) => {
+                let runtime = Arc::clone(&runtime);
+                let shutdown = Arc::clone(&shutdown);
+                let token = token.clone();
+                std::thread::spawn(move || {
+                    handle_http_request(runtime, shutdown, token, request);
+                });
+            }
+            Ok(None) => {}
+            Err(error) => {
+                eprintln!("CodeBuddy CN adapter request receive failed: {}", error);
+                break;
+            }
         }
     }
 }

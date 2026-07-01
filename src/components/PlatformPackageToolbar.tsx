@@ -17,6 +17,7 @@ import type {
 import {
   formatPlatformPackageSize,
   getPlatformPackageFromPackages,
+  isPlatformPackageStartupPlaceholder,
   usePlatformPackageStore,
 } from '../stores/usePlatformPackageStore';
 import { getPlatformUiDevConfig } from '../services/platformPackageService';
@@ -712,6 +713,7 @@ export function PlatformPackageToolbar({
   const { t, i18n } = useTranslation();
   const { showModal } = useGlobalModal();
   const packages = usePlatformPackageStore((state) => state.packages);
+  const initialized = usePlatformPackageStore((state) => state.initialized);
   const loading = usePlatformPackageStore((state) => state.loading);
   const checkUpdate = usePlatformPackageStore((state) => state.checkUpdate);
   const installPackage = usePlatformPackageStore((state) => state.installPackage);
@@ -733,6 +735,7 @@ export function PlatformPackageToolbar({
     [fallbackState, packages, platformId],
   );
 
+  const startupPlaceholder = isPlatformPackageStartupPlaceholder(platformPackage, initialized);
   const platformName = getPlatformLabel(platformId, t);
   const isHotUpdate = platformPackage?.packageMode === 'hotUpdate';
   const hasInstalledPackage = Boolean(isHotUpdate && (
@@ -1540,17 +1543,19 @@ export function PlatformPackageToolbar({
     return null;
   }
 
-  const operating = loading || Boolean(actionKey);
-  const statusText = getPlatformPackageStatusText(platformPackage, t);
-  const canInstall = isHotUpdate && (platformPackage.installStatus === 'notInstalled'
+  const operating = loading || startupPlaceholder || Boolean(actionKey);
+  const statusText = startupPlaceholder
+    ? t('common.loading', '加载中...')
+    : getPlatformPackageStatusText(platformPackage, t);
+  const canInstall = !startupPlaceholder && isHotUpdate && (platformPackage.installStatus === 'notInstalled'
     || platformPackage.installStatus === 'error'
     || (!platformPackage.runtimeReady && platformPackage.installStatus !== 'incompatible'));
-  const canUpdate = isHotUpdate && platformPackage.installStatus === 'updateAvailable';
-  const shouldShowRepairAction = isHotUpdate && (
+  const canUpdate = !startupPlaceholder && isHotUpdate && platformPackage.installStatus === 'updateAvailable';
+  const shouldShowRepairAction = !startupPlaceholder && isHotUpdate && (
     platformPackage.installStatus === 'error'
     || (!platformPackage.runtimeReady && platformPackage.installStatus !== 'notInstalled')
   );
-  const canReloadLocalPackage = isHotUpdate && hasInstalledPackage && localReloadEnabled;
+  const canReloadLocalPackage = !startupPlaceholder && isHotUpdate && hasInstalledPackage && localReloadEnabled;
   const currentVersion = platformPackage.installedVersion || '--';
   const latestVersion = platformPackage.latestVersion || '--';
   const topActionKey = canUpdate
@@ -1572,8 +1577,14 @@ export function PlatformPackageToolbar({
         ? t('platformLayout.packageRepair', '修复')
         : t('platformLayout.packageDownload', '下载')
       : t('platformLayout.packageCheckUpdate', '检查更新');
+  const displayedTopActionLabel = startupPlaceholder
+    ? t('common.loading', '加载中...')
+    : topActionLabel;
+  const displayedTopActionTitle = startupPlaceholder
+    ? t('common.loading', '加载中...')
+    : topActionTitle;
   const renderTopActionIcon = () => {
-    if (actionKey === topActionKey) {
+    if (startupPlaceholder || actionKey === topActionKey) {
       return <RefreshCw size={15} className="loading-spinner" />;
     }
     if (canInstall) {
@@ -1602,12 +1613,12 @@ export function PlatformPackageToolbar({
         <button
           type="button"
           className={`platform-package-inline-action${canUpdate ? ' is-primary' : ''}`}
-          title={topActionTitle}
+          title={displayedTopActionTitle}
           onClick={handleTopAction}
           disabled={operating}
         >
           {renderTopActionIcon()}
-          <span>{topActionLabel}</span>
+          <span>{displayedTopActionLabel}</span>
         </button>
       )}
 

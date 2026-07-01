@@ -100,22 +100,29 @@ pub async fn delete_kiro_accounts(app: AppHandle, account_ids: Vec<String>) -> R
 }
 
 #[tauri::command]
-pub fn import_kiro_from_json(
+pub async fn import_kiro_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<KiroAccount>, String> {
-    let accounts = kiro_call(
+    let accounts = kiro_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        KIRO_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
 #[tauri::command]
 pub async fn import_kiro_from_local(app: AppHandle) -> Result<Vec<KiroAccount>, String> {
-    let accounts: Vec<KiroAccount> = kiro_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let accounts: Vec<KiroAccount> = kiro_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        KIRO_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -206,9 +213,13 @@ pub async fn add_kiro_account_with_token(
     app: AppHandle,
     access_token: String,
 ) -> Result<KiroAccount, String> {
-    let account: KiroAccount =
-        kiro_call_async("accounts.addToken", json!({ "accessToken": access_token })).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let account: KiroAccount = kiro_call_async_with_timeout(
+        "accounts.addToken",
+        json!({ "accessToken": access_token }),
+        KIRO_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(account)
 }
 

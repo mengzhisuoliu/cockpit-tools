@@ -100,22 +100,29 @@ pub async fn delete_trae_accounts(app: AppHandle, account_ids: Vec<String>) -> R
 }
 
 #[tauri::command]
-pub fn import_trae_from_json(
+pub async fn import_trae_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<TraeAccount>, String> {
-    let accounts = trae_call(
+    let accounts = trae_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        TRAE_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
 #[tauri::command]
 pub async fn import_trae_from_local(app: AppHandle) -> Result<Vec<TraeAccount>, String> {
-    let accounts: Vec<TraeAccount> = trae_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let accounts: Vec<TraeAccount> = trae_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        TRAE_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -161,9 +168,13 @@ pub async fn add_trae_account_with_token(
     app: AppHandle,
     access_token: String,
 ) -> Result<TraeAccount, String> {
-    let account: TraeAccount =
-        trae_call_async("accounts.addToken", json!({ "accessToken": access_token })).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let account: TraeAccount = trae_call_async_with_timeout(
+        "accounts.addToken",
+        json!({ "accessToken": access_token }),
+        TRAE_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(account)
 }
 

@@ -1833,6 +1833,12 @@ fn to_json_string_value(value: &Value) -> Result<Value, String> {
     Ok(Value::String(text))
 }
 
+fn to_user_auth_storage_value(value: &Value) -> Result<Value, String> {
+    // Trae 1.107+ persists user info through its ByteCrypto wrapper before JSON.parse.
+    // The read path remains compatible with older plain JSON values.
+    to_icube_cipher_string_value(value)
+}
+
 fn to_icube_cipher_string_value(value: &Value) -> Result<Value, String> {
     let plaintext =
         serde_json::to_string(value).map_err(|e| format!("序列化 Trae 存储键值失败: {}", e))?;
@@ -2660,7 +2666,7 @@ pub fn inject_to_trae_at_path(storage_path: &Path, account_id: &str) -> Result<(
         .get(auth_storage_key.as_str())
         .and_then(|value| parse_value_or_json_string_or_icube_cipher(Some(value)));
     let auth_raw = ensure_auth_raw_for_inject(&account, existing_auth_raw.as_ref());
-    root_obj.insert(auth_storage_key, to_icube_cipher_string_value(&auth_raw)?);
+    root_obj.insert(auth_storage_key, to_user_auth_storage_value(&auth_raw)?);
     write_device_key_pair_for_inject(root_obj, &account)?;
 
     if let Some(entitlement_raw) = ensure_entitlement_raw_for_inject(&account) {
@@ -4299,6 +4305,27 @@ mod tests {
             TRAE_DEFAULT_AUTH_PROVIDER_ID
         );
         assert!(has_trae_auth_storage_key(&root));
+    }
+
+    #[test]
+    fn user_auth_storage_value_uses_icube_cipher_for_trae_startup_restore() {
+        let auth_raw = serde_json::json!({
+            "token": "access-token",
+            "refreshToken": "refresh-token",
+            "account": {
+                "scope": "marscode",
+                "loginScope": "trae"
+            }
+        });
+
+        let stored = to_user_auth_storage_value(&auth_raw).expect("serialize auth");
+        let raw_text = stored.as_str().expect("auth should be stored as string");
+
+        assert!(!raw_text.starts_with('{'));
+        assert_eq!(
+            parse_value_or_json_string_or_icube_cipher(Some(&stored)).expect("decode auth"),
+            auth_raw
+        );
     }
 
     #[test]

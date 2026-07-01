@@ -52,6 +52,11 @@ import {
   setAccountsOverviewFilterPersistenceEnabled,
   writeAccountsOverviewFilterField,
 } from '../utils/accountsOverviewFilterPersistence';
+import {
+  logHangDiagnostic,
+  measureHangDiagnostic,
+  trackNextPaint,
+} from '../utils/hangDiagnostics';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -1393,11 +1398,14 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
   const openAddModal = useCallback(
     (tab: string) => {
+      const platform = platformId || platformKey;
+      logHangDiagnostic('info', 'provider add modal open requested', { platform, tab });
+      trackNextPaint('provider add modal open', { platform, tab });
       setAddTab(tab);
       setShowAddModal(true);
       resetAddModalState();
     },
-    [resetAddModalState],
+    [platformId, platformKey, resetAddModalState],
   );
 
   const closeAddModal = useCallback(() => {
@@ -1677,20 +1685,47 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
   }, [consumeExternalProviderImport, platformId]);
 
   const handlePickImportFile = useCallback(() => {
+    logHangDiagnostic('info', 'provider import file picker requested', {
+      platform: platformId || platformKey,
+    });
     importFileInputRef.current?.click();
-  }, []);
+  }, [platformId, platformKey]);
 
   // ─── Import ───────────────────────────────────────────────────────────
   const handleImportJsonFile = useCallback(
     async (file: File) => {
+      const diagnosticFields = {
+        platform: platformId || platformKey,
+        source: 'json-file',
+        fileName: file.name,
+        fileSize: file.size,
+      };
       setImporting(true);
       setAddStatus('loading');
       setAddMessage(t('common.shared.import.importing', '正在导入...'));
 
       try {
-        const content = await file.text();
-        const imported = await dataService.importFromJson(content);
-        await fetchAccounts();
+        const content = await measureHangDiagnostic(
+          'provider import file read',
+          diagnosticFields,
+          () => file.text(),
+          500,
+        );
+        const imported = await measureHangDiagnostic(
+          'provider import json',
+          {
+            ...diagnosticFields,
+            contentLength: content.length,
+          },
+          () => dataService.importFromJson(content),
+          1000,
+        );
+        await measureHangDiagnostic(
+          'provider fetch accounts after import',
+          diagnosticFields,
+          () => fetchAccounts(),
+          1000,
+        );
         if (platformId) {
           await emitAccountsChanged({
             platformId,
@@ -1722,22 +1757,41 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
 
       setImporting(false);
     },
-    [dataService, fetchAccounts, platformId, resetAddModalState, t],
+    [dataService, fetchAccounts, platformId, platformKey, resetAddModalState, t],
   );
 
   const handleImportFromLocal = useMemo(() => {
     if (!dataService.importFromLocal) return null;
     const importFn = dataService.importFromLocal;
     return async () => {
+      const diagnosticFields = {
+        platform: platformId || platformKey,
+        source: 'local',
+      };
       setImporting(true);
       setAddStatus('loading');
       setAddMessage(t('common.shared.import.importing', '正在导入...'));
       try {
-        const imported = await importFn();
-        await fetchAccounts();
+        const imported = await measureHangDiagnostic(
+          'provider import local',
+          diagnosticFields,
+          importFn,
+          1000,
+        );
+        await measureHangDiagnostic(
+          'provider fetch accounts after local import',
+          diagnosticFields,
+          () => fetchAccounts(),
+          1000,
+        );
         // 部分平台本机导入后本地索引存在极短暂写入延迟，补一次短延时刷新保障列表及时更新。
         await new Promise((resolve) => setTimeout(resolve, 180));
-        await fetchAccounts();
+        await measureHangDiagnostic(
+          'provider refetch accounts after local import settle',
+          diagnosticFields,
+          () => fetchAccounts(),
+          1000,
+        );
         if (platformId) {
           await emitAccountsChanged({
             platformId,
@@ -1767,7 +1821,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
       }
       setImporting(false);
     };
-  }, [dataService.importFromLocal, fetchAccounts, platformId, resetAddModalState, t]);
+  }, [dataService.importFromLocal, fetchAccounts, platformId, platformKey, resetAddModalState, t]);
 
   const handleTokenImport = useCallback(async () => {
     const trimmed = tokenInput.trim();
@@ -1782,18 +1836,43 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
     setAddMessage(t('common.shared.token.importing', '正在导入...'));
 
     try {
+      const diagnosticFields = {
+        platform: platformId || platformKey,
+        source: trimmed.startsWith('{') || trimmed.startsWith('[') ? 'token-json' : 'token',
+        contentLength: trimmed.length,
+      };
       let importedCount = 0;
       if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-        const imported = await dataService.importFromJson(trimmed);
+        const imported = await measureHangDiagnostic(
+          'provider token import json',
+          diagnosticFields,
+          () => dataService.importFromJson(trimmed),
+          1000,
+        );
         importedCount = imported.length;
       } else if (dataService.addWithToken) {
-        await dataService.addWithToken(trimmed);
+        await measureHangDiagnostic(
+          'provider token add',
+          diagnosticFields,
+          () => dataService.addWithToken!(trimmed),
+          1000,
+        );
         importedCount = 1;
       } else {
-        const imported = await dataService.importFromJson(trimmed);
+        const imported = await measureHangDiagnostic(
+          'provider token import as json',
+          diagnosticFields,
+          () => dataService.importFromJson(trimmed),
+          1000,
+        );
         importedCount = imported.length;
       }
-      await fetchAccounts();
+      await measureHangDiagnostic(
+        'provider fetch accounts after token import',
+        diagnosticFields,
+        () => fetchAccounts(),
+        1000,
+      );
       if (platformId) {
         await emitAccountsChanged({
           platformId,
@@ -1822,7 +1901,7 @@ export function useProviderAccountsPage<TAccount extends ProviderAccountBase>(
       );
     }
     setImporting(false);
-  }, [dataService, fetchAccounts, platformId, resetAddModalState, t, tokenInput]);
+  }, [dataService, fetchAccounts, platformId, platformKey, resetAddModalState, t, tokenInput]);
 
   useEffect(() => {
     if (

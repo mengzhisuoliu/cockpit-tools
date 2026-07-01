@@ -82,6 +82,11 @@ import {
   normalizeStartupPageValue,
   type StartupPageValue,
 } from '../utils/startupPage';
+import {
+  applyStartupTheme,
+  persistStartupAppearance,
+  type StartupTheme,
+} from '../utils/startupAppearance';
 import { SettingsAccountTransferSection } from '../components/SettingsAccountTransferSection';
 import { SettingsWebdavSyncSection } from '../components/SettingsWebdavSyncSection';
 import { useEscClose } from '../hooks/useEscClose';
@@ -126,6 +131,7 @@ interface GeneralConfig {
   cursor_auto_refresh_minutes: number;
   gemini_auto_refresh_minutes: number;
   gemini_sync_wsl: boolean;
+  gemini_app_path: string;
   close_behavior: 'ask' | 'minimize' | 'quit';
   minimize_behavior?: 'dock_and_tray' | 'tray_only';
   hide_dock_icon?: boolean;
@@ -140,6 +146,7 @@ interface GeneralConfig {
   codex_app_path: string;
   claude_app_path: string;
   claude_app_scan_roots: string;
+  app_scan_roots?: Record<string, string>;
   codex_specified_app_path: string;
   vscode_app_path: string;
   windsurf_app_path: string;
@@ -215,6 +222,7 @@ type AppPathTarget =
   | 'windsurf'
   | 'kiro'
   | 'cursor'
+  | 'gemini'
   | 'codebuddy'
   | 'codebuddy_cn'
   | 'qoder'
@@ -222,13 +230,41 @@ type AppPathTarget =
   | 'workbuddy'
   | 'zed';
 
-type ClaudeDesktopLaunchCandidate = {
+type AppLaunchCandidate = {
   target_type: string;
   label: string;
   target: string;
   source: string;
   supports_multi_instance: boolean;
 };
+
+type AppPathControlOptions = {
+  target: AppPathTarget;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  labelFallback?: string;
+  showDefaultOnlyNote?: boolean;
+};
+
+const APP_PATH_LABEL_FALLBACKS: Record<AppPathTarget, string> = {
+  antigravity: 'Antigravity IDE',
+  codex: 'Codex',
+  claude: 'Claude Desktop',
+  vscode: 'VS Code',
+  opencode: 'OpenCode',
+  windsurf: 'Windsurf',
+  kiro: 'Kiro',
+  cursor: 'Cursor',
+  gemini: 'Gemini Cli',
+  codebuddy: 'CodeBuddy',
+  codebuddy_cn: 'CodeBuddy CN',
+  qoder: 'Qoder',
+  trae: 'Trae',
+  workbuddy: 'WorkBuddy',
+  zed: 'Zed',
+};
+
 const REFRESH_PRESET_VALUES = ['-1', '2', '5', '10', '15'];
 const CURRENT_ACCOUNT_REFRESH_PRESET_VALUES = ['1', '2', '5', '10', '15'];
 const THRESHOLD_PRESET_VALUES = ['0', '20', '40', '60'];
@@ -423,6 +459,7 @@ export function SettingsPage() {
   const [cursorAutoRefresh, setCursorAutoRefresh] = useState('10');
   const [geminiAutoRefresh, setGeminiAutoRefresh] = useState('10');
   const [geminiSyncWsl, setGeminiSyncWsl] = useState(true);
+  const [geminiAppPath, setGeminiAppPath] = useState('');
   const [closeBehavior, setCloseBehavior] = useState<'ask' | 'minimize' | 'quit'>('ask');
   const [minimizeBehavior, setMinimizeBehavior] = useState<'dock_and_tray' | 'tray_only'>('dock_and_tray');
   const [hideDockIcon, setHideDockIcon] = useState(false);
@@ -437,6 +474,9 @@ export function SettingsPage() {
   const [codexAppPath, setCodexAppPath] = useState('');
   const [claudeAppPath, setClaudeAppPath] = useState('');
   const [claudeAppScanRoots, setClaudeAppScanRoots] = useState('');
+  const [appScanRoots, setAppScanRoots] = useState<Record<AppPathTarget, string>>(
+    {} as Record<AppPathTarget, string>,
+  );
   const [codexSpecifiedAppPath, setCodexSpecifiedAppPath] = useState('');
   const [vscodeAppPath, setVscodeAppPath] = useState('');
   const [windsurfAppPath, setWindsurfAppPath] = useState('');
@@ -493,7 +533,9 @@ export function SettingsPage() {
   const [codebuddyCnQuotaAlertThresholdCustomMode, setCodebuddyCnQuotaAlertThresholdCustomMode] = useState(false);
   const [workbuddyQuotaAlertThresholdCustomMode, setWorkbuddyQuotaAlertThresholdCustomMode] = useState(false);
   const [appPathResetDetectingTargets, setAppPathResetDetectingTargets] = useState<Set<AppPathTarget>>(new Set());
-  const [claudeLaunchCandidates, setClaudeLaunchCandidates] = useState<ClaudeDesktopLaunchCandidate[]>([]);
+  const [appLaunchCandidates, setAppLaunchCandidates] = useState<
+    Partial<Record<AppPathTarget, AppLaunchCandidate[]>>
+  >({});
   const [opencodeSyncOnSwitch, setOpencodeSyncOnSwitch] = useState(false);
   const [opencodeAuthOverwriteOnSwitch, setOpencodeAuthOverwriteOnSwitch] = useState(false);
   const [openclawAuthOverwriteOnSwitch, setOpenclawAuthOverwriteOnSwitch] = useState(false);
@@ -894,6 +936,7 @@ export function SettingsPage() {
           cursorAutoRefreshMinutes: cursorAutoRefreshNum,
           geminiAutoRefreshMinutes: geminiAutoRefreshNum,
           geminiSyncWsl,
+          geminiAppPath,
           closeBehavior,
           minimizeBehavior,
           hideDockIcon,
@@ -908,6 +951,7 @@ export function SettingsPage() {
           codexAppPath,
           claudeAppPath,
           claudeAppScanRoots,
+          appScanRoots,
           codexSpecifiedAppPath,
           vscodeAppPath,
           windsurfAppPath,
@@ -992,6 +1036,11 @@ export function SettingsPage() {
             ? 20
             : parsedGeminiQuotaAlertThreshold,
         });
+        persistStartupAppearance({
+          theme: theme as StartupTheme,
+          uiScale: normalizedUiScale,
+          topRightAdVisible,
+        });
         window.dispatchEvent(new Event('config-updated'));
       } catch (err) {
         console.error('保存通用配置失败:', err);
@@ -1036,14 +1085,16 @@ export function SettingsPage() {
     uiScale,
     opencodeAppPath,
     antigravityAppPath,
-    codexAppPath,
-    claudeAppPath,
-    claudeAppScanRoots,
-    codexSpecifiedAppPath,
+          codexAppPath,
+          claudeAppPath,
+          claudeAppScanRoots,
+          appScanRoots,
+          codexSpecifiedAppPath,
     vscodeAppPath,
     windsurfAppPath,
     kiroAppPath,
     cursorAppPath,
+    geminiAppPath,
     codebuddyAppPath,
     codebuddyCnAppPath,
     qoderAppPath,
@@ -1261,12 +1312,11 @@ export function SettingsPage() {
   }, []);
   
   const applyTheme = (newTheme: string) => {
-    if (newTheme === 'system') {
-      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    } else {
-      document.documentElement.setAttribute('data-theme', newTheme);
-    }
+    const normalizedTheme: StartupTheme =
+      newTheme === 'light' || newTheme === 'dark' || newTheme === 'system'
+        ? newTheme
+        : 'system';
+    applyStartupTheme(normalizedTheme);
   };
 
   const applyUiScale = async (rawScale: string) => {
@@ -1320,6 +1370,7 @@ export function SettingsPage() {
       setCursorAutoRefresh(String(config.cursor_auto_refresh_minutes ?? 10));
       setGeminiAutoRefresh(String(config.gemini_auto_refresh_minutes ?? 10));
       setGeminiSyncWsl(Boolean(config.gemini_sync_wsl ?? true));
+      setGeminiAppPath(config.gemini_app_path || '');
       setCloseBehavior(config.close_behavior || 'ask');
       setMinimizeBehavior(config.minimize_behavior || 'dock_and_tray');
       setHideDockIcon(Boolean(config.hide_dock_icon));
@@ -1333,8 +1384,13 @@ export function SettingsPage() {
       setAntigravityAppPath(config.antigravity_app_path || '');
       setCodexAppPath(config.codex_app_path || '');
       setClaudeAppPath(config.claude_app_path || '');
-      setClaudeAppScanRoots(config.claude_app_scan_roots || '');
-      setClaudeLaunchCandidates([]);
+      const nextAppScanRoots = {
+        ...(config.app_scan_roots || {}),
+        claude: config.app_scan_roots?.claude || config.claude_app_scan_roots || '',
+      } as Record<AppPathTarget, string>;
+      setAppScanRoots(nextAppScanRoots);
+      setClaudeAppScanRoots(nextAppScanRoots.claude || '');
+      setAppLaunchCandidates({});
       setCodexSpecifiedAppPath(config.codex_specified_app_path || '');
       setVscodeAppPath(config.vscode_app_path || '');
       setWindsurfAppPath(config.windsurf_app_path || '');
@@ -1376,6 +1432,11 @@ export function SettingsPage() {
       );
       setCodexLocalAccessEntryVisible(config.codex_local_access_entry_visible ?? true);
       setTopRightAdVisible(config.top_right_ad_visible ?? true);
+      persistStartupAppearance({
+        theme: config.theme as StartupTheme,
+        uiScale: config.ui_scale,
+        topRightAdVisible: config.top_right_ad_visible ?? true,
+      });
       setAntigravityDualSwitchNoRestartEnabled(
         config.antigravity_dual_switch_no_restart_enabled ?? false
       );
@@ -1519,6 +1580,31 @@ export function SettingsPage() {
 
   const isAppPathResetDetecting = (target: AppPathTarget) => appPathResetDetectingTargets.has(target);
 
+  const getAppScanRootsForTarget = (target: AppPathTarget) => {
+    if (target === 'claude') {
+      return claudeAppScanRoots;
+    }
+    return appScanRoots[target] || '';
+  };
+
+  const setAppScanRootsForTarget = (target: AppPathTarget, value: string) => {
+    const nextValue = value.trim();
+    setAppScanRoots((prev) => {
+      const next = { ...prev, [target]: nextValue } as Record<AppPathTarget, string>;
+      if (!nextValue) {
+        delete next[target];
+      }
+      if (target === 'claude') {
+        next.claude = nextValue;
+      }
+      return next;
+    });
+    if (target === 'claude') {
+      setClaudeAppScanRoots(nextValue);
+    }
+    setAppLaunchCandidates((prev) => ({ ...prev, [target]: [] }));
+  };
+
   const setAppPathForTarget = (target: AppPathTarget, path: string) => {
     if (target === 'antigravity') {
       setAntigravityAppPath(path);
@@ -1534,6 +1620,8 @@ export function SettingsPage() {
       setKiroAppPath(path);
     } else if (target === 'cursor') {
       setCursorAppPath(path);
+    } else if (target === 'gemini') {
+      setGeminiAppPath(path);
     } else if (target === 'codebuddy') {
       setCodebuddyAppPath(path);
     } else if (target === 'codebuddy_cn') {
@@ -1552,43 +1640,18 @@ export function SettingsPage() {
   };
 
   const getResetLabelByTarget = (target: AppPathTarget) => {
-    if (target === 'vscode') {
-      return t('settings.general.vscodePathReset', '重置默认');
-    }
-    if (target === 'windsurf') {
-      return t('settings.general.windsurfPathReset', '重置默认');
-    }
-    if (target === 'kiro') {
-      return t('settings.general.kiroPathReset', '重置默认');
-    }
-    if (target === 'cursor') {
-      return t('settings.general.cursorPathReset', '重置默认');
-    }
-    if (target === 'codebuddy') {
-      return t('settings.general.codebuddyPathReset', '重置默认');
-    }
-    if (target === 'codebuddy_cn') {
-      return t('settings.general.codebuddyCnPathReset', '重置默认');
-    }
-    if (target === 'qoder') {
-      return t('settings.general.qoderPathReset', '重置默认');
-    }
-    if (target === 'trae') {
-      return t('settings.general.traePathReset', '重置默认');
-    }
-    if (target === 'workbuddy') {
-      return t('settings.general.workbuddyPathReset', '重置默认');
-    }
-    if (target === 'zed') {
-      return t('settings.general.zedPathReset', '重置默认');
-    }
-    if (target === 'opencode') {
-      return t('settings.general.opencodePathReset', '重置默认');
-    }
+    void target;
+    return t('appPath.missing.scanApps', '扫描应用');
+  };
+
+  const getAppPathPlaceholderByTarget = (target: AppPathTarget, fallback?: string) => {
     if (target === 'claude') {
-      return t('appPath.missing.scanApps', '扫描应用');
+      return t(
+        'quickSettings.claude.appTargetPlaceholder',
+        'Claude.exe 路径或 shell:AppsFolder\\...',
+      );
     }
-    return t('settings.general.codexPathReset', '重置默认');
+    return fallback || t('settings.general.codexAppPathPlaceholder', '默认路径');
   };
 
   const handlePickAppPath = async (target: AppPathTarget) => {
@@ -1607,7 +1670,7 @@ export function SettingsPage() {
     }
   };
 
-  const handlePickClaudeScanRoot = async () => {
+  const handlePickAppScanRoot = async (target: AppPathTarget) => {
     try {
       const selected = await open({
         multiple: false,
@@ -1615,16 +1678,14 @@ export function SettingsPage() {
       });
       const path = Array.isArray(selected) ? selected[0] : selected;
       if (!path) return;
-      setClaudeAppScanRoots(path);
-      setClaudeLaunchCandidates([]);
+      setAppScanRootsForTarget(target, path);
     } catch (err) {
-      console.error('选择 Claude 扫描范围失败:', err);
+      console.error('选择应用扫描范围失败:', err);
     }
   };
 
-  const handleClearClaudeScanRoot = () => {
-    setClaudeAppScanRoots('');
-    setClaudeLaunchCandidates([]);
+  const handleClearAppScanRoot = (target: AppPathTarget) => {
+    setAppScanRootsForTarget(target, '');
   };
 
   const handlePickCodexSpecifiedAppPath = async () => {
@@ -1649,27 +1710,24 @@ export function SettingsPage() {
       return next;
     });
     try {
-      if (target === 'claude') {
-        const candidates = await invoke<ClaudeDesktopLaunchCandidate[]>(
-          'scan_claude_desktop_launch_targets',
+
+        const candidates = await invoke<AppLaunchCandidate[]>(
+          'scan_app_launch_targets',
           {
-            scanRoots: claudeAppScanRoots.trim() || null,
+            app: target,
+            scanRoots: getAppScanRootsForTarget(target).trim() || null,
           },
         );
-        setClaudeLaunchCandidates(candidates);
+        setAppLaunchCandidates((prev) => ({ ...prev, [target]: candidates }));
         if (candidates.length === 0) {
           alert(t(
-            'settings.general.claudeLaunchScanEmpty',
-            '未扫描到 Claude Desktop，请手动选择 Claude.exe 或调整扫描范围。',
+            'settings.general.appLaunchScanEmpty',
+            '未扫描到应用，请手动选择启动路径或调整扫描范围。',
           ));
         }
-        return;
-      }
-      const detected = await invoke<string | null>('detect_app_path', { app: target, force: true });
-      setAppPathForTarget(target, detected || '');
     } catch (err) {
       console.error('重置启动路径失败:', err);
-      setAppPathForTarget(target, '');
+      setAppLaunchCandidates((prev) => ({ ...prev, [target]: [] }));
     } finally {
       setAppPathResetDetectingTargets((prev) => {
         const next = new Set(prev);
@@ -1679,8 +1737,118 @@ export function SettingsPage() {
     }
   };
 
-  const handleSelectClaudeLaunchCandidate = (candidate: ClaudeDesktopLaunchCandidate) => {
-    setClaudeAppPath(candidate.target);
+  const handleSelectAppLaunchCandidate = (
+    target: AppPathTarget,
+    candidate: AppLaunchCandidate,
+  ) => {
+    setAppPathForTarget(target, candidate.target);
+  };
+
+  const renderAppLaunchPathControl = ({
+    target,
+    value,
+    onChange,
+    placeholder,
+    labelFallback,
+    showDefaultOnlyNote = false,
+  }: AppPathControlOptions) => {
+    const scanRoots = getAppScanRootsForTarget(target);
+    const detecting = isAppPathResetDetecting(target);
+    const candidates = appLaunchCandidates[target] || [];
+    const resolvedLabel = labelFallback || APP_PATH_LABEL_FALLBACKS[target];
+
+    return (
+      <div className="row-control row-control--grow settings-claude-launch-control">
+        <div className="settings-claude-scan-roots">
+          <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
+          <div className="settings-claude-scan-root-row">
+            <input
+              type="text"
+              className="settings-input settings-claude-scan-roots-input"
+              value={scanRoots}
+              placeholder={t(
+                'appPath.missing.scanRootsPlaceholder',
+                '可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。',
+              )}
+              readOnly
+              disabled={detecting}
+            />
+            <button
+              className="btn btn-secondary"
+              onClick={() => handlePickAppScanRoot(target)}
+              disabled={detecting}
+            >
+              {t('settings.general.codexPathSelect', '选择')}
+            </button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => handleClearAppScanRoot(target)}
+              disabled={detecting || !scanRoots.trim()}
+            >
+              {t('common.clear', '清除')}
+            </button>
+          </div>
+        </div>
+        <div className="settings-claude-launch-row">
+          <input
+            type="text"
+            className="settings-input settings-input--path"
+            value={value}
+            placeholder={getAppPathPlaceholderByTarget(target, placeholder)}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          <button
+            className="btn btn-secondary"
+            onClick={() => handlePickAppPath(target)}
+            disabled={detecting}
+          >
+            {t('settings.general.codexPathSelect', '选择')}
+          </button>
+          <button
+            className="btn btn-secondary"
+            onClick={() => handleResetAppPath(target)}
+            disabled={detecting}
+          >
+            <RefreshCw size={16} className={detecting ? 'spin' : undefined} />
+            {detecting ? t('common.loading', '加载中...') : getResetLabelByTarget(target)}
+          </button>
+        </div>
+        {candidates.length > 0 ? (
+          <div className="settings-claude-candidate-list">
+            {candidates.map((candidate) => (
+              <button
+                key={`${candidate.target_type}:${candidate.target}`}
+                type="button"
+                className={`settings-claude-candidate-item${
+                  value.trim() === candidate.target ? ' selected' : ''
+                }`}
+                onClick={() => handleSelectAppLaunchCandidate(target, candidate)}
+              >
+                <div className="settings-claude-candidate-main">
+                  <span>{candidate.label || resolvedLabel}</span>
+                  <span className="settings-claude-candidate-badge">
+                    {candidate.target_type === 'windows_app'
+                      ? t('appPath.missing.windowsApp', 'Microsoft Store')
+                      : 'EXE'}
+                  </span>
+                </div>
+                <div className="settings-claude-candidate-target">
+                  {candidate.target}
+                </div>
+                {showDefaultOnlyNote && !candidate.supports_multi_instance ? (
+                  <div className="settings-claude-candidate-note">
+                    {t(
+                      'appPath.missing.defaultOnly',
+                      '仅适用于默认桌面端；多开实例请选择真实 Claude.exe',
+                    )}
+                  </div>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
   };
 
   const sanitizeNumberInput = (value: string) => value.replace(/[^\d]/g, '');
@@ -2874,40 +3042,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('antigravity')}
               {renderAccountLevelRefreshConfig('antigravity')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.antigravityAppPath', 'Antigravity IDE 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.codexAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={antigravityAppPath}
-                      placeholder={t('settings.general.codexAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setAntigravityAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('antigravity')}
-                      disabled={isAppPathResetDetecting('antigravity')}
-                    >
-                      {t('settings.general.codexPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('antigravity')}
-                      disabled={isAppPathResetDetecting('antigravity')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('antigravity') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('antigravity')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('antigravity')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'antigravity',
+    value: antigravityAppPath,
+    onChange: setAntigravityAppPath,
+  })}
+</div>
 
               {antigravitySeamlessSwitchUnlocked && (
                 <div className="settings-row">
@@ -3346,40 +3491,17 @@ export function SettingsPage() {
                 </>
               )}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.codexAppPath', 'Codex 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.codexAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={codexAppPath}
-                      placeholder={t('settings.general.codexAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setCodexAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('codex')}
-                      disabled={isAppPathResetDetecting('codex')}
-                    >
-                      {t('settings.general.codexPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('codex')}
-                      disabled={isAppPathResetDetecting('codex')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('codex') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('codex')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('codex')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'codex',
+    value: codexAppPath,
+    onChange: setCodexAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -3547,42 +3669,19 @@ export function SettingsPage() {
                 </div>
               </div>
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.opencodeAppPath')}</div>
                   <div className="row-desc">
                     {t('settings.general.opencodeAppPathDesc')}
                   </div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={opencodeAppPath}
-                      placeholder={t('settings.general.opencodeAppPathPlaceholder')}
-                      onChange={(e) => setOpencodeAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('opencode')}
-                      disabled={isAppPathResetDetecting('opencode')}
-                    >
-                      {t('settings.general.opencodePathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('opencode')}
-                      disabled={isAppPathResetDetecting('opencode')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('opencode') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('opencode')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('opencode')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'opencode',
+    value: opencodeAppPath,
+    onChange: setOpencodeAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -3688,7 +3787,7 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('claude')}
                   {renderAccountLevelRefreshConfig('claude')}
                   <div className="settings-row settings-row--align-start">
-                    <div className="row-label">
+<div className="row-label">
                       <div className="row-title">
                         {t('settings.general.claudeAppPath', 'Claude Desktop 启动目标')}
                       </div>
@@ -3699,106 +3798,13 @@ export function SettingsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="row-control row-control--grow settings-claude-launch-control">
-                      <div className="settings-claude-scan-roots">
-                        <label>{t('appPath.missing.scanRoots', '扫描范围')}</label>
-                        <div className="settings-claude-scan-root-row">
-                          <input
-                            type="text"
-                            className="settings-input settings-claude-scan-roots-input"
-                            value={claudeAppScanRoots}
-                            placeholder={t(
-                              'appPath.missing.scanRootsPlaceholder',
-                              '可选，选择一个目录或盘符；留空时按盘符扫描 WindowsApps 并补充开始菜单应用。',
-                            )}
-                            readOnly
-                          />
-                          <button
-                            className="btn btn-secondary"
-                            onClick={handlePickClaudeScanRoot}
-                            disabled={isAppPathResetDetecting('claude')}
-                          >
-                            {t('settings.general.codexPathSelect', '选择')}
-                          </button>
-                          <button
-                            className="btn btn-secondary"
-                            onClick={handleClearClaudeScanRoot}
-                            disabled={
-                              isAppPathResetDetecting('claude') || !claudeAppScanRoots.trim()
-                            }
-                          >
-                            {t('common.clear', '清除')}
-                          </button>
-                        </div>
-                      </div>
-                      <div className="settings-claude-launch-row">
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={claudeAppPath}
-                          placeholder={t(
-                            'quickSettings.claude.appTargetPlaceholder',
-                            'Claude.exe 路径或 shell:AppsFolder\\...',
-                          )}
-                          onChange={(e) => setClaudeAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('claude')}
-                          disabled={isAppPathResetDetecting('claude')}
-                        >
-                          {t('settings.general.codexPathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('claude')}
-                          disabled={isAppPathResetDetecting('claude')}
-                        >
-                          <RefreshCw
-                            size={16}
-                            className={isAppPathResetDetecting('claude') ? 'spin' : undefined}
-                          />
-                          {isAppPathResetDetecting('claude')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('claude')}
-                        </button>
-                      </div>
-                      {claudeLaunchCandidates.length > 0 ? (
-                        <div className="settings-claude-candidate-list">
-                          {claudeLaunchCandidates.map((candidate) => (
-                            <button
-                              key={`${candidate.target_type}:${candidate.target}`}
-                              type="button"
-                              className={`settings-claude-candidate-item${
-                                claudeAppPath.trim() === candidate.target ? ' selected' : ''
-                              }`}
-                              onClick={() => handleSelectClaudeLaunchCandidate(candidate)}
-                            >
-                              <div className="settings-claude-candidate-main">
-                                <span>{candidate.label || 'Claude Desktop'}</span>
-                                <span className="settings-claude-candidate-badge">
-                                  {candidate.target_type === 'windows_app'
-                                    ? t('appPath.missing.windowsApp', 'Microsoft Store')
-                                    : 'EXE'}
-                                </span>
-                              </div>
-                              <div className="settings-claude-candidate-target">
-                                {candidate.target}
-                              </div>
-                              {!candidate.supports_multi_instance ? (
-                                <div className="settings-claude-candidate-note">
-                                  {t(
-                                    'appPath.missing.defaultOnly',
-                                    '仅适用于默认桌面端；多开实例请选择真实 Claude.exe',
-                                  )}
-                                </div>
-                              ) : null}
-                            </button>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'claude',
+    value: claudeAppPath,
+    onChange: setClaudeAppPath,
+                    showDefaultOnlyNote: true,
+  })}
+</div>
                   {renderPlatformQuotaAlertRows({
                     enabled: claudeQuotaAlertEnabled,
                     setEnabled: setClaudeQuotaAlertEnabled,
@@ -3883,40 +3889,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('ghcp')}
               {renderAccountLevelRefreshConfig('ghcp')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.vscodeAppPath', 'VS Code 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.vscodeAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={vscodeAppPath}
-                      placeholder={t('settings.general.vscodeAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setVscodeAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('vscode')}
-                      disabled={isAppPathResetDetecting('vscode')}
-                    >
-                      {t('settings.general.vscodePathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('vscode')}
-                      disabled={isAppPathResetDetecting('vscode')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('vscode') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('vscode')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('vscode')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'vscode',
+    value: vscodeAppPath,
+    onChange: setVscodeAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -4071,40 +4054,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('windsurf')}
               {renderAccountLevelRefreshConfig('windsurf')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.windsurfAppPath', 'Windsurf 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.windsurfAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={windsurfAppPath}
-                      placeholder={t('settings.general.windsurfAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setWindsurfAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('windsurf')}
-                      disabled={isAppPathResetDetecting('windsurf')}
-                    >
-                      {t('settings.general.windsurfPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('windsurf')}
-                      disabled={isAppPathResetDetecting('windsurf')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('windsurf') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('windsurf')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('windsurf')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'windsurf',
+    value: windsurfAppPath,
+    onChange: setWindsurfAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -4259,40 +4219,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('kiro')}
               {renderAccountLevelRefreshConfig('kiro')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.kiroAppPath', 'Kiro 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.kiroAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={kiroAppPath}
-                      placeholder={t('settings.general.kiroAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setKiroAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('kiro')}
-                      disabled={isAppPathResetDetecting('kiro')}
-                    >
-                      {t('settings.general.kiroPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('kiro')}
-                      disabled={isAppPathResetDetecting('kiro')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('kiro') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('kiro')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('kiro')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'kiro',
+    value: kiroAppPath,
+    onChange: setKiroAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -4448,40 +4385,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('codebuddy')}
               {renderAccountLevelRefreshConfig('codebuddy')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('settings.general.codebuddyAppPath', 'CodeBuddy 启动路径')}</div>
                   <div className="row-desc">{t('settings.general.codebuddyAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={codebuddyAppPath}
-                      placeholder={t('settings.general.codebuddyAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setCodebuddyAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('codebuddy')}
-                      disabled={isAppPathResetDetecting('codebuddy')}
-                    >
-                      {t('settings.general.codebuddyPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('codebuddy')}
-                      disabled={isAppPathResetDetecting('codebuddy')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('codebuddy') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('codebuddy')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('codebuddy')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'codebuddy',
+    value: codebuddyAppPath,
+    onChange: setCodebuddyAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -4639,40 +4553,17 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('codebuddy_cn')}
                   {renderAccountLevelRefreshConfig('codebuddy_cn')}
 
-                  <div className="settings-row">
-                    <div className="row-label">
+                  <div className="settings-row settings-row--align-start">
+<div className="row-label">
                       <div className="row-title">{t('settings.general.codebuddyCnAppPath', 'CodeBuddy CN 启动路径')}</div>
                       <div className="row-desc">{t('settings.general.codebuddyCnAppPathDesc', '留空则使用默认路径')}</div>
                     </div>
-                    <div className="row-control row-control--grow">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={codebuddyCnAppPath}
-                          placeholder={t('settings.general.codebuddyCnAppPathPlaceholder', '默认路径')}
-                          onChange={(e) => setCodebuddyCnAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('codebuddy_cn')}
-                          disabled={isAppPathResetDetecting('codebuddy_cn')}
-                        >
-                          {t('settings.general.codebuddyCnPathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('codebuddy_cn')}
-                          disabled={isAppPathResetDetecting('codebuddy_cn')}
-                        >
-                          <RefreshCw size={16} className={isAppPathResetDetecting('codebuddy_cn') ? 'spin' : undefined} />
-                          {isAppPathResetDetecting('codebuddy_cn')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('codebuddy_cn')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'codebuddy_cn',
+    value: codebuddyCnAppPath,
+    onChange: setCodebuddyCnAppPath,
+  })}
+</div>
 
                   <div className="settings-row">
                     <div className="row-label">
@@ -4830,40 +4721,17 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('qoder')}
                   {renderAccountLevelRefreshConfig('qoder')}
 
-                  <div className="settings-row">
-                    <div className="row-label">
+                  <div className="settings-row settings-row--align-start">
+<div className="row-label">
                       <div className="row-title">{t('settings.general.qoderAppPath', 'Qoder 启动路径')}</div>
                       <div className="row-desc">{t('settings.general.qoderAppPathDesc', '留空则使用默认路径')}</div>
                     </div>
-                    <div className="row-control row-control--grow">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={qoderAppPath}
-                          placeholder={t('settings.general.qoderAppPathPlaceholder', '默认路径')}
-                          onChange={(e) => setQoderAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('qoder')}
-                          disabled={isAppPathResetDetecting('qoder')}
-                        >
-                          {t('settings.general.qoderPathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('qoder')}
-                          disabled={isAppPathResetDetecting('qoder')}
-                        >
-                          <RefreshCw size={16} className={isAppPathResetDetecting('qoder') ? 'spin' : undefined} />
-                          {isAppPathResetDetecting('qoder')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('qoder')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'qoder',
+    value: qoderAppPath,
+    onChange: setQoderAppPath,
+  })}
+</div>
 
                   <div className="settings-row">
                     <div className="row-label">
@@ -5021,40 +4889,17 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('trae')}
                   {renderAccountLevelRefreshConfig('trae')}
 
-                  <div className="settings-row">
-                    <div className="row-label">
+                  <div className="settings-row settings-row--align-start">
+<div className="row-label">
                       <div className="row-title">{t('settings.general.traeAppPath', 'Trae 启动路径')}</div>
                       <div className="row-desc">{t('settings.general.traeAppPathDesc', '留空则使用默认路径')}</div>
                     </div>
-                    <div className="row-control row-control--grow">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={traeAppPath}
-                          placeholder={t('settings.general.traeAppPathPlaceholder', '默认路径')}
-                          onChange={(e) => setTraeAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('trae')}
-                          disabled={isAppPathResetDetecting('trae')}
-                        >
-                          {t('settings.general.traePathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('trae')}
-                          disabled={isAppPathResetDetecting('trae')}
-                        >
-                          <RefreshCw size={16} className={isAppPathResetDetecting('trae') ? 'spin' : undefined} />
-                          {isAppPathResetDetecting('trae')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('trae')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'trae',
+    value: traeAppPath,
+    onChange: setTraeAppPath,
+  })}
+</div>
 
                   <div className="settings-row">
                     <div className="row-label">
@@ -5212,40 +5057,17 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('workbuddy')}
                   {renderAccountLevelRefreshConfig('workbuddy')}
 
-                  <div className="settings-row">
-                    <div className="row-label">
+                  <div className="settings-row settings-row--align-start">
+<div className="row-label">
                       <div className="row-title">{t('settings.general.workbuddyAppPath', 'WorkBuddy 启动路径')}</div>
                       <div className="row-desc">{t('settings.general.workbuddyAppPathDesc', '留空则使用默认路径')}</div>
                     </div>
-                    <div className="row-control row-control--grow">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={workbuddyAppPath}
-                          placeholder={t('settings.general.workbuddyAppPathPlaceholder', '默认路径')}
-                          onChange={(e) => setWorkbuddyAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('workbuddy')}
-                          disabled={isAppPathResetDetecting('workbuddy')}
-                        >
-                          {t('settings.general.workbuddyPathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('workbuddy')}
-                          disabled={isAppPathResetDetecting('workbuddy')}
-                        >
-                          <RefreshCw size={16} className={isAppPathResetDetecting('workbuddy') ? 'spin' : undefined} />
-                          {isAppPathResetDetecting('workbuddy')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('workbuddy')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'workbuddy',
+    value: workbuddyAppPath,
+    onChange: setWorkbuddyAppPath,
+  })}
+</div>
 
                   <div className="settings-row">
                     <div className="row-label">
@@ -5401,40 +5223,17 @@ export function SettingsPage() {
                   {renderCurrentAccountRefreshRow('zed')}
                   {renderAccountLevelRefreshConfig('zed')}
 
-                  <div className="settings-row">
-                    <div className="row-label">
+                  <div className="settings-row settings-row--align-start">
+<div className="row-label">
                       <div className="row-title">{t('settings.general.zedAppPath', 'Zed 启动路径')}</div>
                       <div className="row-desc">{t('settings.general.zedAppPathDesc', '留空则使用默认路径')}</div>
                     </div>
-                    <div className="row-control row-control--grow">
-                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                        <input
-                          type="text"
-                          className="settings-input settings-input--path"
-                          value={zedAppPath}
-                          placeholder={t('settings.general.zedAppPathPlaceholder', '默认路径')}
-                          onChange={(e) => setZedAppPath(e.target.value)}
-                        />
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handlePickAppPath('zed')}
-                          disabled={isAppPathResetDetecting('zed')}
-                        >
-                          {t('settings.general.zedPathSelect', '选择')}
-                        </button>
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleResetAppPath('zed')}
-                          disabled={isAppPathResetDetecting('zed')}
-                        >
-                          <RefreshCw size={16} className={isAppPathResetDetecting('zed') ? 'spin' : undefined} />
-                          {isAppPathResetDetecting('zed')
-                            ? t('common.loading', '加载中...')
-                            : getResetLabelByTarget('zed')}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+  {renderAppLaunchPathControl({
+    target: 'zed',
+    value: zedAppPath,
+    onChange: setZedAppPath,
+  })}
+</div>
 
                   <div className="settings-row">
                     <div className="row-label">
@@ -5588,40 +5387,17 @@ export function SettingsPage() {
               {renderCurrentAccountRefreshRow('cursor')}
               {renderAccountLevelRefreshConfig('cursor')}
 
-              <div className="settings-row">
-                <div className="row-label">
+              <div className="settings-row settings-row--align-start">
+<div className="row-label">
                   <div className="row-title">{t('quickSettings.cursor.appPath', 'Cursor 路径')}</div>
                   <div className="row-desc">{t('settings.general.codexAppPathDesc', '留空则使用默认路径')}</div>
                 </div>
-                <div className="row-control row-control--grow">
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flex: 1 }}>
-                    <input
-                      type="text"
-                      className="settings-input settings-input--path"
-                      value={cursorAppPath}
-                      placeholder={t('settings.general.codexAppPathPlaceholder', '默认路径')}
-                      onChange={(e) => setCursorAppPath(e.target.value)}
-                    />
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handlePickAppPath('cursor')}
-                      disabled={isAppPathResetDetecting('cursor')}
-                    >
-                      {t('settings.general.codexPathSelect', '选择')}
-                    </button>
-                    <button
-                      className="btn btn-secondary"
-                      onClick={() => handleResetAppPath('cursor')}
-                      disabled={isAppPathResetDetecting('cursor')}
-                    >
-                      <RefreshCw size={16} className={isAppPathResetDetecting('cursor') ? 'spin' : undefined} />
-                      {isAppPathResetDetecting('cursor')
-                        ? t('common.loading', '加载中...')
-                        : getResetLabelByTarget('cursor')}
-                    </button>
-                  </div>
-                </div>
-              </div>
+  {renderAppLaunchPathControl({
+    target: 'cursor',
+    value: cursorAppPath,
+    onChange: setCursorAppPath,
+  })}
+</div>
 
               <div className="settings-row">
                 <div className="row-label">
@@ -5770,6 +5546,29 @@ export function SettingsPage() {
                         )}
                       </div>
                     </div>
+                  </div>
+
+                  <div className="settings-row settings-row--align-start">
+                    <div className="row-label">
+                      <div className="row-title">
+                        {t('quickSettings.gemini.appPath', 'Gemini Cli 路径')}
+                      </div>
+                      <div className="row-desc">
+                        {t(
+                          'settings.general.geminiAppPathDesc',
+                          '留空则使用系统 PATH 中的 gemini 命令；Windows 可扫描 gemini.cmd / gemini.exe。',
+                        )}
+                      </div>
+                    </div>
+                    {renderAppLaunchPathControl({
+                      target: 'gemini',
+                      value: geminiAppPath,
+                      onChange: setGeminiAppPath,
+                      placeholder: t(
+                        'settings.general.geminiAppPathPlaceholder',
+                        '默认使用 gemini',
+                      ),
+                    })}
                   </div>
 
                   {isWindows && (

@@ -5,6 +5,47 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tauri + React + Typescript</title>
+    <script>
+      (function () {
+        try {
+          var raw = localStorage.getItem('agtools.startup_appearance.v1');
+          var cached = raw ? JSON.parse(raw) : {};
+          var theme = cached && typeof cached.theme === 'string' ? cached.theme : 'system';
+          var effectiveTheme = theme === 'system'
+            ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            : theme;
+          if (effectiveTheme !== 'dark' && effectiveTheme !== 'light') {
+            effectiveTheme = 'light';
+          }
+          document.documentElement.setAttribute('data-theme', effectiveTheme);
+          document.documentElement.style.colorScheme = effectiveTheme;
+        } catch (_) {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.style.colorScheme = 'light';
+        }
+      })();
+    </script>
+    <style>
+      html,
+      body,
+      #root {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        background: radial-gradient(circle at 12% 10%, rgba(29, 78, 216, 0.12), transparent 45%),
+          radial-gradient(circle at 90% 5%, rgba(14, 165, 165, 0.12), transparent 40%),
+          linear-gradient(180deg, #f8f7f4 0%, #eef1f6 100%);
+      }
+
+      html[data-theme="dark"] body {
+        background: radial-gradient(circle at 12% 10%, rgba(59, 130, 246, 0.15), transparent 45%),
+          radial-gradient(circle at 90% 5%, rgba(20, 184, 166, 0.12), transparent 40%),
+          linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      }
+    </style>
   </head>
 
   <body>

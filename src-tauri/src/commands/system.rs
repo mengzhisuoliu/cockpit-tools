@@ -63,6 +63,17 @@ pub struct ClaudeDesktopLaunchCandidate {
 
 /// 通用设置配置（前端使用）
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppLaunchCandidate {
+    #[serde(alias = "targetType")]
+    pub target_type: String,
+    pub label: String,
+    pub target: String,
+    pub source: String,
+    #[serde(alias = "supportsMultiInstance")]
+    pub supports_multi_instance: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GeneralConfig {
     /// 界面语言
     pub language: String,
@@ -144,8 +155,10 @@ pub struct GeneralConfig {
     pub codex_app_path: String,
     /// Claude 桌面应用启动路径（为空则使用默认路径）
     pub claude_app_path: String,
+    pub gemini_app_path: String,
     /// Claude 桌面应用扫描范围（每行一个目录）
     pub claude_app_scan_roots: String,
+    pub app_scan_roots: HashMap<String, String>,
     /// 切换 Codex 后需联动重启的指定应用路径
     pub codex_specified_app_path: String,
     /// Zed 启动路径（为空则使用默认路径）
@@ -2007,7 +2020,9 @@ pub fn save_network_config(
         antigravity_app_path: current.antigravity_app_path,
         codex_app_path: current.codex_app_path,
         claude_app_path: current.claude_app_path,
+        gemini_app_path: current.gemini_app_path,
         claude_app_scan_roots: current.claude_app_scan_roots,
+        app_scan_roots: current.app_scan_roots,
         codex_specified_app_path: current.codex_specified_app_path,
         zed_app_path: current.zed_app_path,
         vscode_app_path: current.vscode_app_path,
@@ -2280,7 +2295,9 @@ pub fn get_general_config(app: tauri::AppHandle) -> Result<GeneralConfig, String
         antigravity_app_path: user_config.antigravity_app_path,
         codex_app_path: user_config.codex_app_path,
         claude_app_path: user_config.claude_app_path,
+        gemini_app_path: user_config.gemini_app_path,
         claude_app_scan_roots: user_config.claude_app_scan_roots,
+        app_scan_roots: user_config.app_scan_roots,
         codex_specified_app_path: user_config.codex_specified_app_path,
         zed_app_path: user_config.zed_app_path,
         vscode_app_path: user_config.vscode_app_path,
@@ -2415,7 +2432,9 @@ pub fn save_general_config(
     antigravity_app_path: String,
     codex_app_path: String,
     claude_app_path: Option<String>,
+    gemini_app_path: Option<String>,
     claude_app_scan_roots: Option<String>,
+    app_scan_roots: Option<HashMap<String, String>>,
     codex_specified_app_path: Option<String>,
     zed_app_path: Option<String>,
     vscode_app_path: String,
@@ -2489,9 +2508,33 @@ pub fn save_general_config(
     let normalized_claude_path = claude_app_path
         .map(|value| value.trim().to_string())
         .unwrap_or_else(|| current.claude_app_path.clone());
+    let normalized_gemini_path = gemini_app_path
+        .map(|value| value.trim().to_string())
+        .unwrap_or_else(|| current.gemini_app_path.clone());
     let normalized_claude_app_scan_roots = claude_app_scan_roots
         .map(|value| value.trim().to_string())
         .unwrap_or_else(|| current.claude_app_scan_roots.clone());
+    let mut normalized_app_scan_roots: HashMap<String, String> = app_scan_roots
+        .unwrap_or_else(|| current.app_scan_roots.clone())
+        .into_iter()
+        .filter_map(|(key, value)| {
+            let key = key.trim().to_string();
+            let value = value.trim().to_string();
+            if key.is_empty() || value.is_empty() {
+                None
+            } else {
+                Some((key, value))
+            }
+        })
+        .collect();
+    if normalized_claude_app_scan_roots.is_empty() {
+        normalized_app_scan_roots.remove("claude");
+    } else {
+        normalized_app_scan_roots.insert(
+            "claude".to_string(),
+            normalized_claude_app_scan_roots.clone(),
+        );
+    }
     let normalized_codex_specified_app_path = codex_specified_app_path
         .map(|value| value.trim().to_string())
         .unwrap_or_else(|| current.codex_specified_app_path.clone());
@@ -2658,7 +2701,9 @@ pub fn save_general_config(
         antigravity_app_path: normalized_antigravity_path,
         codex_app_path: normalized_codex_path,
         claude_app_path: normalized_claude_path,
+        gemini_app_path: normalized_gemini_path,
         claude_app_scan_roots: normalized_claude_app_scan_roots,
+        app_scan_roots: normalized_app_scan_roots,
         codex_specified_app_path: normalized_codex_specified_app_path,
         zed_app_path: normalized_zed_path,
         vscode_app_path: normalized_vscode_path,
@@ -2876,6 +2921,7 @@ pub fn set_app_path(app: String, path: String) -> Result<(), String> {
         "windsurf" => current.windsurf_app_path = normalized_path,
         "kiro" => current.kiro_app_path = normalized_path,
         "cursor" => current.cursor_app_path = normalized_path,
+        "gemini" => current.gemini_app_path = normalized_path,
         "codebuddy" => current.codebuddy_app_path = normalized_path,
         "codebuddy_cn" => current.codebuddy_cn_app_path = normalized_path,
         "qoder" => current.qoder_app_path = normalized_path,
@@ -2888,15 +2934,95 @@ pub fn set_app_path(app: String, path: String) -> Result<(), String> {
     Ok(())
 }
 
+fn normalize_app_path_target(app: &str) -> Result<String, String> {
+    match app.trim() {
+        "antigravity" | "antigravity_ide" => Ok("antigravity".to_string()),
+        "antigravity_legacy" => Ok("antigravity_legacy".to_string()),
+        "codex" => Ok("codex".to_string()),
+        "claude" => Ok("claude".to_string()),
+        "vscode" => Ok("vscode".to_string()),
+        "opencode" => Ok("opencode".to_string()),
+        "windsurf" => Ok("windsurf".to_string()),
+        "kiro" => Ok("kiro".to_string()),
+        "cursor" => Ok("cursor".to_string()),
+        "gemini" => Ok("gemini".to_string()),
+        "codebuddy" => Ok("codebuddy".to_string()),
+        "codebuddy_cn" => Ok("codebuddy_cn".to_string()),
+        "qoder" => Ok("qoder".to_string()),
+        "trae" => Ok("trae".to_string()),
+        "workbuddy" => Ok("workbuddy".to_string()),
+        "zed" => Ok("zed".to_string()),
+        _ => Err("鏈煡搴旂敤绫诲瀷".to_string()),
+    }
+}
+
+fn app_launch_candidate_label(app: &str) -> &'static str {
+    match app {
+        "antigravity" | "antigravity_ide" => "Antigravity IDE",
+        "antigravity_legacy" => "Antigravity",
+        "codex" => "Codex",
+        "claude" => "Claude Desktop",
+        "vscode" => "VS Code",
+        "opencode" => "OpenCode",
+        "windsurf" => "Windsurf",
+        "kiro" => "Kiro",
+        "cursor" => "Cursor",
+        "gemini" => "Gemini Cli",
+        "codebuddy" => "CodeBuddy",
+        "codebuddy_cn" => "CodeBuddy CN",
+        "qoder" => "Qoder",
+        "trae" => "Trae",
+        "workbuddy" => "WorkBuddy",
+        "zed" => "Zed",
+        _ => "App",
+    }
+}
+
 #[tauri::command]
 pub fn set_claude_app_scan_roots(scan_roots: String) -> Result<(), String> {
     let current = config::get_user_config();
     let normalized = scan_roots.trim().to_string();
-    if current.claude_app_scan_roots == normalized {
+    let mut app_scan_roots = current.app_scan_roots.clone();
+    if normalized.is_empty() {
+        app_scan_roots.remove("claude");
+    } else {
+        app_scan_roots.insert("claude".to_string(), normalized.clone());
+    }
+    if current.claude_app_scan_roots == normalized && current.app_scan_roots == app_scan_roots {
         return Ok(());
     }
     let new_config = UserConfig {
         claude_app_scan_roots: normalized,
+        app_scan_roots,
+        ..current
+    };
+    config::save_user_config(&new_config)
+}
+
+#[tauri::command]
+pub fn set_app_scan_roots(app: String, scan_roots: String) -> Result<(), String> {
+    let app = normalize_app_path_target(&app)?;
+    let current = config::get_user_config();
+    let normalized = scan_roots.trim().to_string();
+    let mut app_scan_roots = current.app_scan_roots.clone();
+    if normalized.is_empty() {
+        app_scan_roots.remove(&app);
+    } else {
+        app_scan_roots.insert(app.clone(), normalized.clone());
+    }
+    let claude_app_scan_roots = if app == "claude" {
+        normalized
+    } else {
+        current.claude_app_scan_roots.clone()
+    };
+    if current.app_scan_roots == app_scan_roots
+        && current.claude_app_scan_roots == claude_app_scan_roots
+    {
+        return Ok(());
+    }
+    let new_config = UserConfig {
+        app_scan_roots,
+        claude_app_scan_roots,
         ..current
     };
     config::save_user_config(&new_config)
@@ -2944,9 +3070,12 @@ pub fn detect_app_path(app: String, force: Option<bool>) -> Result<Option<String
             )
         }
         "antigravity" | "antigravity_ide" | "antigravity_legacy" | "codex" | "zed" | "vscode"
-        | "codebuddy" | "codebuddy_cn" | "qoder" | "trae" | "opencode" | "workbuddy" => Ok(
-            modules::process::detect_and_save_app_path(app.as_str(), force),
-        ),
+        | "gemini" | "codebuddy" | "codebuddy_cn" | "qoder" | "trae" | "opencode" | "workbuddy" => {
+            Ok(modules::process::detect_and_save_app_path(
+                app.as_str(),
+                force,
+            ))
+        }
         _ => Err("未知应用类型".to_string()),
     }
 }
@@ -2962,6 +3091,91 @@ pub fn scan_claude_desktop_launch_targets(
         "runtime.scanLaunchTargets",
         serde_json::json!({ "scanRoots": scan_roots }),
     )
+}
+
+#[tauri::command]
+pub fn scan_app_launch_targets(
+    app: String,
+    scan_roots: Option<String>,
+) -> Result<Vec<AppLaunchCandidate>, String> {
+    let app = normalize_app_path_target(&app)?;
+    if app == "claude" {
+        return scan_claude_desktop_launch_targets(scan_roots).map(|items| {
+            items
+                .into_iter()
+                .map(|candidate| AppLaunchCandidate {
+                    target_type: candidate.target_type,
+                    label: candidate.label,
+                    target: candidate.target,
+                    source: candidate.source,
+                    supports_multi_instance: candidate.supports_multi_instance,
+                })
+                .collect()
+        });
+    }
+
+    let mut candidates = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    let mut push_candidate = |target: String, source: &str| {
+        let target = target.trim().to_string();
+        if target.is_empty() {
+            return;
+        }
+        let key = target.to_lowercase();
+        if !seen.insert(key) {
+            return;
+        }
+        candidates.push(AppLaunchCandidate {
+            target_type: "exe".to_string(),
+            label: app_launch_candidate_label(&app).to_string(),
+            target,
+            source: source.to_string(),
+            supports_multi_instance: true,
+        });
+    };
+
+    match app.as_str() {
+        "windsurf" => {
+            if let Ok(Some(path)) = modules::platform_adapter::call_windsurf::<Option<String>>(
+                "runtime.detectLaunchPath",
+                serde_json::json!({ "force": true }),
+            ) {
+                push_candidate(path, "adapter");
+            }
+        }
+        "kiro" => {
+            if let Ok(Some(path)) = modules::platform_adapter::call_kiro::<Option<String>>(
+                "runtime.detectLaunchPath",
+                serde_json::json!({ "force": true }),
+            ) {
+                push_candidate(path, "adapter");
+            }
+        }
+        "cursor" => {
+            if let Ok(Some(path)) = modules::platform_adapter::call_cursor::<Option<String>>(
+                "runtime.detectLaunchPath",
+                serde_json::json!({ "force": true }),
+            ) {
+                push_candidate(path, "adapter");
+            }
+        }
+        _ => {}
+    }
+
+    for candidate in modules::process::scan_app_launch_targets(&app, scan_roots.as_deref()) {
+        let key = candidate.target.to_lowercase();
+        if seen.insert(key) {
+            candidates.push(AppLaunchCandidate {
+                target_type: candidate.target_type,
+                label: candidate.label,
+                target: candidate.target,
+                source: candidate.source,
+                supports_multi_instance: candidate.supports_multi_instance,
+            });
+        }
+    }
+
+    Ok(candidates)
 }
 
 #[tauri::command]

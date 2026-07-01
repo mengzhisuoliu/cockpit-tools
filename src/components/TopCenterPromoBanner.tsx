@@ -4,6 +4,10 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { useTopRightAdStore } from '../stores/useTopRightAdStore';
 import { normalizeApiKeyFunOfficialUrl } from '../utils/apikeyFunLinks';
+import {
+  loadStartupAppearance,
+  persistStartupAppearance,
+} from '../utils/startupAppearance';
 
 interface TopCenterPromoBannerProps {
   reserveWhenEmpty?: boolean;
@@ -20,7 +24,7 @@ export function TopCenterPromoBanner({ reserveWhenEmpty = true }: TopCenterPromo
   const ads = useTopRightAdStore((state) => state.state.ads);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [visible, setVisible] = useState<boolean | null>(null);
+  const [visible, setVisible] = useState<boolean | null>(() => loadStartupAppearance().topRightAdVisible);
 
   const ad = ads[activeIndex] ?? ads[0] ?? null;
   const hasCarousel = ads.length > 1;
@@ -32,7 +36,9 @@ export function TopCenterPromoBanner({ reserveWhenEmpty = true }: TopCenterPromo
       try {
         const config = await invoke<PromoVisibilityConfig>('get_general_config');
         if (!cancelled) {
-          setVisible(config.top_right_ad_visible ?? true);
+          const nextVisible = config.top_right_ad_visible ?? true;
+          setVisible(nextVisible);
+          persistStartupAppearance({ topRightAdVisible: nextVisible });
         }
       } catch (error) {
         console.error('Failed to load top promo visibility config:', error);

@@ -7,6 +7,7 @@ import {
   loadSavedMfaRecords,
   type MfaRecord,
 } from '../utils/mfaVault';
+import { logHangDiagnostic, measureHangDiagnostic } from '../utils/hangDiagnostics';
 
 interface MfaQuickCodeSelectProps {
   className?: string;
@@ -23,13 +24,35 @@ function formatMfaOption(record: MfaRecord, fallbackLabel: string): string {
 
 export function MfaQuickCodeSelect({ className = '' }: MfaQuickCodeSelectProps) {
   const { t } = useTranslation();
-  const [records, setRecords] = useState<MfaRecord[]>(() => loadSavedMfaRecords());
+  const [records, setRecords] = useState<MfaRecord[]>([]);
   const [selectedId, setSelectedId] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(() => getMfaTimeRemaining());
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    setRecords(loadSavedMfaRecords());
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      void measureHangDiagnostic(
+        'MFA quick code load',
+        undefined,
+        async () => loadSavedMfaRecords(),
+        200,
+      )
+        .then((nextRecords) => {
+          if (!cancelled) {
+            setRecords(nextRecords);
+          }
+        })
+        .catch((error) => {
+          logHangDiagnostic('warn', 'MFA quick code load failed', {
+            error: String(error).replace(/^Error:\s*/, ''),
+          });
+        });
+    }, 0);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {

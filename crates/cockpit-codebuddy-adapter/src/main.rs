@@ -9,6 +9,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -733,6 +734,12 @@ fn switch_inject(runtime: &Runtime, payload: Value) -> Result<Value, String> {
     let payload: AccountIdPayload = parse_payload(payload)?;
     let account = codebuddy_account::load_account(&payload.account_id)
         .ok_or_else(|| format!("CodeBuddy account not found: {}", payload.account_id))?;
+    process::close_codebuddy(20).map_err(|error| {
+        format!(
+            "CodeBuddy 正在运行且未能正常关闭（{}）。请先关闭 CodeBuddy 后重试切号。",
+            error
+        )
+    })?;
     inject_account_to_default_client(&payload.account_id)?;
     let _ = codebuddy_instance::update_default_settings(
         Some(Some(payload.account_id.clone())),
@@ -897,9 +904,9 @@ fn is_authorized(request: &tiny_http::Request, token: &str) -> bool {
 }
 
 fn handle_http_request(
-    runtime: &Runtime,
-    shutdown: &AtomicBool,
-    token: &str,
+    runtime: Arc<Runtime>,
+    shutdown: Arc<AtomicBool>,
+    token: String,
     mut request: tiny_http::Request,
 ) {
     if request.method() != &Method::Post || request.url() != "/rpc" {
@@ -910,7 +917,7 @@ fn handle_http_request(
         );
         return;
     }
-    if !is_authorized(&request, token) {
+    if !is_authorized(&request, &token) {
         write_json_response(
             request,
             401,
@@ -942,7 +949,7 @@ fn handle_http_request(
     };
 
     let should_shutdown = rpc_request.method == "adapter.shutdown";
-    let response = match handle_rpc(runtime, rpc_request) {
+    let response = match handle_rpc(runtime.as_ref(), rpc_request) {
         Ok(data) => success_response(data),
         Err(error) => error_response(error),
     };
@@ -955,7 +962,7 @@ fn handle_http_request(
 fn main() {
     cockpit_core::modules::logger::init_logger();
 
-    let runtime = Runtime::new().expect("create tokio runtime");
+    let runtime = Arc::new(Runtime::new().expect("create tokio runtime"));
     let server = Server::http("127.0.0.1:0").expect("bind codebuddy adapter server");
     let address = server.server_addr().to_string();
     let port = address
@@ -976,10 +983,21 @@ fn main() {
         })
     );
 
-    for request in server.incoming_requests() {
-        handle_http_request(&runtime, &shutdown, &token, request);
-        if shutdown.load(Ordering::SeqCst) {
-            break;
+    while !shutdown.load(Ordering::SeqCst) {
+        match server.recv_timeout(Duration::from_millis(200)) {
+            Ok(Some(request)) => {
+                let runtime = Arc::clone(&runtime);
+                let shutdown = Arc::clone(&shutdown);
+                let token = token.clone();
+                std::thread::spawn(move || {
+                    handle_http_request(runtime, shutdown, token, request);
+                });
+            }
+            Ok(None) => {}
+            Err(error) => {
+                eprintln!("CodeBuddy adapter request receive failed: {}", error);
+                break;
+            }
         }
     }
 }

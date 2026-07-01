@@ -50,8 +50,9 @@ fn ensure_account_store_migrated() -> Result<(), String> {
 
 fn account_index_from_store() -> Result<GitHubCopilotAccountIndex, String> {
     ensure_account_store_migrated()?;
-    let accounts =
-        crate::modules::account_store::list_accounts::<GitHubCopilotAccount>(ACCOUNT_STORE_PLATFORM)?;
+    let accounts = crate::modules::account_store::list_accounts::<GitHubCopilotAccount>(
+        ACCOUNT_STORE_PLATFORM,
+    )?;
     let mut index = GitHubCopilotAccountIndex::new();
     index.accounts = accounts.iter().map(|account| account.summary()).collect();
     Ok(index)
@@ -68,10 +69,10 @@ pub fn load_account(account_id: &str) -> Option<GitHubCopilotAccount> {
             "[GitHub Copilot Account][Store] 账号数据库迁移检查失败，回退文件读取: account_id={}, error={}",
             account_id, err
         ));
-    } else if let Ok(Some(account)) = crate::modules::account_store::load_account::<GitHubCopilotAccount>(
-        ACCOUNT_STORE_PLATFORM,
-        account_id,
-    ) {
+    } else if let Ok(Some(account)) = crate::modules::account_store::load_account::<
+        GitHubCopilotAccount,
+    >(ACCOUNT_STORE_PLATFORM, account_id)
+    {
         return Some(account);
     }
 

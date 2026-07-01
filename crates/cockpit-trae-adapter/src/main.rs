@@ -6,6 +6,7 @@ use serde_json::{json, Value};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -118,6 +119,8 @@ struct UpdateInstancePayload {
 #[serde(rename_all = "camelCase")]
 struct InstanceIdPayload {
     instance_id: String,
+    #[serde(default)]
+    skip_bound_account_injection: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -165,10 +168,6 @@ fn is_profile_initialized(user_data_dir: &str) -> bool {
         Ok(mut iter) => iter.next().is_some(),
         Err(_) => false,
     }
-}
-
-fn path_missing_error(error: &str) -> bool {
-    error.starts_with("APP_PATH_NOT_FOUND:") || error.contains("启动 Trae 失败")
 }
 
 fn resolve_running_pid(last_pid: Option<u32>) -> Option<u32> {
@@ -441,19 +440,23 @@ fn start_instance(runtime: &Runtime, payload: Value) -> Result<Value, String> {
             process::close_pid(pid, 20)?;
             let _ = trae_instance::update_default_pid(None)?;
         }
-        inject_bound_account_for_instance_start(
-            runtime,
-            &default_dir_str,
-            default_settings.bind_account_id.as_deref(),
-        )?;
+        if !payload.skip_bound_account_injection {
+            inject_bound_account_for_instance_start(
+                runtime,
+                &default_dir_str,
+                default_settings.bind_account_id.as_deref(),
+            )?;
+        }
         let extra_args = process::parse_extra_args(&default_settings.extra_args);
         let pid = process::start_trae_default_with_args_with_new_window(&extra_args, true)?;
         let _ = trae_instance::update_default_pid(Some(pid))?;
-        verify_bound_account_after_start(
-            runtime,
-            &default_dir_str,
-            default_settings.bind_account_id.as_deref(),
-        );
+        if !payload.skip_bound_account_injection {
+            verify_bound_account_after_start(
+                runtime,
+                &default_dir_str,
+                default_settings.bind_account_id.as_deref(),
+            );
+        }
         let running_pid = resolve_running_pid(Some(pid));
 
         return to_value(InstanceProfileView {
@@ -484,19 +487,23 @@ fn start_instance(runtime: &Runtime, payload: Value) -> Result<Value, String> {
         process::close_pid(pid, 20)?;
         let _ = trae_instance::update_instance_pid(&instance.id, None)?;
     }
-    inject_bound_account_for_instance_start(
-        runtime,
-        &instance.user_data_dir,
-        instance.bind_account_id.as_deref(),
-    )?;
+    if !payload.skip_bound_account_injection {
+        inject_bound_account_for_instance_start(
+            runtime,
+            &instance.user_data_dir,
+            instance.bind_account_id.as_deref(),
+        )?;
+    }
     let extra_args = process::parse_extra_args(&instance.extra_args);
     let pid =
         process::start_trae_with_args_with_new_window(&instance.user_data_dir, &extra_args, true)?;
-    verify_bound_account_after_start(
-        runtime,
-        &instance.user_data_dir,
-        instance.bind_account_id.as_deref(),
-    );
+    if !payload.skip_bound_account_injection {
+        verify_bound_account_after_start(
+            runtime,
+            &instance.user_data_dir,
+            instance.bind_account_id.as_deref(),
+        );
+    }
     let updated = trae_instance::update_instance_after_start(&instance.id, pid)?;
     let running_pid = resolve_running_pid(Some(pid));
     let initialized = is_profile_initialized(&updated.user_data_dir);
@@ -591,16 +598,26 @@ fn close_all_instances() -> Result<Value, String> {
     Ok(Value::Null)
 }
 
-fn switch_inject(runtime: &Runtime, payload: Value) -> Result<Value, String> {
+fn start_default_instance_after_switch() -> Result<(), String> {
+    process::ensure_trae_launch_path_configured()?;
+    let default_settings = trae_instance::load_default_settings()?;
+    if let Some(pid) = resolve_running_pid(default_settings.last_pid) {
+        process::close_pid(pid, 20)?;
+        let _ = trae_instance::update_default_pid(None)?;
+    }
+    let extra_args = process::parse_extra_args(&default_settings.extra_args);
+    let pid = process::start_trae_default_with_args_with_new_window(&extra_args, true)?;
+    let _ = trae_instance::update_default_pid(Some(pid))?;
+    Ok(())
+}
+
+fn switch_inject(payload: Value) -> Result<Value, String> {
     let payload: AccountIdPayload = parse_payload(payload)?;
-    let _ = trae_account::load_account(&payload.account_id)
+    let account = trae_account::load_account(&payload.account_id)
         .ok_or_else(|| format!("Trae account not found: {}", payload.account_id))?;
-    let account = runtime
-        .block_on(trae_account::refresh_account_async(&payload.account_id))
-        .map_err(|err| format!("Trae 切号前刷新失败: {}", err))?;
     if let Err(err) = process::close_trae(20) {
         return Err(format!(
-            "Trae 正在运行且未能正常关闭（{}）。请先关闭 Trae 后重试切号。",
+            "Trae is running and could not be closed ({}). Please close Trae and try switching again.",
             err
         ));
     }
@@ -610,19 +627,16 @@ fn switch_inject(runtime: &Runtime, payload: Value) -> Result<Value, String> {
         None,
         Some(false),
     )?;
-    match start_instance(runtime, json!({ "instanceId": DEFAULT_INSTANCE_ID })) {
-        Ok(_) => to_value(SwitchResult {
-            message: format!("切换完成: {}", account.email),
-            restart_error: None,
-            path_missing: false,
-        }),
-        Err(error) if path_missing_error(&error) => to_value(SwitchResult {
-            message: format!("切换完成，但 Trae 启动失败: {}", error),
-            restart_error: Some(error),
-            path_missing: true,
-        }),
-        Err(error) => Err(error),
-    }
+    std::thread::spawn(|| {
+        if let Err(error) = start_default_instance_after_switch() {
+            eprintln!("[TraeAdapter] restart after switch failed: {}", error);
+        }
+    });
+    to_value(SwitchResult {
+        message: format!("\u{5207}\u{6362}\u{5b8c}\u{6210}: {}", account.email),
+        restart_error: None,
+        path_missing: false,
+    })
 }
 
 fn inject_default_profile(payload: Value) -> Result<Value, String> {
@@ -734,7 +748,7 @@ fn handle_rpc(runtime: &Runtime, request: RpcRequest) -> Result<Value, String> {
             trae_oauth::restore_pending_oauth_listener();
             Ok(Value::Null)
         }
-        "switch.inject" => switch_inject(runtime, request.payload),
+        "switch.inject" => switch_inject(request.payload),
         "switch.injectDefaultProfile" => inject_default_profile(request.payload),
         "instances.store.get" => to_value(trae_instance::load_instance_store()?),
         "instances.store.replace" => {
@@ -806,9 +820,9 @@ fn is_authorized(request: &tiny_http::Request, token: &str) -> bool {
 }
 
 fn handle_http_request(
-    runtime: &Runtime,
-    shutdown: &AtomicBool,
-    token: &str,
+    runtime: Arc<Runtime>,
+    shutdown: Arc<AtomicBool>,
+    token: String,
     mut request: tiny_http::Request,
 ) {
     if request.method() != &Method::Post || request.url() != "/rpc" {
@@ -819,7 +833,7 @@ fn handle_http_request(
         );
         return;
     }
-    if !is_authorized(&request, token) {
+    if !is_authorized(&request, &token) {
         write_json_response(
             request,
             401,
@@ -851,7 +865,7 @@ fn handle_http_request(
     };
 
     let should_shutdown = rpc_request.method == "adapter.shutdown";
-    let response = match handle_rpc(runtime, rpc_request) {
+    let response = match handle_rpc(runtime.as_ref(), rpc_request) {
         Ok(data) => success_response(data),
         Err(error) => error_response(error),
     };
@@ -864,7 +878,7 @@ fn handle_http_request(
 fn main() {
     cockpit_core::modules::logger::init_logger();
 
-    let runtime = Runtime::new().expect("create tokio runtime");
+    let runtime = Arc::new(Runtime::new().expect("create tokio runtime"));
     let server = Server::http("127.0.0.1:0").expect("bind trae adapter server");
     let address = server.server_addr().to_string();
     let port = address
@@ -885,10 +899,21 @@ fn main() {
         })
     );
 
-    for request in server.incoming_requests() {
-        handle_http_request(&runtime, &shutdown, &token, request);
-        if shutdown.load(Ordering::SeqCst) {
-            break;
+    while !shutdown.load(Ordering::SeqCst) {
+        match server.recv_timeout(Duration::from_millis(200)) {
+            Ok(Some(request)) => {
+                let runtime = Arc::clone(&runtime);
+                let shutdown = Arc::clone(&shutdown);
+                let token = token.clone();
+                std::thread::spawn(move || {
+                    handle_http_request(runtime, shutdown, token, request);
+                });
+            }
+            Ok(None) => {}
+            Err(error) => {
+                eprintln!("Trae adapter request receive failed: {}", error);
+                break;
+            }
         }
     }
 }

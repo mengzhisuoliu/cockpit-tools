@@ -131,23 +131,29 @@ pub async fn delete_windsurf_accounts(
 }
 
 #[tauri::command]
-pub fn import_windsurf_from_json(
+pub async fn import_windsurf_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<WindsurfAccount>, String> {
-    let accounts = windsurf_call(
+    let accounts = windsurf_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        WINDSURF_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
 #[tauri::command]
 pub async fn import_windsurf_from_local(app: AppHandle) -> Result<Vec<WindsurfAccount>, String> {
-    let accounts: Vec<WindsurfAccount> =
-        windsurf_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let accounts: Vec<WindsurfAccount> = windsurf_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        WINDSURF_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -241,12 +247,13 @@ pub async fn add_windsurf_account_with_token(
     app: AppHandle,
     github_access_token: String,
 ) -> Result<WindsurfAccount, String> {
-    let account: WindsurfAccount = windsurf_call_async(
+    let account: WindsurfAccount = windsurf_call_async_with_timeout(
         "accounts.addToken",
         json!({ "githubAccessToken": github_access_token }),
+        WINDSURF_FAST_LOCAL_MUTATION_TIMEOUT,
     )
     .await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    update_tray_menu_in_background(app);
     Ok(account)
 }
 

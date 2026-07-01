@@ -109,22 +109,29 @@ pub async fn delete_zed_accounts(app: AppHandle, account_ids: Vec<String>) -> Re
 }
 
 #[tauri::command]
-pub fn import_zed_from_json(
+pub async fn import_zed_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<ZedAccount>, String> {
-    let accounts = zed_call(
+    let accounts = zed_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        ZED_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
 #[tauri::command]
 pub async fn import_zed_from_local(app: AppHandle) -> Result<Vec<ZedAccount>, String> {
-    let account: ZedAccount = zed_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let account: ZedAccount = zed_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        ZED_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(vec![account])
 }
 

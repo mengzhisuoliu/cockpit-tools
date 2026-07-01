@@ -7,6 +7,7 @@ use std::path::Path;
 use std::process::Command;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use tiny_http::{Header, Method, Response, Server, StatusCode};
 use tokio::runtime::Runtime;
 use uuid::Uuid;
@@ -508,6 +509,8 @@ fn resolve_instance_launch_context(instance_id: &str) -> Result<GeminiLaunchCont
 fn build_launch_command(context: &GeminiLaunchContext) -> String {
     let parsed_args = process::parse_extra_args(&context.extra_args);
     let mut command_parts = Vec::new();
+    let config = config::get_user_config();
+    let configured_gemini_path = config.gemini_app_path.trim().to_string();
 
     if let Some(ref dir) = context.working_dir {
         if !dir.trim().is_empty() {
@@ -525,7 +528,11 @@ fn build_launch_command(context: &GeminiLaunchContext) -> String {
             command_parts.push(format!("set \"GEMINI_CLI_HOME={}\"", escaped_home));
         }
 
-        let mut gemini_cmd = "gemini".to_string();
+        let mut gemini_cmd = if configured_gemini_path.is_empty() {
+            "gemini".to_string()
+        } else {
+            windows_cmd_quote(&configured_gemini_path)
+        };
         for arg in parsed_args {
             if !arg.trim().is_empty() {
                 gemini_cmd.push(' ');
@@ -538,13 +545,19 @@ fn build_launch_command(context: &GeminiLaunchContext) -> String {
 
     #[cfg(not(target_os = "windows"))]
     {
+        let gemini_bin = if configured_gemini_path.is_empty() {
+            "gemini".to_string()
+        } else {
+            posix_shell_quote(&configured_gemini_path)
+        };
         let mut gemini_cmd = if context.use_home_env {
             format!(
-                "GEMINI_CLI_HOME={} gemini",
-                posix_shell_quote(&context.user_data_dir)
+                "GEMINI_CLI_HOME={} {}",
+                posix_shell_quote(&context.user_data_dir),
+                gemini_bin
             )
         } else {
-            "gemini".to_string()
+            gemini_bin
         };
 
         for arg in parsed_args {
@@ -851,9 +864,9 @@ fn is_authorized(request: &tiny_http::Request, token: &str) -> bool {
 }
 
 fn handle_http_request(
-    runtime: &Runtime,
-    shutdown: &AtomicBool,
-    token: &str,
+    runtime: Arc<Runtime>,
+    shutdown: Arc<AtomicBool>,
+    token: String,
     mut request: tiny_http::Request,
 ) {
     if request.method() != &Method::Post || request.url() != "/rpc" {
@@ -864,7 +877,7 @@ fn handle_http_request(
         );
         return;
     }
-    if !is_authorized(&request, token) {
+    if !is_authorized(&request, &token) {
         write_json_response(
             request,
             401,
@@ -896,7 +909,7 @@ fn handle_http_request(
     };
 
     let should_shutdown = rpc_request.method == "adapter.shutdown";
-    let response = match handle_rpc(runtime, rpc_request) {
+    let response = match handle_rpc(runtime.as_ref(), rpc_request) {
         Ok(data) => success_response(data),
         Err(error) => error_response(error),
     };
@@ -909,7 +922,7 @@ fn handle_http_request(
 fn main() {
     cockpit_core::modules::logger::init_logger();
 
-    let runtime = Runtime::new().expect("create tokio runtime");
+    let runtime = Arc::new(Runtime::new().expect("create tokio runtime"));
     let server = Server::http("127.0.0.1:0").expect("bind gemini adapter server");
     let address = server.server_addr().to_string();
     let port = address
@@ -930,10 +943,21 @@ fn main() {
         })
     );
 
-    for request in server.incoming_requests() {
-        handle_http_request(&runtime, &shutdown, &token, request);
-        if shutdown.load(Ordering::SeqCst) {
-            break;
+    while !shutdown.load(Ordering::SeqCst) {
+        match server.recv_timeout(Duration::from_millis(200)) {
+            Ok(Some(request)) => {
+                let runtime = Arc::clone(&runtime);
+                let shutdown = Arc::clone(&shutdown);
+                let token = token.clone();
+                std::thread::spawn(move || {
+                    handle_http_request(runtime, shutdown, token, request);
+                });
+            }
+            Ok(None) => {}
+            Err(error) => {
+                eprintln!("Gemini adapter request receive failed: {}", error);
+                break;
+            }
         }
     }
 }

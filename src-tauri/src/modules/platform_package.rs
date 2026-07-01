@@ -4488,8 +4488,8 @@ pub fn reload_platform_package(
     let status = response.status();
     let body = response.text().unwrap_or_default();
     if status.is_success() {
-        let reload_response: PlatformPackageDevReloadResponse =
-            serde_json::from_str(&body).map_err(|err| {
+        let reload_response: PlatformPackageDevReloadResponse = serde_json::from_str(&body)
+            .map_err(|err| {
                 let message = format!(
                     "parse local platform package reload response failed: error={}, body={}",
                     err, body

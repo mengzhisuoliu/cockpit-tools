@@ -7,6 +7,7 @@ import { useGlobalModal } from '../hooks/useGlobalModal';
 import {
   formatPlatformPackageSize,
   getPlatformPackageFromPackages,
+  isPlatformPackageStartupPlaceholder,
   usePlatformPackageStore,
 } from '../stores/usePlatformPackageStore';
 import { getPlatformLabel, renderPlatformIcon } from '../utils/platformMeta';
@@ -30,10 +31,12 @@ export function PlatformPackageUnavailablePage({
 }: PlatformPackageUnavailablePageProps) {
   const { t } = useTranslation();
   const { showModal } = useGlobalModal();
+  const initialized = usePlatformPackageStore((store) => store.initialized);
   const installPackage = usePlatformPackageStore((store) => store.installPackage);
   const refreshPackages = usePlatformPackageStore((store) => store.refresh);
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [operationError, setOperationError] = useState<string | null>(null);
+  const startupPlaceholder = isPlatformPackageStartupPlaceholder(state, initialized);
   const platformName = getPlatformLabel(platformId, t);
   const needsRepair = Boolean(
     state
@@ -43,15 +46,18 @@ export function PlatformPackageUnavailablePage({
       || (!state.runtimeReady && state.installStatus !== 'notInstalled')
     ),
   );
-  const statusText = state
-    ? getPlatformPackageStatusText(state, t)
-    : t('common.loading', '加载中...');
+  const statusText = startupPlaceholder
+    ? t('common.loading', '加载中...')
+    : state
+      ? getPlatformPackageStatusText(state, t)
+      : t('common.loading', '加载中...');
   const stateOperating = state?.installStatus === 'installing'
     || state?.installStatus === 'updating'
     || state?.installStatus === 'uninstalling';
   const operating = actionKey === 'install' || stateOperating;
   const canInstall = Boolean(
     state
+    && !startupPlaceholder
     && state.packageMode === 'hotUpdate'
     && !stateOperating
     && (

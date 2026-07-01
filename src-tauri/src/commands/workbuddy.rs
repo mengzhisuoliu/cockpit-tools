@@ -109,23 +109,29 @@ pub async fn delete_workbuddy_accounts(
 }
 
 #[tauri::command]
-pub fn import_workbuddy_from_json(
+pub async fn import_workbuddy_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<WorkbuddyAccount>, String> {
-    let accounts = workbuddy_call(
+    let accounts = workbuddy_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        WORKBUDDY_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
 #[tauri::command]
 pub async fn import_workbuddy_from_local(app: AppHandle) -> Result<Vec<WorkbuddyAccount>, String> {
-    let accounts: Vec<WorkbuddyAccount> =
-        workbuddy_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let accounts: Vec<WorkbuddyAccount> = workbuddy_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        WORKBUDDY_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -212,9 +218,13 @@ pub async fn add_workbuddy_account_with_token(
     app: AppHandle,
     access_token: String,
 ) -> Result<WorkbuddyAccount, String> {
-    let account: WorkbuddyAccount =
-        workbuddy_call_async("accounts.addToken", json!({ "accessToken": access_token })).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let account: WorkbuddyAccount = workbuddy_call_async_with_timeout(
+        "accounts.addToken",
+        json!({ "accessToken": access_token }),
+        WORKBUDDY_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(account)
 }
 

@@ -3724,9 +3724,8 @@ mod tests {
 
         let late_meta_rollout = rollout_dir.join("rollout-late-meta.jsonl");
         let mut late_content = "{}\n".repeat(MAX_ROLLOUT_PROVIDER_DISCOVERY_LINES);
-        late_content.push_str(
-            r#"{"type":"session_meta","payload":{"model_provider":"late-provider"}}"#,
-        );
+        late_content
+            .push_str(r#"{"type":"session_meta","payload":{"model_provider":"late-provider"}}"#);
         late_content.push('\n');
         fs::write(&late_meta_rollout, late_content).expect("write late meta rollout");
 

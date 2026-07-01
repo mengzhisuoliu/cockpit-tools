@@ -27,6 +27,7 @@ import { useRemoteConfigStore } from '../../stores/useRemoteConfigStore';
 import {
   canShowPlatformEntryFromPackages,
   getPlatformPackageFromPackages,
+  isPlatformPackageStartupPlaceholder,
   usePlatformPackageStore,
 } from '../../stores/usePlatformPackageStore';
 import { getPlatformPackageShortStatus } from '../PlatformPackageToolbar';
@@ -205,11 +206,14 @@ export function SideNav({
     [platformPackages, platformPackagesInitialized],
   );
   const getPackageEntryStatus = useCallback(
-    (platformId: PlatformId) => getPlatformPackageShortStatus(
-      getPlatformPackageFromPackages(platformPackages, platformId),
-      t,
-    ),
-    [platformPackages, t],
+    (platformId: PlatformId) => {
+      const state = getPlatformPackageFromPackages(platformPackages, platformId);
+      return getPlatformPackageShortStatus(
+        isPlatformPackageStartupPlaceholder(state, platformPackagesInitialized) ? null : state,
+        t,
+      );
+    },
+    [platformPackages, platformPackagesInitialized, t],
   );
 
   const antigravityRuntimeTarget = useAntigravityRuntimeTarget();

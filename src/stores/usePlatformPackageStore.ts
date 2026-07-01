@@ -39,6 +39,8 @@ const EMPTY_CONTRIBUTIONS: PlatformPackageState['contributions'] = {
   nativeBoundaries: [],
 };
 
+const PLATFORM_PACKAGES_CACHE_KEY = 'agtools.platform_packages.cache.v1';
+
 const DEFAULT_PLATFORM_PACKAGES: PlatformPackageState[] = [
   {
     platformId: 'antigravity',
@@ -370,6 +372,89 @@ function packageForPlatform(
   return packages.find((item) => item.platformId === platformId) ?? null;
 }
 
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+}
+
+function isKnownPlatformPackage(value: unknown): value is PlatformPackageState {
+  if (!isPlainRecord(value)) return false;
+  if (typeof value.platformId !== 'string') return false;
+  if (!DEFAULT_PLATFORM_PACKAGES.some((item) => item.platformId === value.platformId)) {
+    return false;
+  }
+  return value.packageMode === 'hotUpdate' || value.packageMode === 'bundled';
+}
+
+function normalizeCachedPackageState(state: PlatformPackageState): PlatformPackageState {
+  const defaultState = packageForPlatform(DEFAULT_PLATFORM_PACKAGES, state.platformId);
+  const next: PlatformPackageState = {
+    ...(defaultState ?? state),
+    ...state,
+    capabilities: Array.isArray(state.capabilities) ? state.capabilities : [],
+    contributions: state.contributions ?? defaultState?.contributions ?? EMPTY_CONTRIBUTIONS,
+    changelog: Array.isArray(state.changelog) ? state.changelog : [],
+  };
+
+  if (
+    next.installStatus === 'installing'
+    || next.installStatus === 'updating'
+    || next.installStatus === 'uninstalling'
+  ) {
+    next.installStatus = next.runtimeReady ? 'installed' : 'notInstalled';
+  }
+
+  return next;
+}
+
+function upsertAndPersistPackage(
+  packages: PlatformPackageState[],
+  nextPackage: PlatformPackageState,
+): PlatformPackageState[] {
+  const nextPackages = upsertPackage(packages, nextPackage);
+  persistPackagesCache(nextPackages);
+  return nextPackages;
+}
+
+function loadCachedPackages(): PlatformPackageState[] {
+  if (typeof localStorage === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(PLATFORM_PACKAGES_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    const packages = isPlainRecord(parsed) && Array.isArray(parsed.packages)
+      ? parsed.packages
+      : Array.isArray(parsed)
+        ? parsed
+        : [];
+    return packages
+      .filter(isKnownPlatformPackage)
+      .map((item) => normalizeCachedPackageState(item));
+  } catch {
+    return [];
+  }
+}
+
+function persistPackagesCache(packages: PlatformPackageState[]): void {
+  if (typeof localStorage === 'undefined') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      PLATFORM_PACKAGES_CACHE_KEY,
+      JSON.stringify({
+        savedAt: Date.now(),
+        packages: packages.map(normalizeCachedPackageState),
+      }),
+    );
+  } catch {
+    // Cache writes are best effort only.
+  }
+}
+
 function mergeKnownPackages(packages: PlatformPackageState[]): PlatformPackageState[] {
   return DEFAULT_PLATFORM_PACKAGES.reduce(
     (next, defaultPackage) => (
@@ -378,6 +463,21 @@ function mergeKnownPackages(packages: PlatformPackageState[]): PlatformPackageSt
         : [...next, defaultPackage]
     ),
     [...packages],
+  );
+}
+
+function isStartupPlaceholderPackage(state: PlatformPackageState | null | undefined): boolean {
+  return Boolean(
+    state
+    && state.packageMode === 'hotUpdate'
+    && state.installStatus === 'notInstalled'
+    && !state.runtimeReady
+    && !state.installedVersion
+    && !state.latestVersion
+    && !state.entry
+    && !state.adapter
+    && !state.ui
+    && state.capabilities.length === 0,
   );
 }
 
@@ -437,9 +537,10 @@ function isPlatformPackageInstallRequired(
 
 let silentPrepareStarted = false;
 let silentPrepareInFlight = false;
+const initialPlatformPackages = mergeKnownPackages(loadCachedPackages());
 
 export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, get) => ({
-  packages: DEFAULT_PLATFORM_PACKAGES,
+  packages: initialPlatformPackages,
   initialized: false,
   loading: false,
   error: null,
@@ -449,6 +550,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
     try {
       const packages = mergeKnownPackages(await listPlatformPackages());
       set({ packages, loading: false, initialized: true });
+      persistPackagesCache(packages);
       void get().prepareUpdates();
       return packages;
     } catch (error) {
@@ -467,6 +569,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
     try {
       const packages = mergeKnownPackages(await preparePlatformPackageUpdates());
       set({ packages, initialized: true, error: null });
+      persistPackagesCache(packages);
       return packages;
     } catch (error) {
       console.warn('[PlatformPackage] silent prepare failed', error);
@@ -479,7 +582,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   checkUpdate: async (platformId) => {
     const nextPackage = await checkPlatformPackageUpdate(platformId);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -489,7 +592,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   installPackage: async (platformId) => {
     const nextPackage = await installPlatformPackage(platformId);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -499,7 +602,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   installPackageFromLocalZip: async (platformId, zipPath) => {
     const nextPackage = await installPlatformPackageFromLocalZip(platformId, zipPath);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -509,7 +612,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   installPackageVersion: async (platformId, version) => {
     const nextPackage = await installPlatformPackageVersion(platformId, version);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -523,7 +626,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   updatePackage: async (platformId) => {
     const nextPackage = await updatePlatformPackage(platformId);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -533,7 +636,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   reloadPackage: async (platformId) => {
     const nextPackage = await reloadPlatformPackage(platformId);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -543,7 +646,7 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
   uninstallPackage: async (platformId) => {
     const nextPackage = await uninstallPlatformPackage(platformId);
     set((state) => ({
-      packages: upsertPackage(state.packages, nextPackage),
+      packages: upsertAndPersistPackage(state.packages, nextPackage),
       initialized: true,
       error: null,
     }));
@@ -577,9 +680,13 @@ export const usePlatformPackageStore = create<PlatformPackageStoreState>((set, g
 
 export function canOpenPlatformFromPackages(
   packages: PlatformPackageState[],
-  _initialized: boolean,
+  initialized: boolean,
   platformId: PlatformId,
 ): boolean {
+  const runtimePackage = packageForPlatform(packages, platformId);
+  if (!initialized && isStartupPlaceholderPackage(runtimePackage)) {
+    return false;
+  }
   return isPlatformRuntimeReady(packages, platformId);
 }
 
@@ -611,10 +718,21 @@ export function canShowPlatformEntryFromPackages(
 
 export function isPlatformPackageInstallRequiredFromPackages(
   packages: PlatformPackageState[],
-  _initialized: boolean,
+  initialized: boolean,
   platformId: PlatformId,
 ): boolean {
+  const runtimePackage = packageForPlatform(packages, platformId);
+  if (!initialized && isStartupPlaceholderPackage(runtimePackage)) {
+    return false;
+  }
   return isPlatformPackageInstallRequired(packages, platformId);
+}
+
+export function isPlatformPackageStartupPlaceholder(
+  state: PlatformPackageState | null | undefined,
+  initialized: boolean,
+): boolean {
+  return !initialized && isStartupPlaceholderPackage(state);
 }
 
 export function formatPlatformPackageSize(size?: number | null): string {

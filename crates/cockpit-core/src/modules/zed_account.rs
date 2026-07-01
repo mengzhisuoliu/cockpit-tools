@@ -7,6 +7,7 @@ use std::path::PathBuf;
 #[cfg(target_os = "macos")]
 use std::process::Command;
 use std::sync::Mutex;
+use std::time::Instant;
 
 use crate::models::zed::{ZedAccount, ZedAccountIndex, ZedStoredAccount};
 use crate::modules::{account, logger};
@@ -44,6 +45,84 @@ struct ZedExportPayload {
 pub struct ZedKeychainCredentials {
     pub user_id: String,
     pub access_token: String,
+}
+
+fn parse_import_accounts_value(
+    value: Value,
+) -> Result<(Option<String>, Vec<ZedStoredAccount>), String> {
+    if let Ok(payload) = serde_json::from_value::<ZedExportPayload>(value.clone()) {
+        return Ok((payload.current_account_id, payload.accounts));
+    }
+    if let Ok(list) = serde_json::from_value::<Vec<ZedStoredAccount>>(value.clone()) {
+        return Ok((None, list));
+    }
+    if let Ok(single) = serde_json::from_value::<ZedStoredAccount>(value) {
+        return Ok((None, vec![single]));
+    }
+    Err("导入内容格式无效，需为 Zed 账号导出 JSON".to_string())
+}
+
+fn decode_escaped_import_text(text: &str) -> Option<String> {
+    let escaped_controls = text
+        .trim()
+        .replace('\r', "\\r")
+        .replace('\n', "\\n")
+        .replace('\t', "\\t");
+    let wrapped = format!("\"{}\"", escaped_controls);
+    serde_json::from_str::<String>(&wrapped)
+        .ok()
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty() && value != text.trim())
+}
+
+fn normalize_backslash_quoted_import_text(text: &str) -> Option<String> {
+    if !text.contains("\\\"") {
+        return None;
+    }
+    let normalized = text.replace("\\\"", "\"").replace("\\/", "/");
+    (normalized != text).then(|| normalized.trim().to_string())
+}
+
+fn parse_import_accounts_json(
+    json_content: &str,
+) -> Result<(Option<String>, Vec<ZedStoredAccount>), String> {
+    let mut text = json_content.trim().to_string();
+    if text.is_empty() {
+        return Err("导入内容不能为空".to_string());
+    }
+
+    let mut last_error = None;
+    for _ in 0..4 {
+        match serde_json::from_str::<Value>(&text) {
+            Ok(Value::String(inner)) => {
+                text = inner.trim().to_string();
+                if text.is_empty() {
+                    return Err("导入内容不能为空".to_string());
+                }
+            }
+            Ok(value) => return parse_import_accounts_value(value),
+            Err(error) => {
+                last_error = Some(error.to_string());
+                if let Some(decoded) = decode_escaped_import_text(&text) {
+                    text = decoded;
+                    continue;
+                }
+                if let Some(normalized) = normalize_backslash_quoted_import_text(&text) {
+                    text = normalized;
+                    continue;
+                }
+                break;
+            }
+        }
+    }
+
+    let detail = last_error
+        .map(|error| format!(": {}", error))
+        .unwrap_or_default();
+    Err(format!(
+        "导入内容格式无效，需为 Zed 账号导出 JSON{}",
+        detail
+    ))
 }
 
 fn now_ts() -> i64 {
@@ -948,24 +1027,18 @@ pub async fn import_from_local() -> Result<ZedAccount, String> {
 }
 
 pub fn import_from_json(json_content: &str) -> Result<Vec<ZedAccount>, String> {
+    let started_at = Instant::now();
     ensure_package_installed()?;
-    let trimmed = json_content.trim();
-    if trimmed.is_empty() {
-        return Err("导入内容不能为空".to_string());
-    }
-
-    let mut payload_current_id = None;
-    let accounts: Vec<ZedStoredAccount> =
-        if let Ok(payload) = serde_json::from_str::<ZedExportPayload>(trimmed) {
-            payload_current_id = payload.current_account_id.clone();
-            payload.accounts
-        } else if let Ok(list) = serde_json::from_str::<Vec<ZedStoredAccount>>(trimmed) {
-            list
-        } else if let Ok(single) = serde_json::from_str::<ZedStoredAccount>(trimmed) {
-            vec![single]
-        } else {
-            return Err("导入内容格式无效，需为 Zed 账号导出 JSON".to_string());
-        };
+    logger::log_info(&format!(
+        "[Zed Account][Import] start: bytes={}",
+        json_content.len()
+    ));
+    let (payload_current_id, accounts) = parse_import_accounts_json(json_content)?;
+    logger::log_info(&format!(
+        "[Zed Account][Import] parsed: accounts={}, elapsed={}ms",
+        accounts.len(),
+        started_at.elapsed().as_millis()
+    ));
 
     if accounts.is_empty() {
         return Ok(Vec::new());
@@ -981,6 +1054,11 @@ pub fn import_from_json(json_content: &str) -> Result<Vec<ZedAccount>, String> {
         let _ = set_current_account_id(Some(&current_id));
     }
 
+    logger::log_info(&format!(
+        "[Zed Account][Import] done: accounts={}, elapsed={}ms",
+        imported.len(),
+        started_at.elapsed().as_millis()
+    ));
     Ok(imported)
 }
 
@@ -1225,8 +1303,12 @@ pub fn read_credentials_from_keychain() -> Result<Option<ZedKeychainCredentials>
 
         let user_id = normalize_non_empty(user_id_raw.as_deref())
             .ok_or_else(|| "解析 Windows Credential Manager Zed user_id 失败".to_string())?;
-        let access_token = String::from_utf8(token_bytes)
-            .map_err(|e| format!("解析 Windows Credential Manager Zed access_token 失败: {}", e))?;
+        let access_token = String::from_utf8(token_bytes).map_err(|e| {
+            format!(
+                "解析 Windows Credential Manager Zed access_token 失败: {}",
+                e
+            )
+        })?;
         let access_token = normalize_non_empty(Some(&access_token))
             .ok_or_else(|| "Windows Credential Manager Zed access_token 为空".to_string())?;
 

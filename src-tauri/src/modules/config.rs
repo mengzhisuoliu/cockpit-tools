@@ -3,6 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{OnceLock, RwLock};
@@ -255,8 +256,12 @@ pub struct UserConfig {
     /// Claude 桌面应用启动路径（为空则使用默认路径）
     #[serde(default = "default_claude_app_path")]
     pub claude_app_path: String,
+    #[serde(default = "default_gemini_app_path")]
+    pub gemini_app_path: String,
     #[serde(default = "default_claude_app_scan_roots")]
     pub claude_app_scan_roots: String,
+    #[serde(default = "default_app_scan_roots")]
+    pub app_scan_roots: HashMap<String, String>,
     /// 切换 Codex 后需联动重启的指定应用路径
     #[serde(default = "default_codex_specified_app_path")]
     pub codex_specified_app_path: String,
@@ -716,8 +721,14 @@ fn default_codex_app_path() -> String {
 fn default_claude_app_path() -> String {
     String::new()
 }
+fn default_gemini_app_path() -> String {
+    String::new()
+}
 fn default_claude_app_scan_roots() -> String {
     String::new()
+}
+fn default_app_scan_roots() -> HashMap<String, String> {
+    HashMap::new()
 }
 fn default_codex_specified_app_path() -> String {
     String::new()
@@ -985,7 +996,9 @@ impl Default for UserConfig {
             antigravity_app_path: default_antigravity_app_path(),
             codex_app_path: default_codex_app_path(),
             claude_app_path: default_claude_app_path(),
+            gemini_app_path: default_gemini_app_path(),
             claude_app_scan_roots: default_claude_app_scan_roots(),
+            app_scan_roots: default_app_scan_roots(),
             codex_specified_app_path: default_codex_specified_app_path(),
             zed_app_path: default_zed_app_path(),
             vscode_app_path: default_vscode_app_path(),
@@ -1315,6 +1328,20 @@ pub fn load_user_config() -> Result<UserConfig, String> {
             obj.insert(
                 "gemini_sync_wsl".to_string(),
                 json!(default_gemini_sync_wsl()),
+            );
+        }
+
+        if !obj.contains_key("gemini_app_path") {
+            obj.insert(
+                "gemini_app_path".to_string(),
+                json!(default_gemini_app_path()),
+            );
+        }
+
+        if !obj.contains_key("app_scan_roots") {
+            obj.insert(
+                "app_scan_roots".to_string(),
+                json!(default_app_scan_roots()),
             );
         }
 

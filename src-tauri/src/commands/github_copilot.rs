@@ -113,15 +113,17 @@ pub async fn delete_github_copilot_accounts(
 }
 
 #[tauri::command]
-pub fn import_github_copilot_from_json(
+pub async fn import_github_copilot_from_json(
     app: AppHandle,
     json_content: String,
 ) -> Result<Vec<GitHubCopilotAccount>, String> {
-    let accounts = github_copilot_call(
+    let accounts = github_copilot_call_async_with_timeout(
         "accounts.importJson",
         json!({ "jsonContent": json_content }),
-    )?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+        GHCP_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -129,9 +131,13 @@ pub fn import_github_copilot_from_json(
 pub async fn import_github_copilot_from_local(
     app: AppHandle,
 ) -> Result<Vec<GitHubCopilotAccount>, String> {
-    let accounts: Vec<GitHubCopilotAccount> =
-        github_copilot_call_async("accounts.importLocal", json!({})).await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    let accounts: Vec<GitHubCopilotAccount> = github_copilot_call_async_with_timeout(
+        "accounts.importLocal",
+        json!({}),
+        GHCP_FAST_LOCAL_MUTATION_TIMEOUT,
+    )
+    .await?;
+    update_tray_menu_in_background(app);
     Ok(accounts)
 }
 
@@ -214,12 +220,13 @@ pub async fn add_github_copilot_account_with_token(
     app: AppHandle,
     github_access_token: String,
 ) -> Result<GitHubCopilotAccount, String> {
-    let account: GitHubCopilotAccount = github_copilot_call_async(
+    let account: GitHubCopilotAccount = github_copilot_call_async_with_timeout(
         "accounts.addToken",
         json!({ "githubAccessToken": github_access_token }),
+        GHCP_FAST_LOCAL_MUTATION_TIMEOUT,
     )
     .await?;
-    let _ = crate::modules::tray::update_tray_menu(&app);
+    update_tray_menu_in_background(app);
     Ok(account)
 }
 

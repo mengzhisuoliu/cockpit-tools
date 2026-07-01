@@ -82,6 +82,11 @@ import {
   removeAccountsOverviewFilterField,
   writeAccountsOverviewFilterField,
 } from '../utils/accountsOverviewFilterPersistence';
+import {
+  logHangDiagnostic,
+  measureHangDiagnostic,
+  trackNextPaint,
+} from '../utils/hangDiagnostics';
 
 const QODER_FLOW_NOTICE_COLLAPSED_KEY = 'agtools.qoder.flow_notice_collapsed';
 const QODER_FILTER_PERSISTENCE_SCOPE = normalizeAccountsOverviewScope('qoder');
@@ -534,6 +539,8 @@ export function QoderAccountsContent({ activeTab }: QoderAccountsContentProps) {
   }, []);
 
   const openAddModal = useCallback((tab: 'oauth' | 'token' | 'import' = 'oauth') => {
+    logHangDiagnostic('info', 'qoder add modal open requested', { platform: 'qoder', tab });
+    trackNextPaint('qoder add modal open', { platform: 'qoder', tab });
     setAddTab(tab);
     setShowAddModal(true);
   }, []);
@@ -993,13 +1000,29 @@ export function QoderAccountsContent({ activeTab }: QoderAccountsContentProps) {
 
   const handleImportLocal = useCallback(async () => {
     if (addStatus === 'loading') return;
+    const diagnosticFields = { platform: 'qoder', source: 'local' };
     setAddStatus('loading');
     setAddMessage(null);
     try {
-      await qoderService.importQoderFromLocal();
-      await store.fetchAccounts();
+      await measureHangDiagnostic(
+        'qoder import local',
+        diagnosticFields,
+        () => qoderService.importQoderFromLocal(),
+        1000,
+      );
+      await measureHangDiagnostic(
+        'qoder fetch accounts after local import',
+        diagnosticFields,
+        () => store.fetchAccounts(),
+        1000,
+      );
       await new Promise((resolve) => setTimeout(resolve, 180));
-      await store.fetchAccounts();
+      await measureHangDiagnostic(
+        'qoder refetch accounts after local import settle',
+        diagnosticFields,
+        () => store.fetchAccounts(),
+        1000,
+      );
       setAddStatus('success');
       setAddMessage(t('qoder.import.localSuccess', '已从本机 Qoder 导入账号。'));
     } catch (error) {
@@ -1011,12 +1034,36 @@ export function QoderAccountsContent({ activeTab }: QoderAccountsContentProps) {
   const handleImportJsonFile = useCallback(
     async (file: File) => {
       if (addStatus === 'loading') return;
+      const diagnosticFields = {
+        platform: 'qoder',
+        source: 'json-file',
+        fileName: file.name,
+        fileSize: file.size,
+      };
       setAddStatus('loading');
       setAddMessage(null);
       try {
-        const content = await file.text();
-        await store.importFromJson(content);
-        await store.fetchAccounts();
+        const content = await measureHangDiagnostic(
+          'qoder import file read',
+          diagnosticFields,
+          () => file.text(),
+          500,
+        );
+        await measureHangDiagnostic(
+          'qoder import json',
+          {
+            ...diagnosticFields,
+            contentLength: content.length,
+          },
+          () => store.importFromJson(content),
+          1000,
+        );
+        await measureHangDiagnostic(
+          'qoder fetch accounts after import',
+          diagnosticFields,
+          () => store.fetchAccounts(),
+          1000,
+        );
         setAddStatus('success');
         setAddMessage(t('accounts.importJsonSuccess', 'JSON 导入成功'));
       } catch (error) {
@@ -1038,8 +1085,23 @@ export function QoderAccountsContent({ activeTab }: QoderAccountsContentProps) {
     setAddStatus('loading');
     setAddMessage(null);
     try {
-      const imported = await store.importFromJson(payload);
-      await store.fetchAccounts();
+      const diagnosticFields = {
+        platform: 'qoder',
+        source: 'token-json',
+        contentLength: payload.length,
+      };
+      const imported = await measureHangDiagnostic(
+        'qoder token import json',
+        diagnosticFields,
+        () => store.importFromJson(payload),
+        1000,
+      );
+      await measureHangDiagnostic(
+        'qoder fetch accounts after token import',
+        diagnosticFields,
+        () => store.fetchAccounts(),
+        1000,
+      );
       setAddStatus('success');
       setAddMessage(
         t('common.shared.token.importSuccessMsg', '成功导入 {{count}} 个账号', {
@@ -1311,6 +1373,7 @@ export function QoderAccountsContent({ activeTab }: QoderAccountsContentProps) {
   }, [addTab, oauthLoginId, oauthPreparing, oauthUrl, showAddModal]);
 
   const handlePickImportFile = useCallback(() => {
+    logHangDiagnostic('info', 'qoder import file picker requested', { platform: 'qoder' });
     importFileInputRef.current?.click();
   }, []);
 
